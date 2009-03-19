@@ -77,7 +77,7 @@ Part I:  Jython Basics:  Learning the Language
 
             Closures and Passing Objects
 
-      Chapter 7:  Modules, Packages, and Reuse
+      Chapter 7:  Modules, Packages, and Reuse (Frank Wierzbicki)
 
             Using imports for Reuse
 
@@ -89,10 +89,10 @@ Part I:  Jython Basics:  Learning the Language
 
 Part II: Using the Language
 
-      Chapter 8:  Scripting with Jython
+      Chapter 8:  Scripting with Jython (Frank Wierzbicki)
 
             Learning the Command Line
-
+            
             Using Modules and Java Libraries 
 
       Chapter 9:  Input and Output
