@@ -33,7 +33,7 @@ Part I:  Jython Basics:  Learning the Language
 
             Referencing and Copies
 
-            Chapter 3:  Flow and Expressions
+      Chapter 3:  Flow and Expressions
 
             Defining Expressions
 
@@ -77,7 +77,7 @@ Part I:  Jython Basics:  Learning the Language
 
             Closures and Passing Objects
 
-            Chapter 7:  Modules, Packages, and Reuse
+      Chapter 7:  Modules, Packages, and Reuse
 
             Using imports for Reuse
 
