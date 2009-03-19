@@ -1,5 +1,4 @@
 Table of Contents
- 
 
 Copyright and Licensing
 
@@ -7,9 +6,9 @@ About the Authors
 
 Acknowledgements
 
-Part I:  Jython Basics:  Learning the Language
+Part I:  Jython Basics:  Learning the Language  
 
-      Chapter 1:  Language and Syntax
+      Chapter 1:  Language and Syntax   (Josh - 4/20/2009)
 
             Identifiers and Reserved Words
 
@@ -25,7 +24,7 @@ Part I:  Jython Basics:  Learning the Language
 
             Decorators
 
-      Chapter 2:  Data Types and Referencing
+      Chapter 2:  Data Types and Referencing  (Josh - 05/2009)
 
             Jython Data Types
 
@@ -53,11 +52,13 @@ Part I:  Jython Basics:  Learning the Language
 
             Generators
 
+ 	    Coroutines
+
             Function Decorators
 
             Using Built-In Functions
 
-      Chapter 5:  Exception Handling in Jython
+      Chapter 5:  Exception Handling in Jython  (Josh - 06/2009)
 
             What is Exception Handling
 
@@ -95,7 +96,7 @@ Part II: Using the Language
             
             Using Modules and Java Libraries 
 
-      Chapter 9:  Input and Output
+      Chapter 9:  Input and Output  (Josh - 04/20/2009)
 
             Input from Keyboard
 
@@ -103,7 +104,7 @@ Part II: Using the Language
 
             Standard I/O
 
-      Chapter 10: Java and Jython Integration
+      Chapter 10: Java and Jython Integration (Josh - 05/2009)
 
             Using Jython within Java Applications
 
@@ -113,7 +114,7 @@ Part II: Using the Language
 
             Exploring the Java Environment with iPython
 
-      Chapter 11:  Using Jython in an IDE
+      Chapter 11:  Using Jython in an IDE  (Josh - 06/2009)
 
             Eclipse
 
@@ -129,7 +130,7 @@ Part II: Using the Language
 
             WebSphere
 
-      Chapter 12:  Databases and Jython
+      Chapter 12:  Databases and Jython  (Josh - 05/2009)
 
             zxJDBC Basics
 
@@ -143,7 +144,7 @@ Part II: Using the Language
 
 Part III: Developing Applications with Jython
 
-      Chapter 13:  Web Applications
+      Chapter 13:  Web Applications  (Josh - 06/2009)
 
             Servlets
 
