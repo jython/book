@@ -52,7 +52,7 @@ Part I:  Jython Basics:  Learning the Language
 
             Generators
 
- 	    Coroutines
+            Coroutines
 
             Function Decorators
 
@@ -114,13 +114,13 @@ Part II: Using the Language
 
             Exploring the Java Environment with iPython
 
-      Chapter 11:  Using Jython in an IDE  (Josh - 06/2009)
+      Chapter 11:  Using Jython in an IDE  (Josh & Leo Soto - 06/2009)
 
             Eclipse
 
                   PyDev
 
-            Netbeans
+            Netbeans 
 
                   Setting Up Your Environment
 
@@ -144,21 +144,27 @@ Part II: Using the Language
 
 Part III: Developing Applications with Jython
 
-      Chapter 13:  Web Applications  (Josh - 06/2009)
+      Chapter 13: Simple Web Applications  (Josh - 06/2009)
 
             Servlets
 
             Applets
 
-            Frameworks
+	    WSGI and modjy
 
-                  Django
+      Chapter 14: Web Applications with Django (Leo Soto)
 
-                  Pylons
+            The General Picture
 
-                  ?
+            A First Django/Jython Application
 
-      Chapter 14:  Web Services and SOA
+            Java-specific topics
+
+      Chapter 15: Web Applications with Pylons 
+
+            ???
+
+      Chapter 16:  Web Services and SOA
 
             JAX-WS
 
@@ -166,13 +172,13 @@ Part III: Developing Applications with Jython
 
             JAXB and Legacy JAX-RPC Support
 
-      Chapter 15:  GUI Applications (Frank Wierzbicki)
+      Chapter 17:  GUI Applications (Frank Wierzbicki)
 
             Writing Jython Swing
 
             Using Jython with JavaFX
 
-      Chapter 16:  Deployment Targets
+      Chapter 18:  Deployment Targets
 
             Application Servers
 
@@ -190,13 +196,13 @@ Part III: Developing Applications with Jython
 
 Part IV:  Strategy and Technique
 
-      Chapter 17:  Testing and Continuous Integration
+      Chapter 19:  Testing and Continuous Integration (Leo Soto)
 
             Grinder
 
             Push-To-Test TestMaker
 
-      Chapter 18:  Concurrency and Parallelism
+      Chapter 20:  Concurrency and Parallelism
 
             High-Level Concurrency
 
