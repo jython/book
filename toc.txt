@@ -165,7 +165,7 @@ Part III: Developing Applications with Jython
 
             JAXB and Legacy JAX-RPC Support
 
-      Chapter 15:  GUI Applications
+      Chapter 15:  GUI Applications (Frank Wierzbicki)
 
             Writing Jython Swing
 
