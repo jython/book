@@ -112,7 +112,9 @@ Part II: Using the Language
 
             Using Java within Jython Applications
 
-            Exploring the Java Environment with iPython
+            Java Package Scanning (Frank Wierzbicki)
+
+            Exploring the Java Environment with iPython (this doesn't work yet....)
 
       Chapter 11:  Using Jython in an IDE  (Josh & Leo Soto - 06/2009)
 
