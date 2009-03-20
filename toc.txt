@@ -68,7 +68,7 @@ Part I:  Jython Basics:  Learning the Language
 
             Assertions
 
-      Chapter 6:  Object Oriented Jython
+      Chapter 6:  Object Oriented Jython (Victor Ng)
 
             Using Classes
 
@@ -152,7 +152,7 @@ Part III: Developing Applications with Jython
 
 	    WSGI and modjy
 
-      Chapter 14: Web Applications with Django (Leo Soto)
+      Chapter 14: Web Applications with Django (Leo Soto, Victor Ng)
 
             The General Picture
 
@@ -160,7 +160,7 @@ Part III: Developing Applications with Jython
 
             Java-specific topics
 
-      Chapter 15: Web Applications with Pylons 
+      Chapter 15: Web Applications with Pylons  (Victor Ng)
 
             ???
 
