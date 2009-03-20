@@ -40,7 +40,7 @@ Part I:  Jython Basics:  Learning the Language
 
             Looping and Iteration
 
-      Chapter 4:  Defining Functions and Using Built-Ins
+      Chapter 4:  Defining Functions and Using Built-Ins (Jim)
 
             Function Syntax and Basics
 
@@ -130,7 +130,7 @@ Part II: Using the Language
 
             WebSphere
 
-      Chapter 12:  Databases and Jython  (Josh - 05/2009)
+      Chapter 12:  Databases and Jython  (Josh & Jim - 05/2009)
 
             zxJDBC Basics
 
@@ -164,7 +164,7 @@ Part III: Developing Applications with Jython
 
             ???
 
-      Chapter 16:  Web Services and SOA
+      Chapter 16:  Web Services and SOA (Jim)
 
             JAX-WS
 
@@ -188,7 +188,7 @@ Part III: Developing Applications with Jython
 
                   JBoss
 
-            Mobile
+            Mobile (Jim)
 
                   Android
 
@@ -202,7 +202,7 @@ Part IV:  Strategy and Technique
 
             Push-To-Test TestMaker
 
-      Chapter 20:  Concurrency and Parallelism
+      Chapter 20:  Concurrency and Parallelism (Jim)
 
             High-Level Concurrency
 
