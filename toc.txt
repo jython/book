@@ -32,7 +32,7 @@ Part I:  Jython Basics:  Learning the Language
 
             Referencing and Copies
 
-      Chapter 3:  Flow and Expressions
+      Chapter 3:  Flow and Expressions (Josh)
 
             Defining Expressions
 
@@ -68,7 +68,7 @@ Part I:  Jython Basics:  Learning the Language
 
             Assertions
 
-      Chapter 6:  Object Oriented Jython (Victor Ng)
+      Chapter 6:  Object Oriented Jython (Victor Ng - 04/20/2009)
 
             Using Classes
 
@@ -78,7 +78,7 @@ Part I:  Jython Basics:  Learning the Language
 
             Closures and Passing Objects
 
-      Chapter 7:  Modules, Packages, and Reuse (Frank Wierzbicki)
+      Chapter 7:  Modules, Packages, and Reuse (Frank Wierzbicki - 04/20/2009)
 
             Using imports for Reuse
 
@@ -180,9 +180,9 @@ Part III: Developing Applications with Jython
 
             Using Jython with JavaFX
 
-      Chapter 18:  Deployment Targets
+      Chapter 18:  Deployment Targets (Josh & Jim)
 
-            Application Servers
+            Application Servers (Josh)
 
                   Tomcat
 
