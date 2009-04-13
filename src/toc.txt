@@ -1,0 +1,232 @@
+The Definitive Guide to Jython (with Django)
+Authors:  Josh Juneau
+	  Frank Wierzbicki
+  	  Jim Baker
+	  Leo Soto
+	  Victor Ng
+
+Page Count Estimate:  419 - 473 
+
+Table of Contents
+
+Copyright and Licensing
+
+About the Authors
+
+Acknowledgements
+
+Part I:  Jython Basics:  Learning the Language  
+
+      Chapter 1:  Language and Syntax   (Josh - 4/20/2009) (pages: 20-23)
+
+            Identifiers and Declaring Variables
+	
+	    Reserved Words
+
+            Coding Structure
+
+            Operators
+
+            Expressions
+
+            Statements
+
+	    Iteration
+
+	    Documenting Code
+
+            Decorators
+
+      Chapter 2:  Data Types and Referencing  (Josh - 05/2009) (pages: 18-20)
+
+            Jython Data Types
+
+            Ranges
+
+            Lists, Dictionaries, and Tuples
+
+            Garbage Collection
+
+            Referencing and Copies
+
+      Chapter 3:  Flow and Expressions (Josh) (pages: 10-12)
+
+            Defining Expressions
+
+            Conditionals with Expressions
+
+            Looping and Iteration
+
+      Chapter 4:  Defining Functions and Using Built-Ins (Jim) (pages: 25-28)
+
+            Function Syntax and Basics
+
+            Parameter Usage
+
+            Calling Functions
+
+            Special Functions
+
+            Generators
+
+            Coroutines
+
+            Function Decorators
+
+            Using Built-In Functions
+
+            Using __future__
+
+      Chapter 5:  Exception Handling in Jython  (Josh - 06/2009) (pages: 15-18)
+
+            What is Exception Handling
+
+            General Practice
+
+            Defining Exceptions
+
+            Assertions
+
+      Chapter 6:  Object Oriented Jython (Victor Ng - 04/20/2009) (pages: 20-23)
+
+            Using Classes
+
+            Encapsulation and Abstraction
+
+            Inheritance and Overloading
+
+            Closures and Passing Objects
+
+      Chapter 7:  Modules, Packages, and Reuse (Frank Wierzbicki - 04/20/2009) (pages: 20-23)
+
+            Using imports for Reuse
+
+            Creating and Reusing Modules
+
+            Defining Packages
+
+            Module Search Path, Compilation, and Loading 
+
+Part II: Using the Language
+
+      Chapter 8:  Scripting with Jython (Frank Wierzbicki) (pages:  20-23)
+
+            Learning the Command Line
+            
+            Using Modules and Java Libraries 
+
+      Chapter 9:  Input and Output  (Josh - 04/20/2009) (pages: 15-18)
+
+            Input from Keyboard
+
+            File Basics
+
+            Standard I/O
+
+      Chapter 10: Java and Jython Integration (Josh - 05/2009) (pages: 27-30)
+
+            Using Jython within Java Applications
+
+                  JSR-223
+
+            Using Java within Jython Applications
+
+            Java Package Scanning (Frank Wierzbicki)
+
+            Exploring the Java Environment with iPython (this doesn't work yet....)
+
+      Chapter 11:  Using Jython in an IDE  (Josh & Leo Soto - 06/2009) (pages: 25-28)
+
+            Eclipse
+
+                  PyDev
+
+            Netbeans 
+
+                  Setting Up Your Environment
+
+                  Developing Jython Applications
+
+                  Mixing Jython and Java Code
+
+            WebSphere
+
+      Chapter 12:  Databases and Jython  (Josh & Jim - 05/2009) (pages: 20-23)
+
+            zxJDBC Basics
+
+            Cursors
+
+            Querying
+
+            DML
+
+            DDL
+
+Part III: Developing Applications with Jython
+
+      Chapter 13: Simple Web Applications  (Josh - 06/2009) (pages: 20-23)
+
+            Servlets
+
+            Applets
+
+	    WSGI and modjy
+
+      Chapter 14: Web Applications with Django (Leo Soto, Victor Ng) (pages: 32-35)
+
+            The General Picture
+
+            A First Django/Jython Application
+
+            Java-specific topics
+
+      Chapter 15: Web Applications with Pylons  (Victor Ng) (pages: 23-25)
+
+            ???
+
+      Chapter 16:  Web Services and SOA (Jim) (pages:  23-25)
+
+            JAX-WS
+
+            JAX-RS
+
+            JAXB and Legacy JAX-RPC Support
+
+      Chapter 17:  GUI Applications (Frank Wierzbicki) (pages: 23-25)
+
+            Writing Jython Swing
+
+            Using Jython with JavaFX
+
+      Chapter 18:  Deployment Targets (Josh & Jim) (pages: 25-28)
+
+            Application Servers (Josh)
+
+                  Tomcat
+
+                  Glassfish
+
+                  JBoss
+
+	    Google App Engine
+
+            Mobile (Jim)
+
+                  Android
+
+                  JavaFX
+
+Part IV:  Strategy and Technique
+
+      Chapter 19:  Testing and Continuous Integration (Leo Soto) (pages: 23-25)
+
+            Grinder
+
+            Push-To-Test TestMaker
+
+      Chapter 20:  Concurrency and Parallelism (Jim) (pages: 18-20)
+
+            High-Level Concurrency
+
+            Greenlets 
