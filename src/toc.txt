@@ -5,7 +5,7 @@ Authors:  Josh Juneau
 	  Leo Soto
 	  Victor Ng
 
-Page Count Estimate:  419 - 473 
+Page Count Estimate:  421 - 475
 
 Table of Contents
 
@@ -109,7 +109,7 @@ Part I:  Jython Basics:  Learning the Language
 
 Part II: Using the Language
 
-      Chapter 8:  Scripting with Jython (Frank Wierzbicki) (pages:  20-23)
+      Chapter 8:  Scripting with Jython (Frank Wierzbicki) (pages:  23-25)
 
             Learning the Command Line
             
