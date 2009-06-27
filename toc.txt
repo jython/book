@@ -169,15 +169,57 @@ Part I:  Jython Basics:  Learning the Language
 
             Closures and Passing Objects
 
-      Chapter 7:  Modules, Packages, and Reuse (Frank Wierzbicki - FD COMPLETE) (pages: 12-15)
+      Chapter 7:  Modules, Packages, and Reuse (Frank Wierzbicki - FD COMPLETE) (pages: 14)
 
-            Using imports for Reuse
+            Imports for Reuse
 
-            Creating and Reusing Modules
+		Definitions
 
-            Defining Packages
+		The import Statement
+
+	        An Example Program
+
+	        Trying out the Example Code
+
+            Types of import Statements
+
+		Basic Import Statements
+
+		from import Statements
+
+		Relative import Statements
+
+		Aliasing import Statements
+
+		Hiding Module Names
 
             Module Search Path, Compilation, and Loading 
+		
+		Compilation
+
+		Module search Path and Loading
+
+		Import Hooks
+
+		sys.path_hooks
+
+		sys.meta_path
+
+	    Java Package Scanning
+
+		How Jython Finds the Jars and Classes to Scan
+
+	    Python Modules and Packages vs. Java Packages
+
+		sys.path
+
+		Naming Python Modules and Packages
+
+		Proper Python Naming
+
+		Java Import Example
+
+	    Conclusion
 
 Part II: Using the Language
 
@@ -187,29 +229,44 @@ Part II: Using the Language
             
             Using Modules and Java Libraries 
 
-      Chapter 9:  Input and Output  (Josh - 06/2009) (pages: 15-18)
+      Chapter 9:  Input and Output  (Josh - FD Complete) (pages: 9)
 
             Input from Keyboard
+                
+                sys.stdin and raw_input
+ 
+                Obtaining Variables from Jython Environment
 
-            File Basics
+            File I/O
 
-	    Serialization
+	    Pickle
 
-      Chapter 10: Java and Jython Integration (Josh - 06/2009) (pages: 27-30)
+            Output Techniques
+
+            Conclusion
+
+      Chapter 10: Java and Jython Integration (Josh - 06/2009) (pages: 24)
 
             Using Jython within Java Applications
 
-		  Object Factories
+		A Bit of History
 
-                  JSR-223
+		Object Factories
 
-		  PythonInterpreter
+		    One-to-One Jython Object Factories
+
+		    Making Use of a Loosely Coupled Object Factory
+
+		    Returning __doc__ Strings
+
+		    Applying the Design to Different Object Types
+
+                JSR-223
+
+		Utilizing PythonInterpreter
 
             Using Java within Jython Applications
 
-            Java Package Scanning (Frank Wierzbicki - 06/2009)
-
-            Exploring the Java Environment with iPython (this doesn't work yet....)
 
       Chapter 11:  Using Jython in an IDE  (Josh & Leo Soto - 07/2009) (pages: 25-28)
 
@@ -251,7 +308,7 @@ Part II: Using the Language
 
 		Hibernate
 
-		SQLObject (? Not yet working?)
+	    Conclusion
 
 Part III: Developing Applications with Jython
 
