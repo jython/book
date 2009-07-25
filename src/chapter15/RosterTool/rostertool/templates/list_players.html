@@ -1,0 +1,41 @@
+<%inherit file="base.html" />
+<table border="1">
+    <tr>
+        <th>Position</th>
+        <th>Last name</th>
+        <th>First name</th>
+        <th></th>
+    </tr>
+    % for player in c.players:
+        ${makerow(player)}
+    % endfor
+</table>
+
+<h2>Add a new player</h2>
+${h.form(h.url_for(controller='roster', action='add_player'), method='POST')} 
+    ${h.text('first', 'First Name')} <br />
+    ${h.text('last', 'Last Name')} <br />
+    ${h.text('position', 'Position')} <br />
+    ${h.submit('add_player', "Add Player")}
+${h.end_form()}
+
+<%def name="makerow(row)">
+<tr>
+    <td>${row.position}</td>\
+    <td>${row.last}</td>\
+    <td>${row.first}</td>\
+    <td><a href="${h.url_for(controller='roster', action='edit_player', id=row.id)}">Edit</a></td>\
+</tr>
+</%def>
+
+<%def name="header()">
+    <h1>${c.page_title}</h1>
+    <% messages = h.flash.pop_messages() %>
+    % if messages:
+    <ul id="flash-messages">
+        % for message in messages:
+        <li>${message}</li>
+        % endfor
+    </ul>
+    % endif
+</%def>
