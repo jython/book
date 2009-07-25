@@ -115,13 +115,13 @@ Scripting processes
 Example script: build.py
 ========================
 
-So I've lightly covered a few of the modules that tend to come in handy when
+So I've discussed a few of the modules that tend to come in handy when
 writing scripts for Jython.  Now I'll put together a nice medium sized script
 to show off what can be done.  I've chosen to write a script that will help
 handle a Java build from Jython.  I will want to be able to create a directory
 structure, delete the directory structure for a clean build, and of course
 compile my Java source files.  First I'll go over how I will compile Java source
-files.  JDK 6 introduced a new set of classes::
+files. ::
 
     from javax.tools import (ForwardingJavaFileManager, ToolProvider,
             DiagnosticCollector,)
