@@ -60,13 +60,38 @@ Now let's see what this program looks like in Jython ::
               size=(300, 300))
 
     def change_text(event):
-        print 'clicked!'
+        print 'Clicked!'
 
     button = JButton('Click Me!', actionPerformed=change_text)
     frame.add(button)
     frame.visible = True
 
+Except for the title, the application produces the same JFrame with JButton,
+outputting "Clicked!" when the button is clicked.
+
 .. image:: src/chapter17/hello_jython.jpg
    :align: center
 
+Let's go through the Java and the Jython examples line by line to get a feel
+for the differences between writing Swing apps in Jython and Java.  First the
+import statements:
 
+In Java ::
+
+    import java.awt.event.ActionEvent;
+    import java.awt.event.ActionListener;
+    import javax.swing.JButton;
+    import javax.swing.JFrame;
+
+In Jython ::
+
+    from javax.swing import JButton, JFrame
+
+In Jython, it is always best to have explicit imports by name, instead of 
+using ::
+
+    from javax.swing import *
+
+for the reasons covered in Chapter 7.  Note that we did not need to import
+ActionEvent or ActionListener, since Jython's dynamic typing allowed us to
+avoid mentioning these classes in our code.

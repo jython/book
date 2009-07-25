@@ -5,7 +5,7 @@ frame = JFrame('Hello, Jython!',
           size=(300, 300))
 
 def change_text(event):
-    print 'clicked!'
+    print 'Clicked!'
 
 button = JButton('Click Me!', actionPerformed=change_text)
 frame.add(button)
