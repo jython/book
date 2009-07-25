@@ -1,3 +1,7 @@
+import os
+import sys
+import glob
+
 from javax.tools import (ForwardingJavaFileManager, ToolProvider,
         DiagnosticCollector,)
 
@@ -7,18 +11,21 @@ def task(func):
     tasks[func.func_name] = func
 
 @task
-def foo():
-    print "hello"
+def clean():
+    files = glob.glob("*.class")
+    for file in files:
+        os.unlink(file)
 
 @task
 def compile():
-    files = ["Foo.java"]
-    if not _compile(["Foo.java"]):
+    files = glob.glob("*.java")
+    _log("compiling %s" % files)
+    if not _compile(files):
         quit()
-    print "compiled"
+    _log("compiled")
 
 def _log(message):
-    if verbose:
+    if options.verbose:
         print message
 
 def _compile(names):
@@ -34,15 +41,26 @@ def _compile(names):
 if __name__ == '__main__':
     from optparse import OptionParser
     parser = OptionParser()
-    parser.add_option("-q", "--quiet", help="Don't print out task messages")
+    parser.add_option("-q", "--quiet", 
+            action="store_false", dest="verbose", default=True,
+            help="Don't print out task messages.")
+    parser.add_option("-p", "--projecthelp", 
+            action="store_true", dest="projecthelp",
+            help="Print out list of tasks.")
     (options, args) = parser.parse_args()
     
-    print "options: %s" % options
-    print "args: %s" % args
+    if options.projecthelp:
+        for task in tasks:
+            print task
+        sys.exit(0)
 
+    if len(args) < 1:
+        print "Usage: jython builder.py [options] task"
+        sys.exit(1)
     try:
         current = tasks[args[0]]
     except KeyError:
         print "Task %s not defined." % args[0]
+        sys.exit(1)
     current()
 
