@@ -1,15 +1,20 @@
 Chapter 8:  Scripting With Jython
 +++++++++++++++++++++++++++++++++
 
-In this chapter we will look at scripting with jython, that is, writing small
-programs to help out with daily tasks like deleting and creating directories,
+In this chapter we will look at scripting with jython.  For our purposes, I
+will define "scripting" as the writing of small programs to help out with daily
+tasks.  These tasks are things like deleting and creating directories,
 mananging files and programs, or anything else that feels repetitive that you
-might be able to express as a small program. We'll start with an overview of
-some of the most helpful modules that come with jython for these tasks. These
-modules are os, shutil, getopt, optparse, subprocess. We will just be giving
-you a quick feel for these modules.  For details you should look at reference
-documentation like (fjw: reference needed).  Then we'll cover a medium sized
-task to show the use of a few of these modules together.
+might be able to express as a small program.  In practice however, scripts can
+become so large that the line between a script and a full sized program can
+blur.
+
+We'll start with an overview of some of the most helpful modules that come with
+jython for these tasks. These modules are os, shutil, getopt, optparse,
+subprocess. We will just be giving you a quick feel for these modules.  For
+details you should look at reference documentation like
+http://jyton.org/currentdocs.  Then we'll cover a medium sized task to show the
+use of a few of these modules together.
 
 Parsing Commandline Options
 ===========================
@@ -51,7 +56,7 @@ If you are going to do more than just feed the arguments to your script
 directly, than parsing these arguments by hand can get pretty tedious.  The
 jython libraries include two modules that you can use to avoid tedius hand
 parsing.  Those modules are getopt and optparse.  The optparse module is the
-newer, more flexible option, so i'll cover that one.  The getopt module is
+newer, more flexible option, so I'll cover that one.  The getopt module is
 still useful since it requires a little less code for simpler expected
 arguments.  Here is a basic optparse script: ::
 
@@ -92,9 +97,9 @@ paths.
 Compiling Java Source
 =====================
 
-While compiling java source is not strictly a typical scripting taks, it is a
-task that i'd like to show off in my bigger example starting in the next
-section.  The api i am about to cover was introduced in jdk 6, and is optional
+While compiling java source is not strictly a typical scripting task, it is a
+task that I'd like to show off in my bigger example starting in the next
+section.  The api I am about to cover was introduced in jdk 6, and is optional
 for jvm vendors to implement.  I know that it works on the jdk 6 from sun and
 on the jdk 6 that ships with mac os x.  For more details of the javacompiler
 api, a good starting point is here: http://java.sun.com/javase/6/docs/api/javax/tools/javacompiler.html.  The following is a simple example of the use of this api from jython ::
@@ -110,8 +115,8 @@ api, a good starting point is here: http://java.sun.com/javase/6/docs/api/javax/
 Example Script: builder.py
 ==========================
 
-So i've discussed a few of the modules that tend to come in handy when writing
-scripts for jython.  Now i'll put together a simple script to show off what can
+So I've discussed a few of the modules that tend to come in handy when writing
+scripts for jython.  Now I'll put together a simple script to show off what can
 be done.  I've chosen to write a script that will help handle the compilation
 of java files to .class files in a directory, and clean the directory of .class
 files as a separate task.  I will want to be able to create a
