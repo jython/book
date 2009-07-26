@@ -172,7 +172,7 @@ line argument. The argument will represent the name of the user to greet, to
 build a more personalized solution. Here is how our main.py should look like::
     
     import sys
-    if __name__ = "__main__":
+    if __name__ == "__main__":
         if len(sys.argv) < 2:
             print "Sorry, I can't greet you if you don't say your name"
         else: 
@@ -335,7 +335,7 @@ registry of UIs exposed via decorators) are perfectly justified, because we are
 working on a slightly complicated problem. In other words: Let's extrapolate.
 
 The point is, we know that the great majority of our projects can't be confined
-to just one file (i.e, one python module). Even our very dumb example is
+to just one file (i.e., one python module). Even our very dumb example is
 starting to get unpleasant to read. And, when we realize that we need more than
 one module, we also realize we need to group our modules under a common
 umbrella, to keep it clear that our modules form a coherent thing together and
@@ -344,7 +344,7 @@ Chapter 7, the Python solution to this problem are modules and packages.
 
 Our plan is to organize the code as follows. Everything will go under the
 package ``hello``. The core logic, including the language support, will go into the
-package itself (i.e, into its ``__init__.py`` file) and each UI will go into its
+package itself (i.e., into its ``__init__.py`` file) and each UI will go into its
 own module under the ``hello`` package. The ``main.py`` script will remain as the
 command line entry point.
 
