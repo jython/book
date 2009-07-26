@@ -684,7 +684,7 @@ After clicking finish you will see that the file is now part of your project.
 .. tip:: 
 
    Alternatively, and depending on your operating system, the same operation can
-   be performed copying the file from the file manager and pasting it into the
+   be performed copying the folder from the file manager and pasting it into the
    project (either via menu, keyboard shortcuts or drag & drop).
 
 Now, the file is part of the project, but we need to tell PyDev that the file is
