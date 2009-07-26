@@ -1,41 +1,40 @@
-chapter 8:  scripting with jython
+Chapter 8:  Scripting With Jython
 +++++++++++++++++++++++++++++++++
 
-in this chapter we will look at scripting with jython, that is, writing small
+In this chapter we will look at scripting with jython, that is, writing small
 programs to help out with daily tasks like deleting and creating directories,
 mananging files and programs, or anything else that feels repetitive that you
-might be able to express as a small program. we'll start with an overview of
-some of the most helpful modules that come with jython for these tasks. these
-modules are os, shutil, getopt, optparse, subprocess. we will just be giving
-you a quick feel for these modules.  for details you should look at reference
-documentation like (fjw: reference needed).  then we'll cover a medium sized task
-to show the use of a few of these modules together.
+might be able to express as a small program. We'll start with an overview of
+some of the most helpful modules that come with jython for these tasks. These
+modules are os, shutil, getopt, optparse, subprocess. We will just be giving
+you a quick feel for these modules.  For details you should look at reference
+documentation like (fjw: reference needed).  Then we'll cover a medium sized
+task to show the use of a few of these modules together.
 
-parsing commandline options
+Parsing Commandline Options
 ===========================
-many scripts are simple one-offs that you write once, use, and forget.  others
-become part of your weekly or even daily use over time.  when you find that you
+Many scripts are simple one-offs that you write once, use, and forget.  Others
+become part of your weekly or even daily use over time.  When you find that you
 are using a script over and over again, you often find it helpful to pass in
-command line options.  there are three main ways that this is done in jython.
-the first way is to hand parse the arguments, the second is the getopt module,
+command line options.  There are three main ways that this is done in jython.
+The first way is to hand parse the arguments, the second is the getopt module,
 and the third is the newer, more flexible optparse module.
 
-let's say we have a script called foo.py and you want to be able to give it
-some parameters when you invoke it
-the name of the script and the arguments passed can be examined by importing
-thesys module and inspecting sys.argv like so:
+Let's say we have a script called foo.py and you want to be able to give it
+some parameters when you invoke it the name of the script and the arguments
+passed can be examined by importing the sys module and inspecting sys.argv like
+so:
 
     # script foo.py
     import sys
-    
     print sys.argv
 
-if you run the above script with a, b, and c as arguments: ::
+If you run the above script with a, b, and c as arguments: ::
 
     $ jython foo.py a b c
     $ ['foo.py', 'a', 'b', 'c']
 
-the name of the script ended up in sys.argv[0], and the rest in sys.argv[1:].  often you will see this instead in jython programs:
+The name of the script ended up in sys.argv[0], and the rest in sys.argv[1:].  Often you will see this instead in jython programs:
 
     # script foo2.py
     import sys
@@ -48,13 +47,13 @@ which will result in: ::
     $ jython foo2.py a b c
     $ ['a', 'b', 'c']
 
-if you are going to do more than just feed the arguments to your script
-directly, than parsing these arguments by hand can get pretty tedious.  the
+If you are going to do more than just feed the arguments to your script
+directly, than parsing these arguments by hand can get pretty tedious.  The
 jython libraries include two modules that you can use to avoid tedius hand
-parsing.  those modules are getopt and optparse.  the optparse module is the
-newer, more flexible option, so i'll cover that one.  the getopt module is
+parsing.  Those modules are getopt and optparse.  The optparse module is the
+newer, more flexible option, so i'll cover that one.  The getopt module is
 still useful since it requires a little less code for simpler expected
-arguments.  here is a basic optparse script: ::
+arguments.  Here is a basic optparse script: ::
 
     # script foo3.py
     from optparse import optionparser
@@ -71,34 +70,34 @@ running the above: ::
     $ options: {'foo': 'b', 'bar': 'a'}
     $ args: ['c', 'd']
 
-i'll come back to the optparse module with a more concrete example later in
+I'll come back to the optparse module with a more concrete example later in
 this chapter.
 
-scripting the filesystem
+Scripting The Filesystem
 ========================
-we'll start with what is probably the simplest thing that you can do to a
+We'll start with what is probably the simplest thing that you can do to a
 filesystem, and that is listing the file contents of a directory. ::
 
     >>> import os
     >>> os.listdir('.')
     ['ast', 'doc', 'grammar', 'lib', 'license.txt', 'news', 'notice.txt', 'src']
 
-first we imported the os module, and then we executed listdir on the current
-directory, indicated by the '.'.  of course your output will reflect the
-contents of your local directory.  the os module contains many of the sorts of
+First we imported the os module, and then we executed listdir on the current
+directory, indicated by the '.'.  Of course your output will reflect the
+contents of your local directory.  The os module contains many of the sorts of
 functions that you would expect to see for working with your operating system.
-the os.path module contains functions that help in working with filesystem
+The os.path module contains functions that help in working with filesystem
 paths.
 
-compiling java source
+Compiling Java Source
 =====================
 
-while compiling java source is not strictly a typical scripting taks, it is a
+While compiling java source is not strictly a typical scripting taks, it is a
 task that i'd like to show off in my bigger example starting in the next
-section.  the api i am about to cover was introduced in jdk 6, and is optional
-for jvm vendors to implement.  i know that it works on the jdk 6 from sun and
-on the jdk 6 that ships with mac os x.  for more details of the javacompiler
-api, a good starting point is here: http://java.sun.com/javase/6/docs/api/javax/tools/javacompiler.html.  the following is a simple example of the use of this api from jython ::
+section.  The api i am about to cover was introduced in jdk 6, and is optional
+for jvm vendors to implement.  I know that it works on the jdk 6 from sun and
+on the jdk 6 that ships with mac os x.  For more details of the javacompiler
+api, a good starting point is here: http://java.sun.com/javase/6/docs/api/javax/tools/javacompiler.html.  The following is a simple example of the use of this api from jython ::
 
     compiler = toolprovider.getsystemjavacompiler()
     diagnostics = diagnosticcollector()
@@ -108,14 +107,14 @@ api, a good starting point is here: http://java.sun.com/javase/6/docs/api/javax/
     success = comp_task.call()
     manager.close()
 
-example script: builder.py
+Example Script: builder.py
 ==========================
 
-so i've discussed a few of the modules that tend to come in handy when writing
-scripts for jython.  now i'll put together a simple script to show off what can
-be done.  i've chosen to write a script that will help handle the compilation
+So i've discussed a few of the modules that tend to come in handy when writing
+scripts for jython.  Now i'll put together a simple script to show off what can
+be done.  I've chosen to write a script that will help handle the compilation
 of java files to .class files in a directory, and clean the directory of .class
-files as a separate task.  jython.  i will want to be able to create a
+files as a separate task.  I will want to be able to create a
 directory structure, delete the directory structure for a clean build, and of
 course compile my java source files. ::
 
@@ -185,16 +184,16 @@ course compile my java source files. ::
             sys.exit(1)
         current()
 
-the script defines a "task" decorator that gathers the names of the functions
-and puts them in a dictionary.  we have an optionparser class that defines two
-options --projecthelp and --quiet.  by default the script logs its actions to
+The script defines a "task" decorator that gathers the names of the functions
+and puts them in a dictionary.  We have an optionparser class that defines two
+options --projecthelp and --quiet.  By default the script logs its actions to
 standard out.  --quiet turns this logging off.  --projecthelp lists the
-available tasks.  we have defined two tasks, "compile" and "clean".  the
+available tasks.  We have defined two tasks, "compile" and "clean".  The
 "compile" task globs for all of the .java files in your directory and compiles
-them.  the "clean" task globs for all of the .class files in your directory and
-deletes them.  do be careful!  the .class files are deleted without prompting!
+them.  The "clean" task globs for all of the .class files in your directory and
+deletes them.  Do be careful!  The .class files are deleted without prompting!
 
-so lets give it a try.  If you create a Java class in the same directory as
+So lets give it a try.  If you create a Java class in the same directory as
 builer.py, say the classic "Hello World" program:
 
 HelloWorld.java
