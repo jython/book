@@ -1,4 +1,4 @@
-Chapter 11: Using Jython in an IDE
+﻿Chapter 11: Using Jython in an IDE
 ++++++++++++++++++++++++++++++++++
 
 In this chapter, we will discuss developing Jython applications using two of the most popular integrated development environments, Eclipse and Netbeans.  There are many other development environments available for Python and Jython today, however, these two are perhaps the most popular and contain the most Jython-specific tools.  Eclipse has had a plugin known as PyDev for a number of years, and this plugin provides rich support for developing and maintaining Python and Jython applications alike.  More recently, an Eclipse plugin for Django has been developed by Leo Soto and it is a one-of-a-kind development tool offering Jython developers the chance to easily develop Django web applications with Eclipse.  Netbeans began to include Python and Jython support with version 6.5 and beyond.  The Netbeans IDE also provides rich support for development and maintenance of Python and Jython applications.  There is not a Django plugin available for this IDE at the time of this writing, although there most likely will be one in the works very soon.
@@ -9,7 +9,782 @@ Please note that in this chapter we will refer to Python/Jython as Jython.  All 
 Eclipse
 =======
 
-Netbeans
+Naturally, you will need to have Eclipse installed on your machine to use Jython
+with it. The latest available version when this book is being written is
+Eclipse 3.5 (also known as Eclipse Galileo) and it is the recommended version to
+use to follow this section . Versions 3.2, 3.3 and 3.4 will work too, although
+there will be minor user interface differences which may confuse you while
+following this section.
+
+If you don't have Eclipse installed on your machine, go to
+http://www.eclipse.org/downloads/ and download the version for Java
+developers.
+
+Installing PyDev
+----------------
+
+Eclipse doesn't include Jython support built-in. Thus, we will use PyDev, an
+excellent plugin which adds support for the Python language and includes
+specialized support for Jython. PyDev's home page is
+http://pydev.sourceforge.net/ but you won't need to manually download and
+install it.
+
+To install the plugin, start Eclipse and go to the menu :menuselection:`Help -->
+Install new Software...`, type http://pydev.sourceforge.net/updates/ into the
+"Work with" input box and press enter. After a short moment you will see an
+entry for PyDev in the bigger box below. Just select it, clicking on the
+checkbox which appears at the left of "PyDev" (see the image which follows, as
+reference) and finally click the "Next" button.
+
+.. image:: images/chapter11-pydev-installation-1.png
+   :alt: PyDev Installation
+
+After this, just follow the wizard, accept the license agreement and then click
+the "Finish" button.
+
+Once the plugin has been installed by Eclipse, you will be asked if you want to
+restart the IDE to enable the plugin. As that is the recommended option, do so,
+answering "Yes" to the dialog. Once Eclipse reboots itself, you will enjoy
+full Python support on the IDE.
+
+Minimal Configuration
+---------------------
+
+Before starting a PyDev project you must tell PyDev which Python interpreters
+are available. In this context, a interpreter is just a particular installation
+of some implementation of Python. When starting you will normally only need one
+interpreter and for this chapter we will only use Jython 2.5.0. To configure it,
+open the Eclipse Preferences dialog (via :menuselection:`Window --> Preferences`
+in the main menu bar). On the text box located at the top of the left panel,
+type "Jython". This will filter the myriad of Eclipse (and PyDev!) options and
+will present us with a much simplified view, in which you will spot the
+"Interpreter - Jython" section on the left.
+
+Once you selected the "Intepreter - Jython" section, you will be presented with
+an empty list of Jython intepreters at the top of the right side. We clearly
+need to fix that! So, click the "New..." button, enter "Jython 2.5.0" as the
+"Interpreter Name", click the "Browse..." button and find the ``jython.jar``
+inside your Jython 2.5.0 installation.
+
+.. note:: 
+
+   Even if this is the only runtime we will use on this chapter, I recommend you
+   to use a naming schema like the one proposed here, including both the
+   implementation name (e.g.: "Jython") and the full version (e.g.: "2.5.0") on
+   the interpreter name. This will avoid confusion and name clashing when adding
+   new interpreters in the future.
+
+After selecting the ``jython.jar`` file, PyDev will automatically detect the default,
+*global* ``sys.path`` entries. PyDev always infer the right values, so unless
+you have very special needs, just accept the default selection and click "OK".
+
+If all has gone well, you will now see an entry on the list of Jython
+interpreters, representing the information you just entered. It will be similar
+to the following picture (of course, your filesystem paths will differ):
+
+.. image:: images/chapter11-pydev-configuration-1.png
+   :alt: PyDev Configuration: Jython Interpreter
+
+That's all. Click "OK" and you will be ready to develop with Jython while
+enjoying the support provided by a modern IDE.
+
+If you are curious, you may want to explore the other options found on the
+"Preferences" window, below the "PyDev" section (after clearing the search
+filter we used to quickly go to the Jython interpreter configuration). But in my
+experience, it's rarely needed to change most of the other options available.
+
+In the next sections we will take a look to the more important PyDev features to
+have a more pleasant learning experience and make you more productive.
+
+Hello PyDev!: Creating Projects and Executing Modules
+-----------------------------------------------------
+
+Once you see the first piece of example code on this chapter, it may seem
+over simplistic. It is, indeed, a very dumb example. The point is to keep the
+focus on the basic steps you will perform for the lifecycle of any Python-based
+project inside the Eclipse IDE, and which will apply on simple and complex
+projects.  So, as you probably guessed it, our first project will be a dumb
+"Hello World". Let's start it!
+
+Go to :menuselection:`File --> New --> Project...`. You will be presented with a
+potentially long list with all the kind of projects you can create with
+Eclipse. Select "PyDev Project", under the "PyDev" group (you can also use the
+filter text box at the top and just type "PyDev Project" if it's faster for you).
+
+The next dialog will ask you for your project properties. As the "Project name",
+we will use "LearningPyDev". On "Project contents", we will let checked the "Use
+default" checkbox, so PyDev will create a directory with the same name as the
+project inside the Eclipse workspace (which is the root path of your eclipse
+projects). Since we are using Jython 2.5.0, we will change the "Project type" to
+"Jython" and the "Grammar Version" to "2.5". We will let alone the
+"Interpreter", which will default to the Jython interpreter we just defined on
+the `Minimal Configuration`_ section. We will also left checked the "Create
+default 'src' folder and add it to the pythonpath" option since it's a common
+convention on Eclipse projects. 
+
+After clicking "Finish" PyDev will create your project, which will only contain
+an empty ``src`` directory and a reference to the interpreter being used. Let's
+create our program now!
+
+Right click on the project, and select :menuselection:`New --> PyDev
+Module`. Let the "Package" blank and enter "main" as the "Name". PyDev offers
+some templates to speed up the creation of new modules, but we won't use them,
+as our needs are rather humble. So let the "Template" as empty and click
+"Finish". 
+
+PyDev will present you an editor for the ``main.py`` file it just created.
+It's time to implement our program. Write the following code at the editor::
+
+    if __name__ == "__main__":
+        print "Hello PyDev!"
+
+And then press ``Ctrl + F11`` to run this program. Select "Jython Run" from the
+dialog presented and click OK. The program will run and the text "Hello PyDev!"
+will appear on the console, located on the bottom area of the IDE.
+
+If you manually typed the program, you probably noted that the IDE knows that in
+Python a line ending in ":" marks the start of a block and will automatically
+put your cursor at the appropriate level of indentation in the next line. See
+what happens if you manually override this decision and put the print statement
+at the same indentation level of the if statement and save the file. The IDE
+will highlight the line flagging the error. If you hover at the error mark, you
+will see the explanation of the error, as seen in the image:
+
+.. image:: images/chapter11-pydev-editing-1.png
+   :alt: PyDev Highlighting a Simple Error
+
+Expect the same kind of feedback for whatever syntax error you made. It helps to
+avoid the frustration of going on edit-run loops only to find further minor
+syntax errors. 
+
+Passing Command-line Arguments and Customizing Execution
+--------------------------------------------------------
+
+Command line arguments may seem old-fashioned, but are actually a very simple
+and effective way to let programs interact with the outside. Since you have
+learned to use Jython as a scripting language, it won't be uncommon to write
+scripts which will take its input from the command line (note that for
+unattended execution, reading input from the command line is way more convenient
+that obtaining data from the standard input, let alone using a GUI).
+
+As you have probably guessed, we will make our toy program to take a command
+line argument. The argument will represent the name of the user to greet, to
+build a more personalized solution. Here is how our main.py should look like::
+    
+    import sys
+    if __name__ = "__main__":
+        if len(sys.argv) < 2:
+            print "Sorry, I can't greet you if you don't say your name"
+        else: 
+            print "Hello %s!" % sys.argv[1]
+
+If you hit ``Ctrl + F11`` again, you will see the "Sorry I can't greet you..."
+message on the console. It makes sense, since you didn't pass the name. Not to
+say that it was your fault, as you didn't have any chance to say your name
+either.
+
+To specify command line arguments, go to the :menuselection:`Run --> Run
+Configurations...` menu, and you will find an entry named "LearningPyDev
+main.py" under the "Jython Run" section in the left. It will probably be already
+selected, but if it's not, select it manually. Then, on the main section of the
+dialog you will find ways to customize the execution of our script. You can
+change aspects like the current directory, pass special argument to the JVM,
+change the interpreter to use, set environment variables, among others. We just
+need to specify an argument so let's type "Bob" on the "Program arguments" box
+and click the "Run" button. 
+
+As you'd expect, the program now prints "Hello Bob!" on the console. Note that
+the value you entered is remembered, that is, if you press ``Ctrl + F11`` now,
+the program will print "Hello Bob!" again. Some people may point out that this
+behavior makes testing this kind of programs very awkward, since the "Run
+Configurations" dialog will have to be opened each time the arguments need to be
+changed. But if we really want to test our programs (which *is* a good idea), we
+should do it in the right way. We will look into that soon, but first lets
+finish our tour on basic IDE features.
+
+Playing with the Editor
+-----------------------
+
+Let's extend our example code a bit more. providing different ways to greet our
+users, in different languages. We will use the ``optparse`` to process the
+arguments this time. Refer to Chapter 8 if you want to remember how to use
+``optparse``. We will also use decorators (seen in Chapter 6) to make it trivial
+to extend our program with new ways to greet our users. So, our little
+``main.py`` has grown a bit now::
+    
+    # -*- coding: utf-8 -*-
+    import sys
+    from optparse import OptionParser
+    
+    greetings = dict(en=u'Hello %s!',
+                     es=u'Hola %s!',
+                     fr=u'Bonjour %s!',
+                     pt=u'Alò %s!')
+    
+    uis = {}
+    def register_ui(ui_name):
+        def decorator(f):
+            uis[ui_name] = f
+            return f
+        return decorator
+    
+    def message(ui, msg):
+        if ui in uis:
+            uis[ui](msg)
+        else:
+            raise ValueError("No greeter named %s" % ui)
+        
+    def list_uis():
+        return uis.keys()
+    
+    @register_ui('console')
+    def print_message(msg):
+        print msg
+    
+    @register_ui('window')
+    def show_message_as_window(msg):
+        from javax.swing import JFrame, JLabel
+        frame = JFrame(msg,
+                       defaultCloseOperation=JFrame.EXIT_ON_CLOSE,
+                       size=(100, 100),
+                       visible=True)
+        frame.contentPane.add(JLabel(msg))
+            
+    if __name__ == "__main__":
+        parser = OptionParser()
+        parser.add_option('--ui', dest='ui', default='console', 
+                          help="Sets the UI to use to greet the user. One of: %s" %
+                          ", ".join("'%s'" % ui for ui in list_uis()))
+        parser.add_option('--lang', dest='lang', default='en',
+                          help="Sets the language to use")
+        options, args = parser.parse_args(sys.argv)
+        if len(args) < 2:        
+            print "Sorry, I can't greet you if you don't say your name"
+            sys.exit(1)
+        
+        if options.lang not in greetings:
+            print "Sorry, I don't speak '%s'" % options.lang
+            sys.exit(1)
+        
+        msg = greetings[options.lang] % args[1] 
+        
+        try:
+            message(options.ui, msg)
+        except ValueError, e:
+            print "Invalid UI name\n"    
+            print "Valid UIs:\n\n" + "\n".join(' * ' + ui for ui in list_uis())
+	    sys.exit(1)
+
+    
+Take a little time to play with this code in the editor. Try pressing ``Ctrl +
+Space``, which is the shortcut for automatic code completion (also known as
+"Intellisense" on Microsoft's parlance) on different locations. It will provide
+completion for import statements (try completing that line just after the
+``import`` token, or in the middle of the ``OptionParser`` token) and attribute
+or method access (like on ``sys.exit`` or ``parser.add_option`` or even in
+``JFrame.EXIT_ON_CLOSE`` which is accessing a Java class! ). It also provides
+hints about the parameters in the case of methods. 
+
+In general, every time you type a dot, the automatic completion list will pop
+out, if the IDE knows enough about the symbol you just typed to provide
+help. But you can also call for help at any given point. For example, go to the
+bottom of the code and type ``message(``. Suppose you just forgot the order of
+the parameters to that function. Solution: Press ``Ctrl + Space`` and PyDev will
+"complete" the statement, using the name of the formal parameters of the
+function. 
+
+Also try ``Ctrl + Space`` on keywords like ``def``. PyDev will provide you
+little templates which may save you some typing. You can customize the templates
+on the :menuselection:`PyDev --> Editor --> Templates` section of the Eclipse
+Preferences window (available on the :menuselection:`Window --> Preferences`
+main menu).
+
+The other thing you may have noted now that we have a more sizable program with
+some imports, functions and global variables is the "Outline" panel in the
+right side of the IDE window shows a tree-structure view of code being
+edited showing such features. It also displays classes, by the way.
+
+And don't forget to run the code! Of course, it's not much spectacular to see
+that after pressing ``Ctrl + F11`` we still get the same boring "Hello Bob!"
+text on the console. But if you edit the command line argument (as seen
+recently, via the "Run Configurations..." dialog) to the following: ``Bob --lang
+es --ui window``, you will get a nice window greeting Bob in Spanish. Also see
+what happens if you specify a non supported UI (say, ``--ui speech``) or a
+unsupported language. We even support the  ``--help``! So we have a generic,
+polyglot greeter which also happens to be reasonably robust and user friendly
+(for command line program standards, that is). 
+
+At this point you are probably tired of manually testing the program editing the
+command line argument on that dialog. Just one more extra section and we will
+get into a better way to test our program using the IDE. Actually, part of the
+next section will help us towards the solution.
+
+A Bit of Structure: Packages, Modules and Navigation
+----------------------------------------------------
+
+If you like simplicity you may be asking (or swearing, depending on your
+character) why I over-engineered the last example. There are simpler (in the
+sense of a more concise and understandable code) solutions to the same problem
+statement. But I needed to grow the our toy code to explore another aspect of
+IDEs, which for some people are a big reason to use them: Organizing complex
+code bases. And you don't expect me to put a full blown Pet Store example on
+this book to get to that point, do you?  ;-)
+
+So, let's suppose that the complications I introduced (mainly the
+registry of UIs exposed via decorators) are perfectly justified, because we are
+working on a slightly complicated problem. In other words: Let's extrapolate.
+
+The point is, we know that the great majority of our projects can't be confined
+to just one file (i.e, one python module). Even our very dumb example is
+starting to get unpleasant to read. And, when we realize that we need more than
+one module, we also realize we need to group our modules under a common
+umbrella, to keep it clear that our modules form a coherent thing together and
+to lower the chances of name clashing with other projects. So, as seen on
+Chapter 7, the Python solution to this problem are modules and packages.
+
+Our plan is to organize the code as follows. Everything will go under the
+package ``hello``. The core logic, including the language support, will go into the
+package itself (i.e, into its ``__init__.py`` file) and each UI will go into its
+own module under the ``hello`` package. The ``main.py`` script will remain as the
+command line entry point.
+
+Right click on the project and select :menuselection:`New --> PyDev
+Package`. Enter "hello" as the "Name" and click "Finish". PyDev will create the
+package and open an editor for its ``__init.py__`` file. As I said, we will move
+the core logic to this package, so this file will contain the following code,
+extracted from our previous version of the main code::
+
+    # -*- coding: utf-8 -*-
+    greetings = dict(en=u'Hello %s!',
+                     es=u'Hola %s!',
+                     fr=u'Bonjour %s!',
+                     pt=u'Alò %s!')
+    
+    class LanguageNotSupportedException(ValueError): 
+        pass
+    
+    class UINotSupportedExeption(ValueError):
+        pass
+    
+    uis = {}
+    def register_ui(ui_name):
+        def decorator(f):
+            uis[ui_name] = f
+            return f
+        return decorator
+    
+    def message(ui, msg):
+        '''
+        Displays the message `msg` via the specified UI which has to be
+	previously registered.
+        '''
+        if ui in uis:
+            uis[ui](msg)
+        else:
+            raise UINotSupportedExeption(ui)
+        
+    def list_uis():
+        return uis.keys()
+    
+    def greet(name, lang, ui):
+        '''
+        Greets the person called `name` using the language `lang` via the 
+        specified UI which has to be previously registered.
+        '''
+        if lang not in greetings:
+            raise LanguageNotSupportedException(lang)
+        message(ui, greetings[lang] % name)
+    
+Note that I embraced the idea of modularizing our code, providing exceptions to
+notify clients of problems when calling the greeter, instead of directly
+printing messages on the standard output. 
+
+Now we will create the ``hello.console`` module containing the console UI. Right
+click on the project, select :menuselection:`New --> PyDev Module`, Enter
+"hello" as the "Package" and "console" as the "Name". You can avoid to type the
+package name if you right click on the package instead of the project. Click
+"Finish" and copy the ``print_message`` function there::
+
+    from hello import register_ui
+    
+    @register_ui('console')
+    def print_message(msg):
+        print msg
+
+Likewise, create the ``window`` module inside the ``hello`` package, and put there the code for
+``show_message_as_window``::
+
+    from javax.swing import JFrame, JLabel
+    from hello import register_ui
+
+    @register_ui('window')
+    def show_message_as_window(msg):
+        frame = JFrame(msg,
+                       defaultCloseOperation=JFrame.EXIT_ON_CLOSE,
+                       size=(100, 100),
+                       visible=True)
+        frame.contentPane.add(JLabel(msg))
+        
+Finally, the code for our old ``main.py`` is slightly reshaped into the
+following::
+
+    import sys
+    import hello, hello.console, hello.window 
+    from optparse import OptionParser
+            
+    def main(args):
+        parser = OptionParser()
+        parser.add_option('--ui', dest='ui', default='console', 
+                          help="Sets the UI to use to greet the user. One of: %s" %
+                          ", ".join("'%s'" % ui for ui in list_uis()))
+        parser.add_option('--lang', dest='lang', default='en',
+                          help="Sets the language to use")
+        options, args = parser.parse_args(args)
+        if len(args) < 2:        
+            print "Sorry, I can't greet you if you don't say your name"
+            return 1    
+        try:
+            hello.greet(args[1], options.lang, options.ui)        
+        except hello.LanguageNotSupportedException:
+            print "Sorry, I don't speak '%s'" % options.lang
+            return 1
+        except hello.UINotSupportedExeption:
+            print "Invalid UI name\n"    
+            print "Valid UIs:\n\n" + "\n".join(' * ' + ui for ui in hello.list_uis())
+            return 1
+        return 0
+        
+    if __name__ == "__main__":
+        main(sys.argv)
+
+.. tip:: 
+
+   Until now, we have used PyDev's wizards to create new modules and
+   packages. But, as you saw on Chapter 7, modules are just files with the
+   ``.py`` extension located on the ``sys.path`` or inside packages, and packages
+   are just directories that happen to contain a ``__init__.py`` file. So you
+   may want to create modules using :menuselection:`New --> File` and packages
+   using :menuselection:`New --> Folder` if you don't like the wizards.
+
+Now we have our code split over many files. On a small project navigating
+through it using the left-side project tree (called the "PyDev Package
+Explorer") isn't difficult, but you can imagine that on a project with dozens of
+files it will be difficult. So we will see some ways to ease the navigation of a
+code base.
+
+First, let's suppose you are reading ``main.py`` and want to jump to the
+definition of the ``hello.greet`` function, called on the line 17. Instead of
+manually changing to such file and scanning until finding the function, just
+press ``Ctrl`` and click ``greet``. PyDev will automatically move you into the
+definition. Also works on most variables and modules (try it on the import
+statements, for example). 
+
+Another good way to quickly jump between files without having to resort to the
+Package Explorer is to use ``Ctrl + Shift + R``, which is the shortcut for "Open
+Resource". Just type (part of) the file name you want to jump to and PyDev will
+search on every package and directory of your open projects.
+
+Finally, the IDE internally records an history of your "jumps" between files,
+just like a web browser do for web pages you visit. And just like a web browser
+you can go back and forward. To do this, use the appropriate button on the
+toolbar or the default shortcuts which are ``Ctrl + Left`` and ``Ctrl + Right``.
+
+Testing
+-------
+
+OK, it's about time to explore our options to test our code, without resorting
+to the cumbersome manual black box testing we have been done changing the
+command line argument and observing the output.
+
+PyDev supports running PyUnit tests from the IDE, so we will write them. Let's
+create a module named ``tests`` on the ``hello`` package with the following
+code::
+
+    import unittest
+    import hello
+    
+    class UIMock(object):
+        def __init__(self):
+            self.msgs = []
+        def __call__(self, msg):
+            self.msgs.append(msg)    
+    
+    class TestUIs(unittest.TestCase):
+        def setUp(self):
+            global hello
+            hello = reload(hello)
+            self.foo = UIMock()
+            self.bar = UIMock()
+            hello.register_ui('foo')(self.foo)    
+            hello.register_ui('bar')(self.bar)
+            hello.message('foo', "message using the foo UI")
+            hello.message('foo', "another message using foo")
+            hello.message('bar', "message using the bar UI")
+        
+        def testBarMessages(self):
+            self.assertEqual(["message using the bar UI"], self.bar.msgs) 
+        
+        def testFooMessages(self):
+            self.assertEqual(["message using the foo UI", 
+                              "another message using foo"],
+                              self.foo.msgs)    
+        def testNonExistentUI(self):
+            self.assertRaises(hello.UINotSupportedExeption, 
+                              hello.message, 'non-existent-ui', 'msg')
+    
+        def testListUIs(self):
+            uis = hello.list_uis()
+            self.assertEqual(2, len(uis))
+            self.assert_('foo' in uis)
+            self.assert_('bar' in uis)
+    
+As you can see, the test covers the functionality of the dispatching of messages
+to different UIs. A nice feature of PyDev is the automatic discovery of tests,
+so you don't need to code anything else to run the tests above. Just right click
+on the ``src`` folder on the Package Explorer and select :menuselection:`Run As
+--> Jython unit-test`. You will see the output of the test almost immediately on
+the console::
+
+    Finding files...
+    ['/home/lsoto/eclipse3.5/workspace-jythonbook/LearningPyDev/src/'] ... done
+    Importing test modules ... done.
+    
+    testBarMessages (hello.tests.TestUIs) ... ok
+    testFooMessages (hello.tests.TestUIs) ... ok
+    testListUIs (hello.tests.TestUIs) ... ok
+    testNonExistentUI (hello.tests.TestUIs) ... ok
+    
+    ----------------------------------------------------------------------
+    Ran 4 tests in 0.064s
+    
+    OK
+
+Python's unittest is not the only testing option on the Python world. A
+convenient way to do tests which are more black-box-like than unit test, though
+equally automated is doctest. 
+
+.. note::
+
+We will cover testing tools in much greater detail in Chapter 19, so take a look
+at that chapter if you feel too disoriented.
+
+The nice thing about doctests is that they look like a interactive session with
+the interpreter, which makes them quite legible and easy to create. We will test
+our console module using a doctest.
+
+First, click the rightmost button on the console's toolbar (you will recognize
+it as the one with a plus sign on its upper left corner, which has the "Open
+Console" tip when you pass the mouse over it). From the menu, select "PyDev
+Console". To the next dialog answer "Jython Console". After doing this you will
+get an interactive interpreter embedded on the IDE.
+
+Let's start exploring our own code using the interpreter::
+
+     >>> from hello import console
+     >>> console.print_message("testing")
+     testing
+
+I highly encourage you to type those two commands yourself. You will note how
+code completion also works on the interactive interpreter!
+
+Back to the topic, we just interactively checked that our console module works
+as expected. The cool thing is that we can copy and paste this very snippet as a
+doctest which will serve to automatically check that the behavior we just tested
+will stay the same in the future. 
+
+Create a module named ``doctests`` inside the ``hello`` package, and paste those
+three lines from the interactive console, surrounding them by triple quotes
+(since they are not syntactically correct python code after all). After adding a
+little of boilerplate to make this file executable, it will look like this::
+
+    """
+    >>> from hello import console
+    >>> console.print_message("testing")
+    testing
+    """
+    
+    if __name__ == "__main__":
+        import doctest
+        doctest.testmod(verbose=True)
+
+After doing this, you can run this test via the :menuselection:`Run --> Jython
+run` menu while ``doctests.py`` is the currently active file on the editor.  If
+all goes well, you will get the following output::
+
+    Trying:
+        from hello import console
+    Expecting nothing
+    ok
+    Trying:
+        console.print_message("testing")
+    Expecting:
+        testing
+    ok
+    1 items passed all tests:
+       2 tests in __main__
+    2 tests in 1 items.
+    2 passed and 0 failed.
+    Test passed.
+
+After running the doctest you will notice that your interactive console has gone
+away, replaced by the output console showing the test results. To go back to the
+interactive console, look for the console button in the console tab toolbar, exactly
+at the left of the button you used to spawn the console, Then, on the dropdown
+menu select the "PyDev Console" as shown in the next image.
+
+.. image:: images/chapter11-pydev-console-select.png
+   :alt: Bringing back the interactive console.
+
+As you can see, you can use the interactive console to play with your code, try
+ideas and test them. And later a simple test can be made just by copying and
+pasting text from the same interactive console session. Of special interest is
+the fact that, since Jython code can access Java APIs quite easily, you can also
+test classes written with Java in this way!
+
+Adding Java libraries to the project
+------------------------------------
+
+Finally, I will show you how to integrate Java libraries into your
+project. I said some pages ago that we could add a "speech" interface for our
+greeter. It doesn't sound like a bad idea after all, since (like on almost any
+aspect) the Java world has good libraries to solve that problem.
+
+We will use the FreeTTS library, which can be downloaded from
+http://freetts.sourceforge.net/docs/index.php. (You should download the binary
+version)
+
+After downloading FreeTTS you will have to extract the archive on some place on
+your hard disk. Then, we will import a JAR file from FreeTTS into our PyDev
+project.
+
+Right click the project and select "Import...". Then choose
+:menuselection:`General --> File System` and browse to the directory in which
+you expanded FreeTTS and select it.  Finally, expand the directory on the left
+side panel and check the ``lib`` subdirectory. See the following image as
+reference.
+
+.. image:: images/chapter11-pydev-importing-freetts.png
+   :alt: Importing ``freetts.jar`` into the PyDev Project
+
+After clicking finish you will see that the file is now part of your project. 
+
+.. tip:: 
+
+Alternatively, and depending on your operating system, the same operation can be
+performed copying the file from the file manager and pasting it into the project
+(either via menu, keyboard shortcuts or drag & drop).
+
+Now, the file is part of the project, but we need to tell PyDev that the file is
+a JAR file and should be added to the ``sys.path`` of our project
+environment. To do this right click on the project and select "Properties". Then
+on the left panel of the dialog select "PyDev - PYTHONPATH". Then click the "Add
+zip/jar/egg" button and select the ``lib/freetts.jar`` file on the right side of the
+dialog that will pop out. Click OK on both dialogs and you are ready to use this
+library from Python code.
+
+The code for our new ``hello.speech`` module is as follows::
+
+    from com.sun.speech.freetts import VoiceManager
+    from hello import register_ui
+    
+    @register_ui('speech')
+    def speech_message(msg):
+        voice = VoiceManager().getVoice("kevin16")
+        voice.allocate()
+        voice.speak(msg)
+        voice.deallocate()
+
+If you play with the code on the editor you will notice that PyDev also provides
+completion for imports statement referencing the Java library we are using.
+
+Finally, we will change the second line of ``main.py`` from::
+
+    import hello, hello.console, hello.window 
+
+to::
+
+    import hello, hello.console, hello.window, hello.speech
+
+In order to load the speech UI too. Feel free to power on the speakers and let
+the computer greet yourself and your friends!
+
+There you go, our humble greeter has finally evolved into a quite interesting,
+portable program with speech synthesis abilities. It's still a toy, but one
+which shows how quick you can move with the power of Jython, the diversity of
+Java and the help of an IDE.
+
+Other topics
+------------
+
+I have covered most of the PyDev features, but I've left a few unexplored. We
+will take a look at what we've missed before ending this half-chapter dedicated
+to PyDev.
+
+Debugging
+~~~~~~~~~
+
+PyDev offers full debugging abilities for your Jython code. To try it just put
+some breakpoints on your code double clicking on the left margin of the
+editor, and then start your program using the ``F11`` shortcut instead of
+``Ctrl + F11``. 
+
+Once the debugger hits your breakpoint, the IDE will ask you to change its
+perspective. It means that it will change to a different layout, better suited
+for debugging activities. Answer yes to such dialog and you will find yourself
+on the debugging perspective which looks like the following image:
+
+.. image:: images/chapter11-pydev-debug-session.png
+   :alt: PyDev's Jython Debugger.
+
+In few words, the perspective offers the typical elements of a debugger: the
+call stack, the variables for each frame of the call stack, a list of
+breakpoints, and the ability to "Step Into" (``F5``), "Step Over" (``F6``) and
+"Resume Execution" (``F8``) among others.
+
+Once you finish your debugging session, you can go back to the normal editing
+perspective by selecting "PyDev" on the upper right area of the main IDE Window
+(which will have the "Debug" button pushed while staying in the debugging
+perspective).
+
+Refactoring
+~~~~~~~~~~~
+
+PyDev also offers some basic refactoring abilities. Some of them are limited to
+CPython, but others, like "Extract Method" work just fine with Jython
+projects. I encourage you to try them to see if they fit your way of
+work. Sometimes you may prefer to refactor manually since the task tend do not
+be as painful as in Java (or any other statically typed language without type
+inference). On the other hand, when the IDE can do the right thing for you and
+avoid some mechanical work, you will be more productive.
+  
+(Half-)Conclusion
+-----------------
+
+PyDev is a very mature plugin for the Eclipse platform which can be an important
+element in your toolbox. Automatic completion ans suggestions helps a lot when
+learning new APIs (both Python APIs and Java APIs!) specially if paired with the
+interactive console. It is also a good way to introduce a whole team into Jython
+or into an specific Jython project, since the project-level configuration can be
+shared via normal source control system. Not to mention that programmers coming
+from the Java world will find themselves much more comfortable on a familiar
+environment.
+
+To me, IDEs are a useful part of my toolbox, and tend to shine on big codebases
+and/or complex code which I don't completely understand yet. Powerful navigation
+and refactoring abilities are key on the process of understanding such kind of
+projects and are features that should only improve in the future.
+
+Finally, the debugging capabilities of PyDev are superb and will end your days
+of using ``print`` as a poor man's debugger (Seriously, I did that for a
+while!). Even more advanced Python users who master the art of ``import pdb;
+pdb.set_trace()`` should give it a try.
+
+Now, this is a "half-conclusion" because PyDev isn't the only IDE available for
+Jython. If you are already using the Netbeans IDE or didn't like Eclipse or
+PyDev for some reason, take a look at the rest of this chapter in which we will
+cover the Netbeans plugin for Python development.
+    
+Netbeans 
 ========
 
 The Netbeans integrated development environment has been serving the Java community well for over ten years now.  During that time, the tool has matured quite a bit from what began as an ordinary Java development tool into what is today an advanced development and testing environment for Java and other languages alike.  As Java and JavaEE application development still remain an integral part of the tool, other languages such as JRuby, Jython, Groovy, and Scala have earned themselves a niche in the tool as well.  Most of these languages are supported as plugins to the core development environment, which is what makes Netbeans such an easy IDE to extend as it is very easy to build additional features to distribute.  The Python support within Netbeans began as a small plugin known as nbPython, but it has grown into a fully-featured Python development environment and it continues to grow.
