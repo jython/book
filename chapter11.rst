@@ -1,5 +1,5 @@
 ﻿Chapter 11: Using Jython in an IDE
-++++++++++++++++++++++++++++++++++
++++++++++++++++++++++++++++++++++++
 
 In this chapter, we will discuss developing Jython applications using two of the most popular integrated development environments, Eclipse and Netbeans.  There are many other development environments available for Python and Jython today, however, these two are perhaps the most popular and contain the most Jython-specific tools.  Eclipse has had a plugin known as PyDev for a number of years, and this plugin provides rich support for developing and maintaining Python and Jython applications alike.  More recently, an Eclipse plugin for Django has been developed by Leo Soto and it is a one-of-a-kind development tool offering Jython developers the chance to easily develop Django web applications with Eclipse.  Netbeans began to include Python and Jython support with version 6.5 and beyond.  The Netbeans IDE also provides rich support for development and maintenance of Python and Jython applications.  There is not a Django plugin available for this IDE at the time of this writing, although there most likely will be one in the works very soon.
 
@@ -461,10 +461,11 @@ following::
 
    Until now, we have used PyDev's wizards to create new modules and
    packages. But, as you saw on Chapter 7, modules are just files with the
-   ``.py`` extension located on the ``sys.path`` or inside packages, and packages
-   are just directories that happen to contain a ``__init__.py`` file. So you
-   may want to create modules using :menuselection:`New --> File` and packages
-   using :menuselection:`New --> Folder` if you don't like the wizards.
+   ``.py`` extension located on the ``sys.path`` or inside packages, and
+   packages are just directories that happen to contain a ``__init__.py``
+   file. So you may want to create modules using :menuselection:`New --> File`
+   and packages using :menuselection:`New --> Folder` if you don't like the
+   wizards.
 
 Now we have our code split over many files. On a small project navigating
 through it using the left-side project tree (called the "PyDev Package
@@ -565,8 +566,8 @@ equally automated is doctest.
 
 .. note::
 
-We will cover testing tools in much greater detail in Chapter 19, so take a look
-at that chapter if you feel too disoriented.
+   We will cover testing tools in much greater detail in Chapter 19, so take a look
+   at that chapter if you feel too disoriented.
 
 The nice thing about doctests is that they look like a interactive session with
 the interpreter, which makes them quite legible and easy to create. We will test
@@ -670,9 +671,9 @@ After clicking finish you will see that the file is now part of your project.
 
 .. tip:: 
 
-Alternatively, and depending on your operating system, the same operation can be
-performed copying the file from the file manager and pasting it into the project
-(either via menu, keyboard shortcuts or drag & drop).
+   Alternatively, and depending on your operating system, the same operation can
+   be performed copying the file from the file manager and pasting it into the
+   project (either via menu, keyboard shortcuts or drag & drop).
 
 Now, the file is part of the project, but we need to tell PyDev that the file is
 a JAR file and should be added to the ``sys.path`` of our project
