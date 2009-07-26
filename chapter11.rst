@@ -1,7 +1,7 @@
 ﻿Chapter 11: Using Jython in an IDE
 +++++++++++++++++++++++++++++++++++
 
-In this chapter, we will discuss developing Jython applications using two of the most popular integrated development environments, Eclipse and Netbeans.  There are many other development environments available for Python and Jython today, however, these two are perhaps the most popular and contain the most Jython-specific tools.  Eclipse has had a plugin known as PyDev for a number of years, and this plugin provides rich support for developing and maintaining Python and Jython applications alike.  More recently, an Eclipse plugin for Django has been developed by Leo Soto and it is a one-of-a-kind development tool offering Jython developers the chance to easily develop Django web applications with Eclipse.  Netbeans began to include Python and Jython support with version 6.5 and beyond.  The Netbeans IDE also provides rich support for development and maintenance of Python and Jython applications.  There is not a Django plugin available for this IDE at the time of this writing, although there most likely will be one in the works very soon.
+In this chapter, we will discuss developing Jython applications using two of the most popular integrated development environments, Eclipse and Netbeans.  There are many other development environments available for Python and Jython today, however, these two are perhaps the most popular and contain the most Jython-specific tools.  Eclipse has had a plugin known as PyDev for a number of years, and this plugin provides rich support for developing and maintaining Python and Jython applications alike. Netbeans began to include Python and Jython support with version 6.5 and beyond.  The Netbeans IDE also provides rich support for development and maintenance of Python and Jython applications. 
 
 Please note that in this chapter we will refer to Python/Jython as Jython.  All of the IDE options discussed are available for both Python and Jython unless otherwise noted.  For readability and consistency sake, we’ll not refer to both Python and Jython throughout this chapter unless there is some feature that is not available for Python or Jython specifically.  Also note that we will call the plugins discussed by their names, so in the case of Netbeans the plugin is called *Netbeans Python Plugin*.  This plugin works with both Python and Jython in all cases.
 
@@ -486,7 +486,7 @@ Resource". Just type (part of) the file name you want to jump to and PyDev will
 search on every package and directory of your open projects.
 
 Now that you have many files, note that you don't need to necessarily have the
-file you want to run opened and active on the editor. Every script you run
+file you want to run opened and active on the editor. For every script you run
 (using the procedure in which you need to be editing the program and then press
 ``Ctrl + F11``) the IDE will remember that such script is something you are
 interested in running and will add it to the "Run History". You can access the
