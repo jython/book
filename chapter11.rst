@@ -485,6 +485,17 @@ Package Explorer is to use ``Ctrl + Shift + R``, which is the shortcut for "Open
 Resource". Just type (part of) the file name you want to jump to and PyDev will
 search on every package and directory of your open projects.
 
+Now that you have many files, note that you don't need to necessarily have the
+file you want to run opened and active on the editor. Every script you run
+(using the procedure in which you need to be editing the program and then press
+``Ctrl + F11``) the IDE will remember that such script is something you are
+interested in running and will add it to the "Run History". You can access the
+"Run History" on the main menu under :menuselection:`Run -> Run History`, or in
+the dropdown button located in the main toolbar, along the green "play" icon. In
+both places you will find the latest programs you ran, and many times using this
+list and selecting the script you want to re-run will be more convenient than
+jumping to the script on the editor and then pressing ``Ctrl + F11``.
+
 Finally, the IDE internally records an history of your "jumps" between files,
 just like a web browser do for web pages you visit. And just like a web browser
 you can go back and forward. To do this, use the appropriate button on the
@@ -706,8 +717,8 @@ to::
 
     import hello, hello.console, hello.window, hello.speech
 
-In order to load the speech UI too. Feel free to power on the speakers and let
-the computer greet yourself and your friends!
+In order to load the speech UI too. Feel free to power on the speakers and use
+the ``--ui speech`` option to let the computer greet yourself and your friends!
 
 There you go, our humble greeter has finally evolved into a quite interesting,
 portable program with speech synthesis abilities. It's still a toy, but one
