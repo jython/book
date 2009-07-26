@@ -656,10 +656,11 @@ test classes written with Java in this way!
 Adding Java libraries to the project
 ------------------------------------
 
-Finally, I will show you how to integrate Java libraries into your
-project. I said some pages ago that we could add a "speech" interface for our
-greeter. It doesn't sound like a bad idea after all, since (like on almost any
-aspect) the Java world has good libraries to solve that problem.
+Finally, I will show you how to integrate Java libraries into your project. When
+testing the command line switches some pages ago, I hinted that we could have an
+"speech" interface for our greeter. It doesn't sound like a bad idea after all,
+since (like on almost any aspect) the Java world has good libraries to solve
+that problem.
 
 We will use the FreeTTS library, which can be downloaded from
 http://freetts.sourceforge.net/docs/index.php. (You should download the binary
