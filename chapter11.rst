@@ -803,8 +803,8 @@ The Netbeans integrated development environment has been serving the Java commun
 
 The Netbeans Python support provides developers with all of the expected IDE features such as code completion, color coding, and easy runtime development.  It also includes some nice advanced features for debugging applications and the like.  
 
-IDE Installations and Configurations
-====================================
+IDE Installation and Configuration
+==================================
 
 
 The first step for installing the Netbeans Python development environment is to download the current release of the Netbeans IDE.  At the time of this writing, Netbeans 6.7 was the most recent release, hot off the presses in fact.  You can find the IDE download by going to the website http://www.netbeans.org and clicking on the download link.  Once you do so, you’ll be presented with plenty of different download options.  These are variations of the IDE that are focused on providing different features for developers depending upon what they will use the most.  Nobody wants a bulky, memory hungry development tool that will overhaul a computer to the extreme.  By providing several different configuration of the IDE, Netbeans gives you the option to leave off the extras and only install those pieces that are essential to your development.  The different flavors for the IDE include Java SE, Java, Ruby, C/C++, PHP, and All.  For those developers only interested in developing core Java applications, the Java SE download would suffice.  Likewise, someone interested in any of the other languages could download the IDE configuration specific to that language.  For the purposes of this book and in my everyday development, I use the “All” option as I enjoy having all of the options available.  However, there are options available for adding features if you download only the Java SE or another low-profile build and wish to add more later.
@@ -816,7 +816,12 @@ Now that you’ve obtained the IDE, it is easy to install in any environment usi
 
 When the IDE initially opens up, you are presented with a main window that includes links to blogs and articles pertaining to Netbeans features.  You also have the standard menu items available such as File, Edit, Tools, and so on.  In this chapter we will specifically cover the configuration and use of the Jython features, however, there are very useful tutorials available online and in book format for covering other Netbeans features.  One thing you should note at this point is that with the initial installation, Python/Jython development tools are not yet installed unless you chose to install the *PythonEA* distribution.  Assuming that you have installed the full Netbeans distribution, you will need to add the Python plugin via the Netbeans plugin center.  You will need to go to the *Tools* menu and then open the *Plugins *submenu.  From there, you should choose the *Available Plugins* tab and sort by category.  Select all of the plugins in the *Python* category and then install.  This option will install the Python plugin as well as a distribution of Jython.  You will need to follow on-screen directions to complete the installation.
 
-Once the plugin has been successfully installed then it is time to configure your Python and Jython homes.  To do so, go to the *Tools* menu and then open the *Python Platforms* menu as this will open the platform manager for Python/Jython.  At the time of this writing, the default Jython version that was installed with the Python plugin was 2.5b0+, even though 2.5.0 final has been release.  As this is the case, go ahead and add your Jython 2.5.0 final installation as a platform option and make it the default.  To do so, click on the *New* button underneath the platform listing.  You can try to select the *Auto Detect* option, but I did not have luck with Netbeans finding my Jython installation for 2.5.0 final using it.  If you choose the *New* button then you will be presented with a file chooser window.  You should choose the Jython executable that resides in the area <JYTHON_HOME>/bin and all of the other necessary fields will auto-populate with the correct values.  Once completed, choose the *Close* button near the bottom of the *Python Platform Manager* window.  You are now ready to start programming with Python and Jython in Netbeans.
+Once the plugin has been successfully installed then it is time to configure your Python and Jython homes.  To do so, go to the *Tools* menu and then open the *Python Platforms* menu as this will open the platform manager for Python/Jython.  At the time of this writing, the default Jython version that was installed with the Python plugin was 2.5b0+, even though 2.5.0 final has been release.  As this is the case, go ahead and add your Jython 2.5.0 final installation as a platform option and make it the default.
+
+.. image:: images/chapter11-nbplatformmgr.jpg
+   :alt: Netbeans Python Platform Manager.
+   
+To do so, click on the *New* button underneath the platform listing.  You can try to select the *Auto Detect* option, but I did not have luck with Netbeans finding my Jython installation for 2.5.0 final using it.  If you choose the *New* button then you will be presented with a file chooser window.  You should choose the Jython executable that resides in the area <JYTHON_HOME>/bin and all of the other necessary fields will auto-populate with the correct values.  Once completed, choose the *Close* button near the bottom of the *Python Platform Manager* window.  You are now ready to start programming with Python and Jython in Netbeans.
 
 
 Advanced Python Options
@@ -831,7 +836,7 @@ General Jython Usage
 
 As stated previously in the chapter, there are a number of options when using the Netbeans Python solution.  There are a few different selections that can be made when creating a new Jython project.  You can either choose to create a *Python Project* or *Python Project with Existing Sources*.  These two project types are named quite appropriately as a *Python Project* will create an empty project, and
 
-Once created it is easy to develop and maintain applications and scripts alike.  Moreover, you can debug your application and have Netbeans create tests if you choose to do so.  One of the first nice features you will notice is the syntax coloring in the editor.  
+Once created it is easy to develop and maintain applications and scripts alike.  Moreover, you can debug your application and have Netbeans create tests if you choose to do so.  One of the first nice features you will notice is the syntax coloring in the editor.  There is also testing availab le via 
 
 
 
@@ -1092,7 +1097,18 @@ Assuming that you already have Django setup and configured along with the Django
 
 Now we should have the default Django site setup and we're ready to bring it into Netbeans.  To do this, start a new Python project within Netbeans using the *Python Project with Existing Sources* option, and be sure to set your Python Platform to Jython 2.5.0 so we are using Jython.  After hitting the *Next* button we have the ability to add sources to our project.  Hit the *Add* button and choose the select the main project folder, so in our case select the *NetbeansDjango* folder.  This will add our project root as the source root for our application.  In turn, it adds our Django setup files such as *manage.py* to our project.  After doing so your project should look something like the following screenshot.
 
-In this next step, we will configure the Netbeans project *Run* option so that it starts up the Django web server for us.  To do so, right-click (CNTRL+CLICK) on the newly created project and go to *Properties*.  From there choose the *Python* option in the left-hand menu and add the Django directory (containing the bin, conf, contrib, core, etc. files) to your path.  For this tutorial we will also make use of the Postgresql database, so you'll want to also add the *postgresql.jar* to your Python path.  Next, select the *Run* option from the left-hand menu and add *manage.py* as the main module, and add *runserver* as the application argument.  This will essentially hook-up the *Run* project option to the Django *manage.py* such that it will invoke the Django webserver to start up.
+.. image:: images/chapter11-nbdjango-project.jpg
+   :alt: Sample Netbeans Django Project.
+
+In this next step, we will configure the Netbeans project *Run* option so that it starts up the Django web server for us.  To do so, right-click (CNTRL+CLICK) on the newly created project and go to *Properties*.  From there choose the *Python* option in the left-hand menu and add the Django directory (containing the bin, conf, contrib, core, etc. files) to your path.  For this tutorial we will also make use of the Postgresql database, so you'll want to also add the *postgresql.jar* to your Python path.
+
+.. image:: images/chapter11-nbdjango-pythonpath.jpg
+   :alt: Netbeans Django Sample Project Path.
+
+Next, select the *Run* option from the left-hand menu and add *manage.py* as the main module, and add *runserver* as the application argument.  This will essentially hook-up the *Run* project option to the Django *manage.py* such that it will invoke the Django webserver to start up.
+
+.. image:: images/chapter11-nbdjango-run.jpg
+   :alt: Netbeans Django Run Options.
 
 At this point, we are ready to begin developing our Django application.  So with a little minor setup and some use of the terminal or command-line we are able to easily use Netbeans for developing Django projects.  There are a few minor inconsistencies with this process however, note that there is no real integrated way to turn off the webserver as yet so once it is started we can either leave it running or stop it via your system process manager.  Otherwise you can hook up different options to the Netbeans *Run* project command such as *syncdb* by simply choosing a different application argument in the project properties.  If you use this methodology, then you can simply start and stop the Django web server via the terminal as normal.  I have also found that after running the Django web server you will have to manually delete the *settings$.py.class* file that is generated before you can run the server again or else it will complain.
 
@@ -1100,6 +1116,12 @@ In future versions of Netbeans, namely the Netbeans 7 release, it is expected th
 
 Conclusion
 ==========
+
+As with most other programming languages, you have several options to use for an IDE when developing Jython.  In this chapter we covered two of the most widely used IDE options for developing Jython applications, Netbeans and Eclipse.  Eclipse offers a truely complete IDE solution for developing Jython applications, both stand alone and web based.  Along with the inclusion of the Django plugin for Eclipse, the IDE makes it very easy to get started with Jython development and also manage existing projects.  PyDev is under constant development and always getting better, adding new features and streamlining existing features.  
+
+Netbeans Jython support is in still in early development at the time of this writing.  Many of the main features such as code completion and syntax coloring are already in place.  It is possible to develop Jython applications including Jython and Java integration as well as web based applications.  In the future, Netbeans Jython support will develop to include many more features and they will surely be covered in future releases of this book.
+
+In the next chapter, we will take a look at developing some applications utilizing databases.  The zxJDBC API will be covered and you'll learn how to develop Jython applications utilizing standard database transactions.  Object relational mapping is also available for Jython in various forms, we'll discuss many of those options as well.
 
 
 
