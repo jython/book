@@ -391,15 +391,467 @@ You're finished configuring database connection pooling.  That wasn't that bad
 now was it?
 
 
-Integrating with threadpools
-----------------------------
-XXX: TODO
+Dealing with long running tasks
+-------------------------------
+
+When you're building a complex web application, you will inevitably end up
+having to deal with processes which need to be processed in the background.  If
+you're building on top of CPython and Apache, you're out of luck here - there's
+no standard infrastructure available for you to handle these tasks.   Luckily
+these services have had years of engineering work already done for you in the
+Java world.   We'll take a look at two different strategies for dealing with
+long running tasks.  
+
+Thread Pools
+------------
+
+The first strategy is is to leverage managed thread pools in the J2EE
+container.  When your webapplication is running within Glassfish, each HTTP
+request is processed by the HTTP Service which contains a threadpool.  You can
+change the number of threads to affect the performance of the webserver.
+Glassfish will also let you create your own threadpools to execute arbitrary
+work units for you.
+
+The basic API for threadpools is simple:
+
+ * WorkManager which provides an abstracted interface to the thread pool
+ * Work is an interface which encapsulates your unit of work
+ * WorkListener which is an interface that lets you monitor the
+   progress of your Work tasks.
 
 
-Integrating with JMS 
---------------------
-XXX: TODO
+First, we need to tell Glassfish to provision a threadpool for our
+use.  In the Adminstration screen, go down to Configuration/Thread
+Pools.  Click on 'New' to create a new thread pool.  Give your
+threadpool the name "backend-workers".  Leave all the other settings
+as the default values and click "OK".
+
+You've now got a thread pool that you can use.  The threadpool exposes
+an interface where you can submit jobs to the pool and the pool will
+either execute the job synchronously within a thread, or you can
+schedule the job to run asynchronously.  As long as your unit of work
+implements the javax.resource.spi.work.Work interface, the threadpool
+will happily run your code.  A unit of class may be as simple as the
+following snippet of code ::
+
+    from javax.resource.spi.work import Work
+
+    class WorkUnit(Work):
+        """
+        This is an implementation of the Work interface.
+        """
+        def __init__(self, job_id):
+            self.job_id = job_id
+
+        def release(self):
+            """
+            This method is invoked by the threadpool to tell threads
+            to abort the execution of a unit of work.
+            """
+            logger.warn("[%d] Glassfish asked the job to stop quickly" % self.job_id)
+
+        def run(self):
+            """
+            This method is invoked by the threadpool when work is
+            'running'
+            """
+            for i in range(20):
+                logger.info("[%d] just doing some work" % self.job_id)
+
+This WorkUnit class above doesn't do anything very interesting, but it
+does illustrate the basic structure of what unit of work requires.
+We're just logging message to disk so that we can visually see the
+thread execute.
+
+WorkManager implements several methods which can run your job and
+block until the threadpool completes your work, or it can run the job
+asynchronously.  Generally, I prefer to run things asynchronously and
+simply check the status of the work over time.  This lets me submit
+multiple jobs to the threadpool at once and check the status of each
+of the jobs.
+
+To monitor the progress of work, we need to implement the WorkListener
+interface.  This interface gives us notifications as a task progresses
+through the 3 phases of execution within the thread pool.  Those
+states are :
+
+ 1) Accepted
+ 2) Started 
+ 3) Completed
+
+All jobs must go to either Completed or Rejected states. The simplest
+thing to do then is to simple build up lists capturing the events.
+When the length of the completed and the rejected lists together are
+the same as the number of jobs we submitted, we know that we are done.
+By using lists instead of simple counters, we can inspect the work
+objects in much more detail.
+
+Here's the code for our SimpleWorkListener ::
+
+    from javax.resource.spi.work import WorkListener
+    class SimpleWorkListener(WorkListener):
+        """
+        Just keep track of all work events as they come in
+        """
+        def __init__(self):
+            self.accepted = []
+            self.completed = []
+            self.rejected = []
+            self.started = []
+
+        def workAccepted(self, work_event):
+            self.accepted.append(work_event.getWork())
+            logger.info("Work accepted %s" % str(work_event.getWork()))
+
+        def workCompleted(self, work_event):
+            self.completed.append(work_event.getWork())
+            logger.info("Work completed %s" % str(work_event.getWork()))
+
+        def workRejected(self, work_event):
+            self.rejected.append(work_event.getWork())
+            logger.info("Work rejected %s" % str(work_event.getWork()))
+
+        def workStarted(self, work_event):
+            self.started.append(work_event.getWork())
+            logger.info("Work started %s" % str(work_event.getWork()))
+
+To access the threadpool, you simply need to know the name of the
+pool we want to access and schedule our jobs.  Each time we schedule
+a unit of work, we need to tell the pool how long to wait until we
+timeout the job and provide a reference to the WorkListener so that we
+can monitor the status of the jobs.  
+
+The code to do this is listed below ::
+
+    from com.sun.enterprise.connectors.work import CommonWorkManager
+    from javax.resource.spi.work import Work, WorkManager, WorkListener
+    wm = CommonWorkManager('backend-workers')
+    listener = SimpleWorkListener()
+    for i in range(5):
+        work = WorkUnit(i)
+        wm.scheduleWork(work, -1, None, listener)
+
+You may notice that the scheduleWork method takes in a None in the
+third argument.  This is the execution context - for our purposes,
+it's best to just ignore it and set it to None.  The scheduleWork
+method will return immediately and the listener will get callback
+notifications as our work objects pass through.  To verify that all
+our jobs have completed (or rejected) - we simply need to check the
+listener's internal lists. ::
+
+    while len(listener.completed) + len(listener.rejected) < num_jobs:
+        logger.info("Found %d jobs completed" % len(listener.completed))
+        time.sleep(0.1)
+
+That covers all the code you need to access thread pools and monitor
+the status of each unit of work.  Ignoring the actual WorkUnit class,
+the actual code to manage the threadpool is about a dozen lines long.
+
+J2EE standards and thread pools
+-------------------------------
+
+Unfortunately, this API is not standard in the J2EE 5 specification
+yet so the code  listed here will only work in Glassfish.  The
+API for parallel processing is being standardized for J2EE 6, and
+until then you will need to know a little bit of the internals of your
+particular application server to get threadpools working.  If you're
+working with Weblogic or Websphere, you will need to use the CommonJ
+APIs to access the threadpools, but the logic is largely the same.
+
+Passing messages across process boundaries
+------------------------------------------
+
+While threadpools provide access to background job processing,
+sometimes it may be beneficial to have messages pass across process
+boundaries.  Every week there seems to be a new Python package that
+tries to solve this problem, for Jython we are lucky enough to
+leverage Java's JMS.  JMS specifies a message brokering technology
+where you may define publish/subscribe or point to point delivery of
+messages between different services.  Messages are asychnronously sent
+to provide loose coupling and the broker deals with all manner of
+boring engineering details like delivery guarantees, security,
+durability of messages between server crashes and clustering.
+
+While you could use a handrolled RESTful messaging implementation -
+using OpenMQ and JMS has many advantages.
+
+1) It's mature.  Do you really think your messaging implementation
+   handles all the corner cases? Server crashes?  Network connectivity
+   errors?  Reliability guarantees?  Clustering?  Security? OpenMQ has
+   almost 10 years of engineering behind it.  There's a reason for
+   that.
+
+2) The JMS standard is just that - standard.  You gain the ability to
+   send and receive messages between any J2EE code.
+
+3) Interoperability.  JMS isn't the only messaging broker in town.
+   The Streaming Text Orientated Messaing Protocol (STOMP) is another
+   standard that is popular amongst non-Java developers.  You can turn
+   a JMS broker into a STOMP broker by using stompconnect.  This means
+   you can effectively pass messages between any messaging client and
+   any messaging broker using any of a dozen different languages.
+
+In JMS there are two types of message delivery mechanisms:
+
+ * Publish/Subscribe: This is for the times when we want to message
+   one or more subscribers about events that are occuring.  This is
+   done through JMS 'topics'.
+ * Point to point messaging:  These are single sender, single receiver
+   message queues.  Appropriately, JMS calls these 'queues'
+
+We need to provision a couple objects in Glassfish to get JMS going.
+In a nutshell, we need to create a connection factory which clients
+will use to connect to the JMS broker.   We'll create a
+publish/subscribe resource and a point to point messaging queue.  In
+JMS terms, there are called "destinations".  They can be thought of as
+postboxes that you send your mail to.
+
+Go to the Glassfish administration screen and go to Resources/JMS
+Resources/Connection Factories.  Create a new connection factory with
+the JNDI name: "jms/MyConnectionFactory".  Set the resource type to
+javax.jms.ConnectionFactory.  Delete the username and password
+properties at the bottom of the screen and add a single property:
+'imqDisableSetClientID' with a value of 'false'.  Click 'OK'.
+
+# TODO screenshot of the property setting
+
+By setting the imqDisableSetClientID to false, we are forcing clients
+to declare a username and password when they use the
+ConnectionFactory.  OpenMQ uses the login to uniquely identify the
+clients of the JMS service so that it can properly enforce the
+delivery guarantees of the destination.
+
+We now need to create the actual destinations - a topic for
+publish/subscribe and a queue for point to point messaging. Go to
+Resources/JMS Resources/Destination Resources and click 'New'. Set the
+JNDI name to 'jms/MyTopic', the destination name to 'MyTopic' and the
+Resource type to be 'javax.jms.Topic'.  Click "OK" to save the topic.
+
+# TODO: create the topic image
+
+Now we need to create the JMS queue for point to point messages.
+Create a new resource, set the JNDI name to 'jms/MyQueue', the
+destination name to 'MyQueue' and the resource type to
+"javax.jms.Queue".  Click OK to save.
+
+# TODO: create the queue image
+
+Like the database connections discussed earlier, the JMS services are
+also acquired in the J2EE container through the use of JNDI name
+lookups.  Unlike the database code, we're going to have to do some
+manual work to acquire the naming context which we do our lookups
+against.    When our application is running inside of Glassfish,
+acquiring a context is very simple.  We just import the class and
+instantiate it.  The context provides a lookup() method which we use
+to acquire the JMS connection factory and get access to the particular
+destinations that we are interested in. In the folowing example, I'll
+publish a message onto our topic. Lets see some code first and I'll go
+over the finer details of what's going on ::
+
+    from javax.naming import InitialContext, Session
+    from javax.naming import DeliverMode, Message
+    context = InitialContext()
+
+    tfactory = context.lookup("jms/MyConnectionFactory")
+
+    tconnection = tfactory.createTopicConnection('senduser', 'sendpass')
+    tsession = tconnection.createTopicSession(False, Session.AUTO_ACKNOWLEDGE)
+    publisher = tsession.createPublisher(context.lookup("jms/MyTopic"))
+
+    message = tsession.createTextMessage()
+    msg = "Hello there : %s" % datetime.datetime.now()
+    message.setText(msg)
+    publisher.publish(message, DeliveryMode.PERSISTENT, 
+            Message.DEFAULT_PRIORITY, 100)
+    tconnection.close()
+    context.close()
+
+In this code snippet, we acquire a topic connection through the connection
+factory.  To reiterate - topics are for publish/subscribe scenarios.
+We create a topic session - a context where we can send and receive
+messages to next.  The two arguments passed to creating the topic
+session specify a transactional flag and how our client will
+acknowledge receipt of messages.  We're giong to just disable
+transactions and get the session to automatically send
+acknowledgements back to the broker on message receipt.
+
+The last step to getting our publisher is well - creating the
+publisher.  From there we can start publishing messages up to the
+broker.
+
+At this point - it is important to distinguish between persistent
+messages and durable messages.  JMS calls a message 'persistent' if
+the messages received by the *broker* are persisted.  This guarantees
+that senders know that the broker has received a message.  It makes no
+guarantee that messages will actually be delivered to a final
+recipient.
+
+Durable subscribers are guaranteed to receive messages in the case
+that they temporarily drop their connection to the broker and
+reconnect at a later time.  The JMS broker will uniquely identify
+subscriber clients with a combination of the client ID, username and
+password to uniquely identify clients and manage message queues for
+each client.
+
+Now we need to create the subscriber client.  We're going to write a
+standalone client to show that your code doesn't have to live in the
+application server to receive messages.  The only trick we're going to
+apply here is that while we can simple create an InitialContext with
+an empty constructor for code in the app server, code that exists
+outside of the appliaction server must know where to find the JNDI
+naming service.  Glassfish exposes the naming service via CORBA - the
+Common Object Request Broker Architechture.. In short - we need to
+know a factory class name to create the context and we need to know
+the URL of where the object request broker is located. 
+
+The following listener client can be run on the same host as the
+Glassfish server ::
+
+    """
+    This is a standalone client that listens messages from JMS 
+    """
+    from javax.jms import TopicConnectionFactory, MessageListener, Session
+    from javax.naming import InitialContext, Context
+    import time
+
+    def get_context():
+        props = {}
+        props[Context.INITIAL_CONTEXT_FACTORY]="com.sun.appserv.naming.S1ASCtxFactory"
+        props[Context.PROVIDER_URL]="iiop://127.0.0.1:3700"
+        context = InitialContext(props)
+        return context
+
+    class TopicListener(MessageListener):
+        def go(self):
+            context = get_context()
+            tfactory = context.lookup("jms/MyConnectionFactory")
+            tconnection = tfactory.createTopicConnection('recvuser', 'recvpass')
+            tsession = tconnection.createTopicSession(False, Session.AUTO_ACKNOWLEDGE)
+            subscriber = tsession.createDurableSubscriber(context.lookup("jms/MyTopic"), 'mysub')
+            subscriber.setMessageListener(self)
+            tconnection.start()
+            while True:
+                time.sleep(1)
+            context.close()
+            tconnection.close()
+
+        def onMessage(self, message):
+            print message.getText()
+
+    if __name__ == '__main__':
+        TopicListener().go()
+
+There are only a few key differences between the subscriber and
+publisher side of a JMS topic.  First, the subscriber is created with
+a unique client id - in this case - it's 'mysub'.  This is used by JMS
+to determine what pending messages to send to the client in the case
+that the client drops the JMS connections and rebinds at a later time.
+If we don't care to receive missed messages, we could have created a
+non-durable subscriber with "createSubscriber" instead of
+"createDurableSubscriber" and we would not have to pass in a client
+ID.
+
+Second, the listener employs a callback pattern for incoming messages.
+When a message is received, the onMessage will be called automatically
+by the subscriber object and the message object will be passed in.
+
+Now we need to create our sending user and receiving user on the
+broker.  Drop to the command line and go to GLASSFISH_HOME/imq/bin.
+We are going to create two users - one sender and one receiver. ::
+
+  GLASSFISH_HOME/imq/bin $ imqusermgr add -u senduser -p sendpass
+  User repository for broker instance: imqbroker
+  User senduser successfully added.
+
+  GLASSFISH_HOME/imq/bin $ imqusermgr add -u recvuser -p recvpass
+  User repository for broker instance: imqbroker
+  User recvuser successfully added.
+
+We now have two new users with username/pasword pairs of
+senduser/sendpass and recvuser/recvpass.
+
+You have enough code now to enable publish/subscribe messaging
+patterns in your code to signal applications that live outside of your
+application server.  We can potentially have multiple listeners
+attached to the JMS broker and JMS will make sure that all subscribers
+get messages in a reliable way.
+
+Let's take a look now at sending message through a queue - this
+provides reliable point to point messaging and it adds guarantees that
+messages are persisted in a safe manner to safeguard against server
+crashes.   This time, we'll build our send and receive clients as
+individual standalone clients that communicate with the JMS broker. ::
+
+    from javax.jms import Session
+    from javax.naming import InitialContext, Context
+    import time
+
+    def get_context():
+        props = {}
+        props[Context.INITIAL_CONTEXT_FACTORY]="com.sun.appserv.naming.S1ASCtxFactory"
+        props[Context.PROVIDER_URL]="iiop://127.0.0.1:3700"
+        context = InitialContext(props)
+        return context
+
+    def send():
+        context = get_context()
+        qfactory = context.lookup("jms/MyConnectionFactory")
+        # This assumes a user has been provisioned on the broker with
+        # username/password of 'senduser/sendpass'
+        qconnection = qfactory.createQueueConnection('senduser', 'sendpass')
+        qsession = qconnection.createQueueSession(False, Session.AUTO_ACKNOWLEDGE)
+        qsender = qsession.createSender(context.lookup("jms/MyQueue"))
+        msg = qsession.createTextMessage()
+        for i in range(20):
+            msg.setText('this is msg [%d]' % i)
+            qsender.send(msg)
+
+    def recv():
+        context = get_context()
+        qfactory = context.lookup("jms/MyConnectionFactory")
+        # This assumes a user has been provisioned on the broker with
+        # username/password of 'recvuser/recvpass'
+        qconnection = qfactory.createQueueConnection('recvuser', 'recvpass')
+        qsession = qconnection.createQueueSession(False, Session.AUTO_ACKNOWLEDGE)
+        qreceiver = qsession.createReceiver(context.lookup("jms/MyQueue"))
+        qconnection.start()  # start the receiver
+
+        print "Starting to receive messages now:"
+        while True:
+            msg = qreceiver.receive(1)
+            if msg <> None and isinstance(msg, TextMessage):
+                print msg.getText()
 
 
+The send() and recv() functions are almost identical to the
+publish/subscriber code used to manage topics.  A minor difference is
+that the JMS queue APIs don't use a callback object for message
+receipt.  It is assumed that client applications will actively
+dequeue objects from the JMS queue instead of acting as a passive
+subscriber.
+
+The beauty of this JMS code is that you can send messages to the
+broker and be assured that in case the server goes down, your messages
+are not lost.  When the server comes back up and your endpoint client
+reconnects - it will still receive all of it's pending messages.
+
+We can extend this example even further.  Using stompconnect, we can turn our
+JMS broker into a STOMP message broker.  This will enable us to have
+applications written in just about *any* language communicate with our
+applications over JMS.  There are times when I have existing CPython
+code that leverages various C libraries like Imagemagick or NumPy to
+do computations that are simply not supported with Jython or Java.
+
+By using stompconnect, I can send work messages over JMS, bridge those
+messages over STOMP and have CPython clients process my requests.  The
+completed work is then sent back over STOMP, bridged to JMS and
+received by my Jython code.
+
+# TODO: add instructions for installing and connecting
+Obtain the stompconnect
+
+Complete code examples can be found
+
+XXX: TODO need to list the JAR files you'll need to make sure these code samples work
 
 
