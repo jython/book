@@ -1,5 +1,5 @@
-Databases and Jython: Using JDBC in Jython
-++++++++++++++++++++++++++++++++++++++++++
+Chapter 12- Databases and Jython: Using JDBC in Jython
+++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 zxJDBC – Using Python’s DB API via JDBC
 =======================================

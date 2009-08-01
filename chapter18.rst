@@ -92,9 +92,8 @@ Please note that the Google App Engine is a very large topic.  Entire books coul
 Starting with an SDK Demo
 -------------------------
 
-We will start by running the demo application known as "guestbook" that comes with the Google App Engine SDK.  This is a very simple Java application that allows one to sign in using an email address and post messages to the screen.  In order to start the SDK web server and run the "guestbook" application, open up a terminal and traverse into the directory where you expanded the Google App Engine .zip file and run the following command:
-
-::
+We will start by running the demo application known as "guestbook" that comes with the Google App Engine SDK.  This is a very simple Java application that allows one to sign in using an email address and post messages to the screen.  In order to start the SDK web server and run the "guestbook" application, open up a terminal and traverse into the directory where you expanded the Google App Engine .zip file and run the following command: ::
+    
     <app-engine-base-directory>/bin/dev_appserver.sh demos/guestbook/war
     
 
