@@ -106,7 +106,9 @@ A particular project directory structure must be followed when developing an app
 
 In order to install the *nbappengine* plugin, you add the 'App Engine' update center to the Netbeans plugin center by choosing the *Settings* tab and adding the update center using http://deadlock.netbeans.org/hudson/job/nbappengine/lastSuccessfulBuild/artifact/build/updates/updates.xml.gz as the URL.  Once you've added the new update center you can select the *Available Plugins* tab and add all of the plugins in the "Google App Engine" category then choose *Install*.  After doing so, you can add the "App Engine" as a server in your Netbeans environment using the "Services" tab.  To add the server, point to the base directory of your Google App Engine SDK.  Once you have added the App Engine server to Netbeans then it will become an available deployment option for your web applications.
 
-Create a new Java web project and name it *JythonGAE*.  For the deployment server, choose "Google App Engine", and you will notice that when your web application is created an additional file will be created within the *WEB-INF* directory named *appengine-web.xml*.  This is the Google App Engine configuration file for the JythonGAE application.  At this point we will need to create a couple of additional directories within our WEB-INF project directory.  We should create a *lib* directory and place *jython.jar* and *appengine-api-1.0-sdk-1.2.2.jar* into the directory.  Note that the App Engine JAR may be named differently according to the version that you are using.  We should now have a directory structure that resembles the following:
+Create a new Java web project and name it *JythonGAE*.  For the deployment server, choose "Google App Engine", and you will notice that when your web application is created an additional file will be created within the *WEB-INF* directory named *appengine-web.xml*.  This is the Google App Engine configuration file for the JythonGAE application.  Any of the static .py files that we wish to use in our application must be explicity mapped in this file.  Our application is going to make use of two Jython servlets, namely *add_numbers.py* and *add_to_page.py*.  We would need to map these files to a static URL such as *http://ourserver:port/**.py* to make them available to our application.
+
+At this point we will need to create a couple of additional directories within our WEB-INF project directory.  We should create a *lib* directory and place *jython.jar* and *appengine-api-1.0-sdk-1.2.2.jar* into the directory.  Note that the App Engine JAR may be named differently according to the version that you are using.  We should now have a directory structure that resembles the following:
 
 JythonGAE
     WEB-INF
@@ -127,20 +129,14 @@ Now that we have the applicaton set up, it is time to begin building the actual 
         "http://java.sun.com/dtd/web-app_2_3.dtd">
     <web-app>
     
-      <display-name>modjy demo application</display-name>
+      <display-name>GAE demo application</display-name>
       <description>
-         modjy WSGI demo application
+         GAE demo application
       </description>
       
       <servlet>
         <servlet-name>PyServlet</servlet-name>
          <servlet-class>org.python.util.PyServlet</servlet-class>
-        <init-param>
-          <param-name>python.home</param-name>
-          <param-value>/Applications/jython/jython2.5.0/</param-value>
-        </init-param>
-        
-        <load-on-startup>1</load-on-startup>
       </servlet>
       
       <servlet-mapping>
@@ -195,7 +191,7 @@ The next piece of the puzzle is the actual code.  In this example, we'll make us
     <%@page contentType="text/html" pageEncoding="UTF-8"%>
     <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
         "http://www.w3.org/TR/html4/loose.dtd">
-    <%@ taglib prefix="c" uri="http://java.sun.com/jstl/core" %>
+    
     
     <html>
         <head>
@@ -207,20 +203,43 @@ The next piece of the puzzle is the actual code.  In this example, we'll make us
                 <input type="text" name="p">
                 <input type="submit">
             </form>
+    
+            <% Object page_text = request.getAttribute("page_text");
+               Object sum = request.getAttribute("sum");
+    
+               if(page_text == null){
+                   page_text = "";
+               }
+    
+               if(sum == null){
+                   sum = "";
+               }
+            %>
+    
             <br/>
-                <p>${page_text}</p>
+    
+                <p><%= page_text %></p>
+    
             <br/>
+    
             <form method="GET" action="add_numbers.py">
                 <input type="text" name="x">
                 +
                 <input type="text" name="y">
                 =
-                ${sum}
+                <%= sum %>
                 <br/>
                 <input type="submit" title="Add Numbers">
+    
+    
             </form>
+    
+            
+    
+           
         </body>
     </html>
+
 
 
 That's it, now you can deploy the application to your Tomcat environment and it should run without any issues.  You can also choose to deploy to the Google App Engine SDK web server to test for compatability.
