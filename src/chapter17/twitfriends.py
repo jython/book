@@ -1,57 +1,80 @@
+# -*- coding: utf-8 -*-
 import twitter
 import re
 
-from javax.swing import (JButton, JFrame, JLabel, JPanel, JPasswordField,
-        JTextField, SwingConstants, WindowConstants)
-from java.awt import GridLayout
+from javax.swing import *
+from java.lang import *
+from java.awt import *
+from java.net import URL
+from java.lang import Runnable
 
 class JyTwitter(object):
-    def execute(self,event):
-        self.api = twitter.Api(self.usernameField.text, self.passwordField.text)
-        users = self.api.GetFriends()
-        for u in users:
-            self.makeButton(u.screen_name)
-
-    def showTwitters(self, event):
-        statuses = self.api.GetUserTimeline(user=event.actionCommand, count=10)
-        if len(self.regexField.text) > 0:
-            regex = re.compile(self.regexField.text)
-        else:
-            regex = re.compile(".")
-        print "** ", statuses[0].user.screen_name, statuses[0].user.name, "**"
-        for s in statuses:
-            if regex.search(s.text) is not None:
-                print s.user.screen_name, s.text, s.id, s.relative_created_at
-
-    def makeButton(self, name):
-        self.pnl.add(JButton(name, actionPerformed=self.showTwitters))
-        self.frame.pack()
-        self.frame.show()
-
     def __init__(self):
         self.frame = JFrame("Jython Twitter")
-        self.frame.setSize(800, 150)
         self.frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE)
  
-        self.pnl = JPanel(GridLayout(0,2))
-        self.frame.add(self.pnl)
+        self.loginPanel = JPanel(GridLayout(0,2))
+        self.frame.add(self.loginPanel)
 
         self.usernameField = JTextField('',15)
-        self.pnl.add(JLabel("username:", SwingConstants.RIGHT))
-        self.pnl.add(self.usernameField)
+        self.loginPanel.add(JLabel("username:", SwingConstants.RIGHT))
+        self.loginPanel.add(self.usernameField)
 
         self.passwordField = JPasswordField('', 15)
-        self.pnl.add(JLabel("password:", SwingConstants.RIGHT))
-        self.pnl.add(self.passwordField)
+        self.loginPanel.add(JLabel("password:", SwingConstants.RIGHT))
+        self.loginPanel.add(self.passwordField)
 
-        executeButton = JButton('Friends',actionPerformed=self.execute)
-        self.pnl.add(executeButton)
+        self.loginButton = JButton('Log in',actionPerformed=self.login)
+        self.loginPanel.add(self.loginButton)
 
-        self.regexField = JTextField('',15)
-        self.pnl.add(self.regexField)
+        self.message = JLabel("Please Log in")
+        self.loginPanel.add(self.message)
 
         self.frame.pack()
         self.frame.visible = True
- 
+
+    def login(self,event):
+        self.message.text = "Attempting to Log in..."
+        self.frame.show()
+        username = self.usernameField.text
+        try:
+            self.api = twitter.Api(username, self.passwordField.text)
+            self.frame.size = 300, 400
+            self.timeline(username)
+            self.loginPanel.visible = False
+            self.message.text = "Logged in"
+        except:
+            self.message.text = "Log in failed."
+            raise
+        self.frame.size = 300, 400
+        self.frame.show()
+
+    def timeline(self, username):
+        timeline = self.api.GetFriendsTimeline(username)
+        self.resultPanel = JPanel()
+        self.resultPanel.layout = BoxLayout(self.resultPanel, BoxLayout.Y_AXIS)
+        for s in timeline:
+            self.makeLabel(s)
+
+        scrollpane = JScrollPane(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
+                                 JScrollPane.HORIZONTAL_SCROLLBAR_NEVER)
+        scrollpane.preferredSize = 300, 300
+        scrollpane.viewport.view = self.resultPanel
+
+        self.frame.add(scrollpane)
+
+    def makeLabel(self, status):
+        user = status.user
+        p = JPanel()
+        p.add(JLabel(ImageIcon(URL(user.profile_image_url))))
+        p.add(JTextArea(text = status.text,
+                        editable = False,
+                        alignmentX = Component.LEFT_ALIGNMENT,
+                        lineWrap = True,
+                        size = (300, 30)
+             ))
+        self.resultPanel.add(p)
+        print user.profile_image_url
+
 if __name__ == '__main__':
     JyTwitter()
