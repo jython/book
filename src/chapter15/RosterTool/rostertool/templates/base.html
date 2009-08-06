@@ -1,0 +1,21 @@
+<html>
+    <body>
+        <div class="header">
+            ${self.header()}
+        </div>
+
+        ${self.body()}
+    </body>
+</html>
+
+<%def name="header()">
+    <h1>${c.page_title}</h1>
+    <% messages = h.flash.pop_messages() %>
+    % if messages:
+    <ul id="flash-messages">
+        % for message in messages:
+        <li>${message}</li>
+        % endfor
+    </ul>
+    % endif
+</%def>

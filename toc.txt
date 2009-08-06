@@ -121,7 +121,7 @@ Part I:  Jython Basics:  Learning the Language
 
             Summary
 
-      Chapter 4:  Defining Functions and Using Built-Ins (Jim - 07/2009) (pages: 25-28)
+      Chapter 4:  Defining Functions and Using Built-Ins (Jim - 08/10/2009) (pages: 25-28)
 
             Function Syntax and Basics
 
@@ -223,7 +223,7 @@ Part I:  Jython Basics:  Learning the Language
 
 Part II: Using the Language
 
-      Chapter 8:  Scripting with Jython (Frank Wierzbicki - 06/2009) (pages:  20-23)
+      Chapter 8:  Scripting with Jython (Frank Wierzbicki - FD Complete) (pages:  20-23)
 
             Learning the Command Line
             
@@ -245,7 +245,7 @@ Part II: Using the Language
 
             Conclusion
 
-      Chapter 10: Java and Jython Integration (Josh - 06/2009) (pages: 24)
+      Chapter 10: Java and Jython Integration (Josh - FD Complete) (pages: 24)
 
             Using Jython within Java Applications
 
@@ -268,7 +268,7 @@ Part II: Using the Language
             Using Java within Jython Applications
 
 
-      Chapter 11:  Using Jython in an IDE  (Josh & Leo Soto - 07/2009) (pages: 25-28)
+      Chapter 11:  Using Jython in an IDE  (Josh & Leo Soto - FD Complete) (pages: 25-28)
 
             Eclipse
 
@@ -284,7 +284,7 @@ Part II: Using the Language
 
             WebSphere
 
-      Chapter 12:  Databases and Jython  (Josh & Jim - 06/2009) (pages: 20-23)
+      Chapter 12:  Databases and Jython  (Josh & Jim - 08/2009) (pages: 20-23)
 
 	    Making Use of the dbm Module
 
@@ -312,27 +312,61 @@ Part II: Using the Language
 
 Part III: Developing Applications with Jython
 
-      Chapter 13: Simple Web Applications  (Josh - 07/2009) (pages: 20-23)
+      Chapter 13: Simple Web Applications  (Josh - FD Complete) (pages: 20-23)
 
             Servlets
 
-            Applets
+            Applets and Web Start
 
 	    WSGI and modjy
 
-      Chapter 14: Web Applications with Django (Leo Soto, Victor Ng - 07/2009) (pages: 32-35)
+	    Conclusion
 
-            The General Picture
+      Chapter 14: Web Applications with Django (Leo Soto, Victor Ng - 08/2009) (pages: 32-35)
 
-            A First Django/Jython Application
+            J2EE Deployment and Integration
 
-            Java-specific topics
+            Deploying your First Application
 
-      Chapter 15: Web Applications with Pylons  (Victor Ng - 07/2009) (pages: 23-25)
+	    Disabling Postgresql Logins
 
-            ???
+	    A Note about WAR Files
 
-      Chapter 16:  Web Services and SOA (Jim - 07/2009) (pages:  23-25)
+	    Extended Installation
+
+	    Connection Pooling with J2EE
+
+	    Integrating with Threadpools
+
+	    Integrating with JMS
+
+      Chapter 15: Web Applications with Pylons  (Victor Ng - 08/2009) (pages: 23-25)
+
+            A Guide for the Impatient
+
+	    A Note About Paste
+
+ 	    Pylons MVC
+
+	    An Interlude into Java's Memory Model
+
+	    Invoking the Pylons Shell
+
+	    Context Variables and Application Globals
+
+	    Routes
+
+	    Controllers and Templates
+
+	    Adding in a JSON API
+
+	    Unit Testing, Functional Testing, and Logging
+
+	    Deployment to a Servlet Container
+
+	    Conclusion
+
+      Chapter 16:  Web Services and SOA (Jim - 08/2009) (pages:  23-25)
 
             JAX-WS
 
@@ -340,13 +374,13 @@ Part III: Developing Applications with Jython
 
             JAXB and Legacy JAX-RPC Support
 
-      Chapter 17:  GUI Applications (Frank Wierzbicki - 07/2009) (pages: 23-25)
+      Chapter 17:  GUI Applications (Frank Wierzbicki - 08/2009) (pages: 23-25)
 
             Writing Jython Swing
 
             Using Jython with JavaFX
 
-      Chapter 18:  Deployment Targets (Josh & Jim - 07/2009) (pages: 25-28)
+      Chapter 18:  Deployment Targets (Josh & Jim - 08/2009) (pages: 25-28)
 
             Application Servers (Josh)
 

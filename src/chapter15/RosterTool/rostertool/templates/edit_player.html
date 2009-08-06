@@ -1,0 +1,18 @@
+<%inherit file="base.html" />
+
+<h2>Edit player</h2>
+${h.form(h.url_for(controller='roster', action='save_player', id=c.player.id), method='POST')} 
+    ${h.hidden('id', c.player.id)} <br />
+    ${h.text('first', c.player.first)} <br />
+    ${h.text('last', c.player.last)} <br />
+    ${h.text('position', c.player.position)} <br />
+    ${h.submit('save_player', "Save Player")}
+${h.end_form()}
+
+${h.form(h.url_for(controller='roster', action='delete_player', id=c.player.id), method='POST')} 
+    ${h.hidden('id', c.player.id)} <br />
+    ${h.hidden('first', c.player.first)} <br />
+    ${h.hidden('last', c.player.last)} <br />
+    ${h.hidden('position', c.player.position)} <br />
+    ${h.submit('delete_player', "Delete Player")}
+${h.end_form()}

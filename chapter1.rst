@@ -127,9 +127,9 @@ Words
 ========  =========  =======  =======  ==========
 and       assert     break    class    continue  
 def       del        elif     else     except    
-exec      finally    for      from     global    
-or        pass       print    raise    return    
-try       while      with     yield              
+exec      finally    for      from     global
+if        or         pass     print    raise
+return    try        while    with     yield              
 ========  =========  =======  =======  ==========
 
 Table 1-1. Reserved  Words. The following lists all of the Python language reserved words
@@ -316,29 +316,73 @@ The *print* statement is used to display program output onto the screen.  It can
 
 In the Java language, we need to make a call to the System library in order to print something to the command line.  In Python, this can be done with the use of the print statement.  The most basic use of the *print* statement is to display a line of text.  In order to do so, you simply enclose the text which you want to display within single or double quotes.  Take a look at the following example written in Java, and compare it to the example immediately following which is rewritten in Python.  I think you’ll see why the print statement in Jython makes life a bit easier.
 
-::
+Java Print Output Example ::
 
-	inspectValue(String val){
+	public void inspectValue(String val){
 	    if (val == null){
 	        System.out.println(“The value you have entered is not valid, please try again”;
 	    } else {
 	        System.out.println(	“The value you have entered is valid”);
-::
 
 
+Python Print Output Example ::
 
-As you can see from the example above, printing a line of text in Python is very straight forward.  We can also print variable values to the screen using the print  statement.
+    def inspectValue(val):
+    if val == None:
+        print 'The value you have entered is not valid, please try again'
+    else:
+        print 'The value you have entered valid'
 
-This is great and all, but really not useful if you'd like to properly format your text or work with int values.  After all, the Python parser is treating the (+) operator as a concatenation operator in this case...not as an addition operator.  If you try to append a numeric value to a String you will end up with an error.
+
+As you can see from the example above, printing a line of text in Python is very straight forward.  We can also print variable values to the screen using the print  statement. ::
+
+    myValue = 'I love programming in Jython'
+    print myValue
+    
+    >>> I love programming in Jython
+
+
+Once again, very straight forward in terms of printing values of variables.  Simply place the variable within a print statement.  We can also use this technique in order to append the values of variables to a line of text.  In order to do so, just place the concatenation operator (+) in between the String of text which you would like to append to, and the variable you'd like to append. ::
+
+    print 'I like programming in Java, but ' + myValue
+
+    >>> I like programming in Java, but I love programming in Jython
+    
+This is great and all, but really not useful if you'd like to properly format your text or work with int values.  After all, the Jython parser is treating the (+) operator as a concatenation operator in this case...not as an addition operator.  If you try to append a numeric value to a String you will end up with an error. ::
+
+    z = 10
+    >>> print 'I am a fan of the number: ' + z
+    Traceback (most recent call last):
+      File "<stdin>", line 1, in <module>
+    TypeError: cannot concatenate 'str' and 'int' objects
+
+
 
 As you can see from the example, Python does not like this trick very much.  So in order to perform this task correctly we will need to use some of the aforementioned Python formatting options.  This is easy and powerful to do, and it allows one to place any content or value into a print statement.  Before you see an example, let's take a look at some of the formatting operators and how to choose the one that you need.
 
-If you wish to include the contents of a variable or the result of an expression in your print  statement, you'll use the following syntax:
+%s - String 
+%d - Decimal
+%f   - Float
 
-In the pseudocode above (if we can really have pseudocode for print statements), we wish to print the string of text which is contained within the single quotes, but also have the values of the variables contained where the formatting operators are located.  Each of the formatting operators, which are included in the string of text, will be replaced with the corresponding values from those variables at the end of the print statement.  The % symbol between the line of text and the list of variables tells Python that the it should expect the variables to follow, and that these value of these variables should be placed within the string of text in their corresponding positions.
+If you wish to include the contents of a variable or the result of an expression in your print  statement, you'll use the following syntax: ::
 
-As you can see this is quite easy to use and very flexible.  The next example shows that we also have the option of using expressions as opposed to variables within our statement.
+    print 'String of text goes here %d %s %f' % (decimalValue, stringValue, floatValue)
 
+In the pseudocode above (if we can really have pseudocode for print statements), we wish to print the string of text which is contained within the single quotes, but also have the values of the variables contained where the formatting operators are located.  Each of the formatting operators, which are included in the string of text, will be replaced with the corresponding values from those variables at the end of the print statement.  The % symbol between the line of text and the list of variables tells Python that the it should expect the variables to follow, and that these value of these variables should be placed within the string of text in their corresponding positions. ::
+
+    >>> stringValue = 'hello world'
+    >>> floatValue = 3.998
+    >>> decimalValue = 5
+    >>> print 'Here is a test of the print statement using the values: %d, %s, and %f' % (decimalValue, stringValue, floatValue)
+    
+    Here is a test of the print statement using the values: 5, hello world, and 3.998000
+
+As you can see this is quite easy to use and very flexible.  The next example shows that we also have the option of using expressions as opposed to variables within our statement. ::
+
+    >>> x = 1
+    >>> y = 2
+    >>> print 'The value of x + y is: %d' % (x + y)
+    The value of x + y is: 3
 
 
 Another useful feature of the print statement is that it can be used for debugging purposes .  If we simply need to find out the value of a variable during processing then it is easy to display using the *print* statement.  Often times, using this technique can really assist in debugging and writing your code.
@@ -410,18 +454,20 @@ We can see that by throwing the *try-except-finally* statement around the errone
 
 Alright, this is looking much better now as we have named the exception "err" and then displayed it in our output.  Now the application user has a meaningful error message to tell us about when they reach this piece of code.  While this is much better than the generic error that we included in the first example, we still have not found the best way to handle the error.  The details of this topic can be read about more in Chapter 5:  Exception Handling in Jython.
 
+assert Statement
+----------------
 
+Assert statements are used for debugging purposes and error handling within a Python program.   Basically, the assert statement checks to ensure that some value or expression is True.  If it is True, then execution will continue without anything happening, but if it is False then the program will indicate as such by throwing an *AssertionError*.  Errors and exceptions will be covered in more detail in later chapters.  For now, understand that by throwing an *AssertionError*, the code can be flagged as incorrect in an instance where we are trying to debug for a True value.
 
-Assert statements are used for debugging purposes and error handling within a Python program.   Basically, the assert statement checks to ensure that some value or expression is True.  If it is True, then execution will continue without anything happening, but if it is False then the program will indicate as such by throwing an AssertionError.  Errors and exceptions will be covered in more detail in later chapters.  For now, understand that by throwing an AssertionError, the code can be flagged as incorrect in an instance where we are trying to debug for a True value.
+Example of Assertion: ::
 
-	>>> x = 10
-	>>> assert x == 11
-	Traceback (most recent call last):
-	  File "<stdin>", line 1, in <module>
-	AssertionError
-In the given example, the assertion checks to see if x is equal to eleven.  Obviously we can see that it is not, so it throws the expected AssertionError.  
+    >>> x = 10
+    >>> assert x == 11
+    Traceback (most recent call last):
+      File "<stdin>", line 1, in <module>
+    AssertionError
 
-::
+In the given example, the assertion checks to see if x is equal to eleven.  Obviously we can see that it is not, so it throws the expected AssertionError.
 
 
 raise Statement
@@ -485,7 +531,7 @@ There are some other Python statements that can be used within applications as w
 
 exec – Execute Python code in a dynamic fashion
 
-global – References a variable a global (Chapter 4)
+global – References a global variable (Chapter 4)
 
 with – New feature in 2.5 using __future__  (Chapter 7)
 
@@ -647,7 +693,8 @@ Much like the *continue* statement, the *break* statement can be used inside of 
 ::
 
 
-	x = 10 while x >= 0:
+	x = 10
+        while x >= 0:
 	     if x == 0:
 	         print "x is now equal to zero!"
 	         break

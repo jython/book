@@ -1,0 +1,3 @@
+include rostertool/config/deployment.ini_tmpl
+recursive-include rostertool/public *
+recursive-include rostertool/templates *
