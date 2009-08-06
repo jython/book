@@ -81,11 +81,11 @@ All in all, with a bit of tweaking and perhaps an additional XML configuration f
 Google App Engine
 =================
 
-The new kid on the block, at least for the time of this writing, is the Google App Engine.  Fresh to the likes of the Java platform, the Google App Engine can be used for deploying applications written in just about any language that runs on the JVM, Jython included.  The App Engine went live in April of 2008, allowing Python developers to begin using it's services to host Python applications and libraries.  In the spring of 2009, the App Engine added support for the Java platform.  Along with support of the Java language, most other languages that run on the JVM will also deploy and run on the Google App Sever, including Jython.  It has been mentioned that more programming languages will be supported at some point in the future, but at the time of this writing Python and Java were the only supported languages.
+The new kid on the block, at least for the time of this writing, is the Google App Engine.  Fresh to the likes of the Java platform, the Google App Engine can be used for deploying applications written in just about any language that runs on the JVM, Jython included.  The App Engine went live in April of 2008, allowing Python developers to begin using it's services to host Python applications and libraries.  In the spring of 2009, the App Engine added support for the Java platform.  Along with support of the Java language, most other languages that run on the JVM will also deploy and run on the Google App Engine, including Jython.  It has been mentioned that more programming languages will be supported at some point in the future, but at the time of this writing Python and Java were the only supported languages.
 
-The App Engine actually runs a slimmed-down version of the standard Java library.  You must download and develop against the Google App Engine SDK for Java in order to ensure that your application will run in the environment.  You can download the SDK by visiting this link: http://code.google.com/appengine/downloads.html along with viewing the extensive documentation available on the Google App Engine site.  The SDK comes complete with a web server that can be used for testing your code before deploying, and several demo applications ranging from easy JSP programs to sophisticated demos that use Google authentication.  No doubt about it, Google has done a good job at creating an easy learning environment for the App Engine so that developers can get up and running quickly.
+The App Engine actually runs a slightly slimmed-down version of the standard Java library.  You must download and develop using the Google App Engine SDK for Java in order to ensure that your application will run in the environment.  You can download the SDK by visiting this link: http://code.google.com/appengine/downloads.html along with viewing the extensive documentation available on the Google App Engine site.  The SDK comes complete with a development web server that can be used for testing your code before deploying, and several demo applications ranging from easy JSP programs to sophisticated demos that use Google authentication.  No doubt about it, Google has done a good job at creating an easy learning environment for the App Engine so that developers can get up and running quickly.
 
-In this section you will learn how to get started using the Google App Engine SDK, and how to deploy some Jython web applications.  You will learn how to deploy a Jython servlet application as well as a WSGI application utilizing modjy.  If you have not done so already, be sure to visit the link mentioned in the previous chapter and download the SDK so that you can follow along in the sections to come.
+In this section you will learn how to get started using the Google App Engine SDK, and how to deploy some Jython web applications.  You will learn how to deploy a Jython servlet application as well as a WSGI application utilizing modjy.  Once you've learned how to develop and use a Jython Google App Engine program using the development environment, you will learn a few specifics about deploying to the cloud.  If you have not done so already, be sure to visit the link mentioned in the previous paragraph and download the SDK so that you can follow along in the sections to come.
 
 Please note that the Google App Engine is a very large topic.  Entire books could be written on the subject of developing Jython applications to run on the App Engine.  With that said, I will cover the basics to get up and running with developing Jython applications for the App Engine.  Once you've read through this section I suggest to go to the Google App Engine documentation for further details.
 
@@ -97,16 +97,37 @@ We will start by running the demo application known as "guestbook" that comes wi
     <app-engine-base-directory>/bin/dev_appserver.sh demos/guestbook/war
     
 
-Of course, if you are running on windows there is a corresponding .bat script for you to run that will start the web server.  Once you've issued the preceeding command it will only take a second or two before the web server starts.  You can then open a browser and traverse to *http://localhost:8080* to invoke the "guestbook" application.  This is a basic JSP-based Java web application, but we can deloy a Jython application and use it in the same manner as we will see in a few moments.  You can stop the web server by pressing "CNTRL+C".
+Of course, if you are running on windows there is a corresponding .bat script for you to run that will start the web server.  Once you've issued the preceeding command it will only take a second or two before the web server starts.  You can then open a browser and traverse to *http://localhost:8080* to invoke the "guestbook" application.  This is a basic JSP-based Java web application, but we can deloy a Jython application and use it in the same manner as we will see in a few moments.  You can stop the web server by pressing "CTRL+C".
+
+Deploying to the Cloud
+----------------------
+
+Prior to deploying your application to the cloud, you must of course set up an account with the Google App Engine.  If you have another account with Google such as GMail, then you can easily activate your App Engine account using that same username.  To do so, go to the Google App Engine link: http://code.google.com/appengine/ and click "Sign Up".  Enter your existing account information or create a new account to get started.
+
+After your account has been activated you will need to create an application by clicking on the "Create Application" button.  You have a total of 10 available application slots to use if you are making use of the free App Engine account.  Once you've created an application then you are ready to begin deploying to the cloud.  In this section of the book, we create an application known as *jythongae*.  This is the name of the application that you must create on the App Engine.  You must also ensure that this name is supplied within the *appengine-web.xml* file.
 
 Working with a Project
 ----------------------
 
-A particular project directory structure must be followed when developing an application for the App Engine.  Eclipse has a plugin that makes it easy to generate Google App Engine projects and deploy them to the App Engine.  If interested in making use of the plugin, please visit http://code.google.com/appengine/docs/java/tools/eclipse.html to read more information and download the plugin.  In this text we will not be using Eclipse, but rather, we will make use of Netbeans 6.7 to develop a simple Jython servlet application to deploy on the App Engine.  Netbeans also has an App Engine plugin that is available on the Kenai site appropriately named *nbappengine* (http://kenai.com/projects/nbappengine).  You can either download and install the plugin according to the directions on the project website, or simply create a new Netbeans project and make use of the template provided with the App Engine SDK (<app-engine-base-directory/demos/new_project_template) to create your project directory structure.  For the purposes of this tutorial, we will make use of the *nbappengine* plugin.
+The Google App Engine provides project templates to get you started deveoping using the correct directory structure.  Eclipse has a plugin that makes it easy to generate Google App Engine projects and deploy them to the App Engine.  If interested in making use of the plugin, please visit http://code.google.com/appengine/docs/java/tools/eclipse.html to read more information and download the plugin.  Similarly, Netbeans has an App Engine plugin that is available on the Kenai site appropriately named *nbappengine* (http://kenai.com/projects/nbappengine).  In this text we will cover the use of Netbeans 6.7 to develop a simple Jython servlet application to deploy on the App Engine.  You can either download and use the template available with one of these IDE plugins, or simply create a new Netbeans project and make use of the template provided with the App Engine SDK (<app-engine-base-directory/demos/new_project_template) to create your project directory structure.  For the purposes of this tutorial, we will make use of the *nbappengine* plugin.  If you are using Eclipse you will find a section following this tutorial that provides some Eclipse plugin specifics.
 
 In order to install the *nbappengine* plugin, you add the 'App Engine' update center to the Netbeans plugin center by choosing the *Settings* tab and adding the update center using http://deadlock.netbeans.org/hudson/job/nbappengine/lastSuccessfulBuild/artifact/build/updates/updates.xml.gz as the URL.  Once you've added the new update center you can select the *Available Plugins* tab and add all of the plugins in the "Google App Engine" category then choose *Install*.  After doing so, you can add the "App Engine" as a server in your Netbeans environment using the "Services" tab.  To add the server, point to the base directory of your Google App Engine SDK.  Once you have added the App Engine server to Netbeans then it will become an available deployment option for your web applications.
 
-Create a new Java web project and name it *JythonGAE*.  For the deployment server, choose "Google App Engine", and you will notice that when your web application is created an additional file will be created within the *WEB-INF* directory named *appengine-web.xml*.  This is the Google App Engine configuration file for the JythonGAE application.  Any of the static .py files that we wish to use in our application must be explicity mapped in this file.  Our application is going to make use of two Jython servlets, namely *add_numbers.py* and *add_to_page.py*.  We would need to map these files to a static URL such as *http://ourserver:port/**.py* to make them available to our application.
+Create a new Java web project and name it *JythonGAE*.  For the deployment server, choose "Google App Engine", and you will notice that when your web application is created an additional file will be created within the *WEB-INF* directory named *appengine-web.xml*.  This is the Google App Engine configuration file for the JythonGAE application.  Any of the .py files that we wish to use in our application must be mapped in this file so that they will *not* be treated as static files by the Google App Engine.  By default, Google App Engine treats all files outside of the WEB-INF directory as static unless they are JSP files.  Our application is going to make use of three Jython servlets, namely *NewJythonServlet.py*, *AddNumbers.py* and *AddToPage.py*.  In our appengine-web.xml file we can exclude all .py files from being treated as static by adding the suffix to the exclusion list as follows.
+
+*appengine-web.xml* ::
+
+    <?xml version="1.0" encoding="UTF-8"?>
+    <appengine-web-app xmlns="http://appengine.google.com/ns/1.0">
+        <application>jythongae</application>
+        <version>1</version>
+        <static-files>
+            <exclude path="/**.py"/>
+        </static-files>
+        <resource-files/>
+        <ssl-enabled>false</ssl-enabled>
+        <sessions-enabled>true</sessions-enabled>
+    </appengine-web-app>
 
 At this point we will need to create a couple of additional directories within our WEB-INF project directory.  We should create a *lib* directory and place *jython.jar* and *appengine-api-1.0-sdk-1.2.2.jar* into the directory.  Note that the App Engine JAR may be named differently according to the version that you are using.  We should now have a directory structure that resembles the following:
 
@@ -117,9 +138,49 @@ JythonGAE
             appengine-api-1.0-sdk-1.2.2.jar
         appengine-web.xml
         web.xml
+    src
+    web
 
 
-Now that we have the applicaton set up, it is time to begin building the actual logic.  We will need to ensure that the *PyServlet* class is initialized at startup and that all files ending in *.py* are passed to it.  As we've seen in chapter 13, this is done in the *web.xml* deployment descriptor.
+Now that we have the applicaton structure set up, it is time to begin building the actual logic.  In a traditional Jython servlet application we need to ensure that the *PyServlet* class is initialized at startup and that all files ending in *.py* are passed to it.  As we've seen in chapter 13, this is done in the *web.xml* deployment descriptor.  However, I have found that this alone does not work when deploying to the cloud.  I found some inconsistencies while deploying against the Google App Engine development server and deploying to the cloud.  For this reason, I will show you the way that I was able to get the application to function as expected in both the production and development Google App Engine environments.  In chapter 12, the object factory pattern for coercing Jython classes into Java was discussed.  If this same pattern is applied to Jython servlet applications then we can use the factories to coerce our Jython servlet into Java bytecode at runtime.  We then map the resulting coerced class to a servlet mapping in the application's web.xml deployment descriptor.
+
+In this example we'll make use of the Jython object factory pattern to make our servlets work as expected in the cloud.  In order to do so we must use an object factory along with a Java interface, and once again we will use the PlyJy project to make this happen.  The first step is to add *PlyJy.jar* to the *lib* directory that we created previously to ensure it is bundled with our application.  There is a Java servlet contained within the PlyJy project named *JythonServletFacade*, and what this Java servlet does is essentially use the *JythonObjectFactory* class to coerce a named Jython servlet and then invoke it's resulting *doGet* and *doPost* methods.  There is also a simple Java interface named *JythonServletInterface* in the project, and it must be implemented by our Jython servlet in order for the coercion to work as expected.  Below you will see these two pieces of code that are contained in the PlyJy project.
+
+*JythonServletFacade.java* ::
+    
+    public class JythonServletFacade extends HttpServlet {
+        
+        private JythonObjectFactory factory = null;
+        
+        String pyServletName = null;
+        
+        @Override
+        protected void doGet(HttpServletRequest request, HttpServletResponse response)
+        throws ServletException, IOException {
+            factory = factory.getInstance();
+            pyServletName = getInitParameter("PyServletName");
+            JythonServletInterface jythonServlet = (JythonServletInterface) factory.createObject(JythonServletInterface.class, pyServletName);
+            jythonServlet.doGet(request, response);
+        }
+        ...
+        @Override
+        protected void doPost(HttpServletRequest request, HttpServletResponse response)
+        throws ServletException, IOException {
+            factory = factory.getInstance();
+            pyServletName = getInitParameter("PyServletName");
+            JythonServletInterface jythonServlet = (JythonServletInterface) factory.createObject(JythonServletInterface.class, pyServletName);
+            jythonServlet.doPost(request, response);
+        }
+        ...
+    }
+
+*JythonServletInterface.java* ::
+
+    public interface JythonServletInterface {
+        public void doGet(HttpServletRequest request, HttpServletResponse response);
+        public void doPost(HttpServletRequest request, HttpServletResponse response);
+    }
+    
 
 ::
 
@@ -147,11 +208,27 @@ Now that we have the applicaton set up, it is time to begin building the actual 
         </web-app>
 
 
-The next piece of the puzzle is the actual code.  In this example, we'll make use of the same example that was used in chapter 13 with JSP and Jython.  The code below sets up two Jython servlets that perform some mathematical logic, and a JSP to display the results.
+The next piece of the puzzle is the actual code.  In this example, we'll make use of a simple servlet that displays some text as well as the same example that was used in chapter 13 with JSP and Jython.  The code below sets up three Jython servlets.  The first servlet simply displays some output, the next two perform some mathematical logic, and then there is a JSP to display the results for the mathematical servlets.
 
-::
+*NewJythonServlet.py* ::
+    from javax.servlet.http import HttpServlet
+    from org.plyjy.interfaces import JythonServletInterface
+    
+    class NewJythonServlet (JythonServletInterface, HttpServlet):
+            def doGet(self,request,response):
+                    self.doPost (request,response)
+    
+            def doPost(self,request,response):
+                    toClient = response.getWriter()
+                    response.setContentType ("text/html")
+                    toClient.println ("<html><head><title>Jython Servlet Test Using Object Factory</title>" +
+                                                      "<body><h1>Jython Servlet Test for GAE</h1></body></html>")
+    
+            def getServletInfo(self):
+                return "Short Description"
 
-    *add_numbers.py*
+
+*AddNumbers.py* ::
     import javax
     class add_numbers(javax.servlet.http.HttpServlet):
         def doGet(self, request, response):
@@ -170,9 +247,11 @@ The next piece of the puzzle is the actual code.  In this example, we'll make us
             dispatcher = request.getRequestDispatcher("testJython.jsp")
             dispatcher.forward(request, response)
             
-    *add_to_page.py*
-    import java, javax, sys
 
+
+*AddToPage.py* ::
+    import java, javax, sys
+        
     class add_to_page(javax.servlet.http.HttpServlet):
         def doGet(self, request, response):
             self.doPost(request, response)
@@ -185,14 +264,10 @@ The next piece of the puzzle is the actual code.  In this example, we'll make us
             request.setAttribute("page_text", addtext)
             dispatcher = request.getRequestDispatcher("testJython.jsp")
             dispatcher.forward(request, response)
-            
-    *testjython.jsp*
-    
-    <%@page contentType="text/html" pageEncoding="UTF-8"%>
-    <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
-        "http://www.w3.org/TR/html4/loose.dtd">
-    
-    
+
+
+
+*testjython.jsp* ::
     <html>
         <head>
             <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
@@ -203,25 +278,18 @@ The next piece of the puzzle is the actual code.  In this example, we'll make us
                 <input type="text" name="p">
                 <input type="submit">
             </form>
-    
             <% Object page_text = request.getAttribute("page_text");
                Object sum = request.getAttribute("sum");
-    
                if(page_text == null){
                    page_text = "";
                }
-    
                if(sum == null){
                    sum = "";
                }
             %>
-    
             <br/>
-    
                 <p><%= page_text %></p>
-    
             <br/>
-    
             <form method="GET" action="add_numbers.py">
                 <input type="text" name="x">
                 +
@@ -230,19 +298,73 @@ The next piece of the puzzle is the actual code.  In this example, we'll make us
                 <%= sum %>
                 <br/>
                 <input type="submit" title="Add Numbers">
-    
-    
             </form>
-    
-            
-    
            
         </body>
     </html>
 
+It is important that all of the Jython servlets reside within your classpath somewhere.  If using Netbeans, you can either place the servlets into the source root of your project (not inside a package), or you can place them in the web folder that contains your JSP files.  If doing the latter, I have found that you may have to tweak your CLASSPATH a bit by adding the web folder to your list of libraries from within the project properties.  Next, we need to ensure that the deployment descriptor includes the necessary servlet definitions and mappings for the application.  Now, if you took a close look at the *JythonServletFacade* servlet, you would have noticed that there is a variable named *PyServletName* which the JythonObjectFactory is using as the name of our Jython servlet.  Well, within the *web.xml* we must pass an *<init-param>* using *PyServletName* as the *<param-name>* and the name of our Jython servlet as the *<param-value>*.  This will basically pass the name of the Jython servlet to the *JythonServletFacade* servlet so that it can be used by the object factory.
 
+*web.xml* ::
+    <web-app>
+        <display-name>Jython Google App Engine</display-name>
+        <servlet>
+            <servlet-name>PyServlet</servlet-name>
+            <servlet-class>org.python.util.PyServlet</servlet-class>
+        </servlet>
+        <servlet>
+            <servlet-name>NewJythonServlet</servlet-name>
+            <servlet-class>org.plyjy.servlets.JythonServletFacade</servlet-class>
+            <init-param>
+                <param-name>PyServletName</param-name>
+                <param-value>NewJythonServlet</param-value>
+            </init-param>
+        </servlet>
+        <servlet>
+            <servlet-name>AddNumbers</servlet-name>
+            <servlet-class>org.plyjy.servlets.JythonServletFacade</servlet-class>
+            <init-param>
+                <param-name>PyServletName</param-name>
+                <param-value>AddNumbers</param-value>
+            </init-param>
+        </servlet>
+        <servlet>
+            <servlet-name>AddToPage</servlet-name>
+            <servlet-class>org.plyjy.servlets.JythonServletFacade</servlet-class>
+            <init-param>
+                <param-name>PyServletName</param-name>
+                <param-value>AddToPage</param-value>
+            </init-param>
+        </servlet>
+        <servlet-mapping>
+            <servlet-name>PyServlet</servlet-name>
+            <url-pattern>*.py</url-pattern>
+        </servlet-mapping>
+        <servlet-mapping>
+            <servlet-name>NewJythonServlet</servlet-name>
+            <url-pattern>/NewJythonServlet</url-pattern>
+        </servlet-mapping>
+        <servlet-mapping>
+            <servlet-name>AddNumbers</servlet-name>
+            <url-pattern>/AddNumbers</url-pattern>
+        </servlet-mapping>
+        <servlet-mapping>
+            <servlet-name>AddToPage</servlet-name>
+            <url-pattern>/AddToPage</url-pattern>
+        </servlet-mapping>
+    </web-app>
 
-That's it, now you can deploy the application to your Tomcat environment and it should run without any issues.  You can also choose to deploy to the Google App Engine SDK web server to test for compatability.
+That's it, now you can deploy the application to your Google App Engine development environment and it should run without any issues.  You can also choose to deploy to anoter web server to test for compatability if you wish.  You can deploy directly to the cloud by right-clicking the application and choosing the "Deploy to App Engine" option.
+
+Using Eclipse
+-------------
+
+If you wish to use the Eclipse IDE for development, you should definitely download the Google App Engine plugin using the link provided earlier in the chapter.  You should also use the PyDev plugin which is available at http://pydev.sourceforge.net/.  For the purposes of this section, I used Eclipse Galileo and started a new project named "JythonGAE" as a Google Web Application.  When creating the project, make sure you check the box for using Google App Engine and uncheck the Google Web Toolkit option.  You will find that Eclipse creates a directory structure for your application that is much the same as the project template that is included with the Google App Engine SDK.
+
+If you follow through the code example from the previous section, you can create the same code and set up the *web.xml* and *appengine-web.xml* the same way.  The key is to ensure that you create a *lib* directory within the *WEB-INF* and you place the files in the appropriate location.  You will need to ensure that your Jython servlets are contained in your CLASSPATH by either adding them to the source root for your project, or by going into the project properties and adding the *war* directory to your *Java Build Path*.  When doing so, make sure you do *not* include the *WEB-INF* directory or you will receive errors.
+
+When you are ready to deploy the application, you can choose to use the Google App Engine development environment or deploy to the cloud.  You can run the application by right-clicking on the project and choosing *Run As* option and then choose the Google Web Application option.  The first time you run the application you may need to set up the runtime.  If you are ready to deploy to the cloud, you can right-click on the project and choose the *Google* -> *Deploy to App Engine* option.  After entering your Google username and password then your application will be deployed.
+
 
 
 Deploy Modjy to GAE
@@ -261,6 +383,8 @@ modjy_app
             all.pth
    
 Now if we run the application using Tomcat it should run as expected.  Likewise, we can run it using the Google App Engine SDK web server and it should provide the expected results.
+
+
 
 Summary
 -------
