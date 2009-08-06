@@ -131,15 +131,17 @@ Create a new Java web project and name it *JythonGAE*.  For the deployment serve
 
 At this point we will need to create a couple of additional directories within our WEB-INF project directory.  We should create a *lib* directory and place *jython.jar* and *appengine-api-1.0-sdk-1.2.2.jar* into the directory.  Note that the App Engine JAR may be named differently according to the version that you are using.  We should now have a directory structure that resembles the following:
 
-JythonGAE
-    WEB-INF
-        lib
-            jython.jar
-            appengine-api-1.0-sdk-1.2.2.jar
-        appengine-web.xml
-        web.xml
-    src
-    web
+::
+
+    JythonGAE
+        WEB-INF
+            lib
+                jython.jar
+                appengine-api-1.0-sdk-1.2.2.jar
+            appengine-web.xml
+            web.xml
+        src
+        web
 
 
 Now that we have the applicaton structure set up, it is time to begin building the actual logic.  In a traditional Jython servlet application we need to ensure that the *PyServlet* class is initialized at startup and that all files ending in *.py* are passed to it.  As we've seen in chapter 13, this is done in the *web.xml* deployment descriptor.  However, I have found that this alone does not work when deploying to the cloud.  I found some inconsistencies while deploying against the Google App Engine development server and deploying to the cloud.  For this reason, I will show you the way that I was able to get the application to function as expected in both the production and development Google App Engine environments.  In chapter 12, the object factory pattern for coercing Jython classes into Java was discussed.  If this same pattern is applied to Jython servlet applications then we can use the factories to coerce our Jython servlet into Java bytecode at runtime.  We then map the resulting coerced class to a servlet mapping in the application's web.xml deployment descriptor.
@@ -182,35 +184,11 @@ In this example we'll make use of the Jython object factory pattern to make our 
     }
     
 
-::
 
-    <?xml version="1.0" encoding="ISO-8859-1"?>
-    <!DOCTYPE web-app
-         PUBLIC "-//Sun Microsystems, Inc.//DTD Web Application 2.3//EN"
-        "http://java.sun.com/dtd/web-app_2_3.dtd">
-    <web-app>
-    
-      <display-name>GAE demo application</display-name>
-      <description>
-         GAE demo application
-      </description>
-      
-      <servlet>
-        <servlet-name>PyServlet</servlet-name>
-         <servlet-class>org.python.util.PyServlet</servlet-class>
-      </servlet>
-      
-      <servlet-mapping>
-        <servlet-name>PyServlet</servlet-name>
-        <url-pattern>*.py</url-pattern>
-      </servlet-mapping>
-      
-        </web-app>
-
-
-The next piece of the puzzle is the actual code.  In this example, we'll make use of a simple servlet that displays some text as well as the same example that was used in chapter 13 with JSP and Jython.  The code below sets up three Jython servlets.  The first servlet simply displays some output, the next two perform some mathematical logic, and then there is a JSP to display the results for the mathematical servlets.
+The next piece of the puzzle is the code for our application.  In this example, we'll make use of a simple servlet that displays some text as well as the same example that was used in chapter 13 with JSP and Jython.  The code below sets up three Jython servlets.  The first servlet simply displays some output, the next two perform some mathematical logic, and then there is a JSP to display the results for the mathematical servlets.
 
 *NewJythonServlet.py* ::
+
     from javax.servlet.http import HttpServlet
     from org.plyjy.interfaces import JythonServletInterface
     
@@ -229,6 +207,7 @@ The next piece of the puzzle is the actual code.  In this example, we'll make us
 
 
 *AddNumbers.py* ::
+
     import javax
     class add_numbers(javax.servlet.http.HttpServlet):
         def doGet(self, request, response):
@@ -250,6 +229,7 @@ The next piece of the puzzle is the actual code.  In this example, we'll make us
 
 
 *AddToPage.py* ::
+
     import java, javax, sys
         
     class add_to_page(javax.servlet.http.HttpServlet):
@@ -268,6 +248,7 @@ The next piece of the puzzle is the actual code.  In this example, we'll make us
 
 
 *testjython.jsp* ::
+
     <html>
         <head>
             <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
@@ -306,6 +287,7 @@ The next piece of the puzzle is the actual code.  In this example, we'll make us
 It is important that all of the Jython servlets reside within your classpath somewhere.  If using Netbeans, you can either place the servlets into the source root of your project (not inside a package), or you can place them in the web folder that contains your JSP files.  If doing the latter, I have found that you may have to tweak your CLASSPATH a bit by adding the web folder to your list of libraries from within the project properties.  Next, we need to ensure that the deployment descriptor includes the necessary servlet definitions and mappings for the application.  Now, if you took a close look at the *JythonServletFacade* servlet, you would have noticed that there is a variable named *PyServletName* which the JythonObjectFactory is using as the name of our Jython servlet.  Well, within the *web.xml* we must pass an *<init-param>* using *PyServletName* as the *<param-name>* and the name of our Jython servlet as the *<param-value>*.  This will basically pass the name of the Jython servlet to the *JythonServletFacade* servlet so that it can be used by the object factory.
 
 *web.xml* ::
+
     <web-app>
         <display-name>Jython Google App Engine</display-name>
         <servlet>

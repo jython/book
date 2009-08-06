@@ -153,7 +153,7 @@ encoding     Returns a string indicating encoding on file
 mode         Returns the I/O mode for a file                      
 name         Returns the name of the file                         
 newlines     Returns the newline representation in the file  
-===========  ====================================================== 
+===========  ===================================================== 
 
 File Attributes ::
 
