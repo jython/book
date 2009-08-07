@@ -27,7 +27,7 @@ In this section we will cover the installation and configuration of SqlAlhemy wi
 Installation
 ~~~~~~~~~~~~
 
-We’ll begin by downloading SqlAlchemy from the website (http://www.sqlalchemy.org), at the time of this writing the current version is 0.5.4p2.  This version has been installed and tested with the Jython 2.5.0 release.  Once you’ve downloaded the package, unzip it to a directory on your workstation and then traverse to that directory in your terminal or command prompt.  Once you are inside of your SqlAlchemy directory, issue the following command to install: ::
+We’ll begin by downloading SqlAlchemy from the website (http://www.sqlalchemy.org), at the time of this writing the version that should be used is 0.6.  This version has been installed and tested with the Jython 2.5.0 release.  Once you’ve downloaded the package, unzip it to a directory on your workstation and then traverse to that directory in your terminal or command prompt.  Once you are inside of your SqlAlchemy directory, issue the following command to install: ::
 
 
 
@@ -40,7 +40,7 @@ Once you’ve completed this process, SqlAlchemy should be successfully installe
 
 	>>> import sqlalchemy
 	>>> sqlalchemy.__version__
-	'0.5.4p2'
+	'0.6beta1'
 	>>> 
 
 

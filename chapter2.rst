@@ -87,14 +87,15 @@ the overall understanding of strings.  Once a string has been defined it cannot 
 amount of string methods that can be used to manipulate the contents of a particular string.  Although we can manipulate
 the contents, Python really gives us a manipulated copy of the string…the original string is left unchanged.
 
-CPython and Jython treat strings a bit differently.  There are two types of string objects in CPython, these are known as
+Prior to the 2.5.0 release of Jython, CPython and Jython treated strings a bit differently.  There are two types of string objects in CPython, these are known as
 *Standard* strings and *Unicode* strings.  Standard strings contain 8-bit data, whereas Unicode strings are sequences of data
 composed of 16-bit characters.  There is a lot of documentation available that specifically focuses on the differences between
 the two types of strings, this reference will only cover the basics.  It is worth noting that Python contains an abstract string
 type known as *basestring* so that it is possible to check any type of string to ensure that it is a string instance.  
 
-In Jython, there is only one string type.  The string type in Jython supports full two-byte Unicode characters and all functions
-contained in the string module are Unicode-aware.  If the u’’ string modifier is specified, it is ignored by Jython.  It is also
+Prior to the 2.5.0 release of Jython, there was only one string type.  The string type in Jython supported full two-byte Unicode characters and all functions
+contained in the string module are Unicode-aware.  If the u’’ string modifier was specified, it was ignored by Jython.  Since the release of 2.5.0, strings in Jython are treated
+just like those in CPython, so the same rules will apply to both implementations.  It is also
 worth noting that Jython uses character properties from the Java platform.  Therefore properties such as isupper and islower, which
 we will discuss later in the section, are based upon the Java properties.
 
