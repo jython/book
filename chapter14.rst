@@ -976,7 +976,9 @@ simple as the following code. ::
         print frame.body
         serv.ack(frame)
 
-Sending messages is just as straight forward.  ::
+Sending messages is just as straight forward. From our CPython ocde,
+we just need to import the stomp client and we can send messages back
+to our Jython code.  ::
 
     import stomp
     serv = stomp.Stomp('localhost', 6666)
@@ -985,6 +987,19 @@ Sending messages is just as straight forward.  ::
                    'passcode': 'sendpass'})
     serv.send({'destination': '/queue/MyQueue', 'body': 'Hello world!'})
 
-Conclusion:
+Conclusion
+----------
 
-We've covered a lot of ground here.  Setting up a 
+We've covered a lot of ground here.  I've shown you how to get Django
+on Jython to use database connection pooling to enforce limits on the
+database resources an application can consume.  We've looked at
+setting up JMS queues and topic to provide both point to point and
+publish/subscribe messages between Jython processes.  We then took
+those messaging services and provided interoperability between
+Jython code and non-Java code.
+
+In my experience, the ability to remix a hand picked collection of
+technologies is what gives Jython so much power.  You can use both the
+technology in JavaEE, leverging years of hard won experience and get
+the benefit of using a lighter weight, more modern web application
+stack like Django.
