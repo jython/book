@@ -87,14 +87,15 @@ the overall understanding of strings.  Once a string has been defined it cannot 
 amount of string methods that can be used to manipulate the contents of a particular string.  Although we can manipulate
 the contents, Python really gives us a manipulated copy of the string…the original string is left unchanged.
 
-CPython and Jython treat strings a bit differently.  There are two types of string objects in CPython, these are known as
+Prior to the 2.5.0 release of Jython, CPython and Jython treated strings a bit differently.  There are two types of string objects in CPython, these are known as
 *Standard* strings and *Unicode* strings.  Standard strings contain 8-bit data, whereas Unicode strings are sequences of data
 composed of 16-bit characters.  There is a lot of documentation available that specifically focuses on the differences between
 the two types of strings, this reference will only cover the basics.  It is worth noting that Python contains an abstract string
 type known as *basestring* so that it is possible to check any type of string to ensure that it is a string instance.  
 
-In Jython, there is only one string type.  The string type in Jython supports full two-byte Unicode characters and all functions
-contained in the string module are Unicode-aware.  If the u’’ string modifier is specified, it is ignored by Jython.  It is also
+Prior to the 2.5.0 release of Jython, there was only one string type.  The string type in Jython supported full two-byte Unicode characters and all functions
+contained in the string module are Unicode-aware.  If the u’’ string modifier was specified, it was ignored by Jython.  Since the release of 2.5.0, strings in Jython are treated
+just like those in CPython, so the same rules will apply to both implementations.  It is also
 worth noting that Jython uses character properties from the Java platform.  Therefore properties such as isupper and islower, which
 we will discuss later in the section, are based upon the Java properties.
 
@@ -138,7 +139,7 @@ lower()                             Converts all characters in the string to low
 lstrip([chars])                     Removes the first found characters in the string from the left that match the given characters.  Also removes whitespace from the left.  
 partition(separator)                Partitions a string starting from the left using the provided separator                                                                  
 replace(old,new[,count])            Replaces the portion of string given in *old* with the portion given in *new*                                                            
-rfind(sub[,start[,end]])            Searches and finds the first occurrence of the given string                                                                              
+rfind(sub[,start[,end]])            Searches and finds the first occurrence from the end of the given string                                                                           
 rindex(sub[,start[,end]])           Searches and finds the first occurrence of the given string or returns an error                                                          
 rjust(width[,fillchar])             Align the string to the right by width                                                                                                   
 rpartition(separator)               Partitions a string starting from the right using the provided separator object                                                          
@@ -608,14 +609,35 @@ at some examples.  Once you’ve seen list comprehensions in action you are sure
 
 List comprehensions can make code much more concise and allows one to apply expressions or functions to list elements quite easily.
 Let’s take a quick look at an example written in Java for performing the same type of work as an easy list comprehension.  It is plain
-to see that list comprehensions are much more concise. ::
+to see that list comprehensions are much more concise.
 
-	int[] ages = {20, 25, 28, 30};
+Java Code ::
 
-	// Use a newstyle Java for loop to go through each element in the array
-	for (int age : ages){
-	    age++;
-	}
+	// Define original integer array
+        int[] ages = {20, 25, 28, 30};
+
+
+        // Print original int array
+        System.out.println("Starting List:");
+
+        for (int age : ages) {
+            System.out.println(age);
+        }
+
+        // Create new int array by adding one to each element of first array
+        int x = 0;
+        int[] newages = new int[4];
+        for (int age : ages) {
+            newages[x] = age+1;
+            x++;
+        }
+
+        // Print ending list
+        System.out.println("Ending List:");
+        for (int age : newages) {
+            System.out.println(age);
+
+        }
 
 Dictionaries
 ~~~~~~~~~~~~
