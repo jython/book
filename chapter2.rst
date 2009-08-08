@@ -139,7 +139,7 @@ lower()                             Converts all characters in the string to low
 lstrip([chars])                     Removes the first found characters in the string from the left that match the given characters.  Also removes whitespace from the left.  
 partition(separator)                Partitions a string starting from the left using the provided separator                                                                  
 replace(old,new[,count])            Replaces the portion of string given in *old* with the portion given in *new*                                                            
-rfind(sub[,start[,end]])            Searches and finds the first occurrence of the given string                                                                              
+rfind(sub[,start[,end]])            Searches and finds the first occurrence from the end of the given string                                                                           
 rindex(sub[,start[,end]])           Searches and finds the first occurrence of the given string or returns an error                                                          
 rjust(width[,fillchar])             Align the string to the right by width                                                                                                   
 rpartition(separator)               Partitions a string starting from the right using the provided separator object                                                          
@@ -609,14 +609,35 @@ at some examples.  Once you’ve seen list comprehensions in action you are sure
 
 List comprehensions can make code much more concise and allows one to apply expressions or functions to list elements quite easily.
 Let’s take a quick look at an example written in Java for performing the same type of work as an easy list comprehension.  It is plain
-to see that list comprehensions are much more concise. ::
+to see that list comprehensions are much more concise.
 
-	int[] ages = {20, 25, 28, 30};
+Java Code ::
 
-	// Use a newstyle Java for loop to go through each element in the array
-	for (int age : ages){
-	    age++;
-	}
+	// Define original integer array
+        int[] ages = {20, 25, 28, 30};
+
+
+        // Print original int array
+        System.out.println("Starting List:");
+
+        for (int age : ages) {
+            System.out.println(age);
+        }
+
+        // Create new int array by adding one to each element of first array
+        int x = 0;
+        int[] newages = new int[4];
+        for (int age : ages) {
+            newages[x] = age+1;
+            x++;
+        }
+
+        // Print ending list
+        System.out.println("Ending List:");
+        for (int age : newages) {
+            System.out.println(age);
+
+        }
 
 Dictionaries
 ~~~~~~~~~~~~
