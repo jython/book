@@ -1,0 +1,6 @@
+\.class$
+~$
+# sphinx-related patterns:
+source/.*
+build/.*
+Makefile
