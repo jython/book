@@ -1,7 +1,829 @@
 Chapter 14:  Web Applications with Django
-=========================================
++++++++++++++++++++++++++++++++++++++++++
 
-J2EE deployment and integration
+Django is one of the modern Python web frameworks which redefined the web niche
+in the Python world. A full stack approach, pragmatic design and superb
+documentation are some of the reason for its success.
+
+If fast web development using the Python language sounds good to you, then fast
+web development using the Python language and with integration with the whole
+Java world (which has a strong presence on the enterprise web space) sounds even
+better. Running Django on Jython allows you to do just that!
+
+And for the Java world, having Django as an option to quickly build web
+applications while still having the chance to use the existing Java APIs and
+technologies is very attractive.
+
+In this chapter we will start with a quick introduction to have Django running
+with your Jython installation in a few steps and then we will build a simple web
+application to get a feeling of the framework. Later on, in the second half of
+the chapter we will take a look at the many opportunities of integration between
+Django web applications and the JavaEE world.
+
+Getting Django
+============== 
+
+Strictly, to use Django with Jython you only need to get Django itself, and
+nothing more. But, without third-party libraries, you won't be able to connect
+to any database, since the built-in Django database backends depend of libraries
+written in C, which aren't available on Jython.
+
+In practice, you will need at least two packages: Django itself and
+"django-jython", which, as you can imagine, is a collection of Django addons
+that can be quite useful if you happen to be running Django on top of Jython. In
+particular it includes database backends, which is something you definitely need
+to fully appreciate the power of Django.
+
+Since the process of getting these two libraries slightly varies depending on
+your platform, and it's a manual, boring task, we will use an utility to
+automatically grab and install these libraries. The utility is called
+"setuptools". The catch is that we need to manually install setuptools, of
+course, but this is quite straightforward.
+
+First, download ez_setup.py from
+http://peak.telecommunity.com/dist/ez_setup.py. Then, go to the directory where
+you left the downloaded file and execute::
+
+    $ jython ez_setup.py
+
+You will see the following output::
+
+    Downloading http://pypi.python.org/packages/2.5/s/setuptools/setuptools-0.6c9-py2.5.egg
+    Processing setuptools-0.6c9-py2.5.egg
+    Copying setuptools-0.6c9-py2.5.egg to /home/lsoto/jython2.5.0/Lib/site-packages
+    Adding setuptools 0.6c9 to easy-install.pth file
+    Installing easy_install script to /home/lsoto/jython2.5.0/bin
+    Installing easy_install-2.5 script to /home/lsoto/jython2.5.0/bin
+    
+    Installed /home/lsoto/jython2.5.0/Lib/site-packages/setuptools-0.6c9-py2.5.egg
+    Processing dependencies for setuptools==0.6c9
+    Finished processing dependencies for setuptools==0.6c9
+
+(Naturally, the filesystem paths will change, but it will be essentially the
+same)
+
+After this, you have setuptools installed, and the ``easy_install`` command
+available. Armed with this we proceed to install Django::
+
+    $ easy_install Django==1.0.3
+  
+.. note::
+
+   I'm assuming that the ``bin`` directory of the Jython installation is on your
+   ``PATH``. If it's not, you will have to explicitly type that path preceding
+   each command like ``jython`` or ``easy_install`` with that path (i.e., you
+   will need to type something like ``/path/to/jython/bin/easy_install`` instead
+   of just ``easy_install``)
+
+By reading the output of ``easy_install`` you can see how it is doing all the
+tedious work of locating the right package, downloading and installing it::
+
+    Searching for Django==1.0.3
+    Reading http://pypi.python.org/simple/Django/
+    Reading http://www.djangoproject.com/
+    Reading http://www.djangoproject.com/download/1.0.1-beta-1/tarball/
+    Best match: Django 1.0.3
+    Downloading http://media.djangoproject.com/releases/1.0.3/Django-1.0.3.tar.gz
+    Processing Django-1.0.3.tar.gz
+    Running Django-1.0.3/setup.py -q bdist_egg --dist-dir
+    /tmp/easy_install-nTnmlU/Dj  ango-1.0.3/egg-dist-tmp-L-pq4s
+    zip_safe flag not set; analyzing archive contents...
+    Unable to analyze compiled code on this platform.
+    Please ask the author to include a 'zip_safe' setting (either True or False)
+    in the package's setup.py
+    Adding Django 1.0.3 to easy-install.pth file
+    Installing django-admin.py script to /home/lsoto/jython2.5.0/bin
+    
+    Installed /home/lsoto/jython2.5.0/Lib/site-packages/Django-1.0.3-py2.5.egg
+    Processing dependencies for Django==1.0.3
+    Finished processing dependencies for Django==1.0.3
+
+Then we install django-jython::
+
+    $ easy_install django-jython
+
+Again, you will get an output similar to what you've seen in the previous
+cases. Once this is finished, you are ready.
+
+If you want to look behind the scenes, take a look at the ``Lib/site-packages``
+subdirectory inside your Jython installation and you will entries for the
+libraries we just installed. Those entries are also listed on the
+``easy-install.pth`` file, making them part of ``sys.path`` by default.
+
+Just to make sure that everything went fine, start jython and try the following
+statements, which import the top-level packages of Django and django-jython::
+
+    >>> import django
+    >>> import doj
+
+If you don't get any error printed out on the screen, then everything is
+OK. Let's start our first application.
+
+
+A Quick Tour of Django
+======================
+
+.. note:: 
+
+   If you are already familiar with Django, you won't find anything specially
+   new in the rest of this section. Feel free to jump to `J2EE deployment and
+   integration`_ to look at what's really special if you run Django on Jython.
+
+Django is a full-stack framework. That means that it features cover from
+communication to the database, to URL processing and web page templating. As you
+may know, there are complete books which cover Django in detail. We aren't going
+to go into much detail, but we *are* going to touch many of the features
+included in the framework, so you can get a good feeling of its strengths in
+case you haven't had the chance to know or try Django in the past. That way you
+will know when Django is the right tool for a job.
+
+The only way to take a broad view of such a resourceful framework like Django is
+to build something really simple with it, and then gradually augment it as we
+look into what the framework offers. So, we will start following roughly what
+the official Django tutorial uses (a simple site for polls) to extend it later
+to touch most of the framework features. In other words: most of the code you
+will see in this section comes directly from the great Django tutorial you can
+find on http://docs.djangoproject.com/en/1.0/intro/tutorial01/.
+
+Now, as I said on the previous paragraph, Django handles the communication with
+the database. Right now, the more solid backend in existence for Django/Jython
+is the one for PostgreSQL. So I encourage you to install PostgreSQL on your
+machine and setup an user and an empty database to use it in the course of this
+tour.
+
+Starting a Project (and an "App")
+---------------------------------
+
+Django projects, which are usually meant to be complete web sites (or
+"sub-sites") are composed of a settings file, a URL mappings file and a set of
+"apps" which provide the actual features of the web site. As you surely have
+realized, many web sites share a lot of features: administration interfaces,
+user authentication/registration, commenting systems, news feeds, contact forms,
+etc. That's why Django decouples the actual site features in the "app" concept:
+apps are meant to be *reusable* between different projects (sites).
+
+As we will start small, our project will consist of only one app at first. We
+will call our project "pollsite". So, let's create a clean new directory for what
+we will build on this sections, move to that directory and run::
+
+    $ django-admin.py startproject pollsite
+
+And a python package named "pollsite" will be created under the directory you
+created previously. At this point, the most important change we *need* to make
+to the default settings of our shiny new project is to fill the information so
+Django can talk to the database we created for this tour. So, open the file
+``pollsite/settings.py`` with your text editor of choice and change lines
+starting with ``DATABASE`` with something like this::
+
+    DATABASE_ENGINE = 'doj.backends.zxjdbc.postgresql'
+    DATABASE_NAME = '<the name of the empty database you created>' 
+    DATABASE_USER = '<the name of the user with R/W access to that database>' 
+    DATABASE_PASSWORD = '<the password of such user>'
+
+With this, you are telling Django to use the postgresql driver provided by the
+``doj`` package (which, if you remember from the `Getting Django`_ section, was
+the package name of the django-jython project) and to connect with the given
+credentials. Now, this backend requires the PostgreSQL JDBC driver, which you
+can download at http://jdbc.postgresql.org/download.html.
+
+Once you download the JDBC driver, you need to add it to the Java
+``CLASSPATH``. An way to do it in Linux/Unix/MacOSX for the current
+session is::
+
+    $ export CLASSPATH=$CLASSPATH:/path/to/postgresql-jdbc.jar
+
+If you are on Windows, the command is different::
+
+    $ set CLASSPATH=%CLASSPATH%:\path\to\postgresql-jdbc.jar
+
+Done that, we will create the single app which will be the core of our
+project. Make sure you are into the ``pollsite`` directory and run::
+
+    $ jython manage.py startapp polls
+
+This will create the basic structure of a Django app. Note that the app was
+created inside the project package, so we have the ``pollsite`` project and the
+``pollsite.polls`` app. 
+
+Now we will see what's inside a Django app.
+
+Models
+------
+
+In Django, you define your data schema in Python code, using Python
+classes. This central schema is used to generate the needed SQL statements to
+create the database schema, and to dynamically generate SQL queries when you
+manipulate objects of these special Python classes.
+
+Now, in Django you don't define the schema of the whole project in a single
+central place. After all, since apps are the real providers of features, it
+follows that the schema of the whole project isn't more that the combination of
+the schemas of each app. By the way, we will switch to Django terminology now,
+and instead of talking about data schemas, we will talk about models (which are
+actually a bit more than just schemas, but the distinction is not important at
+this point).
+
+If you look into the ``pollsite/polls`` directory, you will see that there is a
+``models.py`` file, which is where the app's models must be defined. The
+following code contains the model for simple polls, each poll containing many
+choices::
+    
+    from django.db import models
+    
+    class Poll(models.Model):
+        question = models.CharField(max_length=200)
+        pub_date = models.DateTimeField('date published')
+    
+        def __unicode__(self):
+            return self.question
+        
+    class Choice(models.Model):
+        poll = models.ForeignKey(Poll)
+        choice = models.CharField(max_length=200)
+        votes = models.IntegerField()
+    
+        def __unicode__(self):
+            return self.choice
+
+As you can see, the map between a class inheriting from ``models.Model`` and a
+database table is clear, and its more or less obvious how each Django field
+would be translated to a SQL field. Actually, Django fields can carry more
+information than SQL fields can, as you can see on the ``pub_date`` field which
+includes a description more suited for human consumption: "date
+published". Django also provides more specialized field for rather common types
+seen on today web applications, like ``EmailField``, ``URLField`` or
+``FileField``. They free you from having to write the same code again and again
+to deal with concerns such as validation or storage management for the data
+these fields will contain.
+
+Once the models are defined, we want to create the tables which will hold the
+data on the database. First, you will need to add app to the project settings
+file (yes, the fact that the app "lives" under the project package isn't
+enough). Edit the file ``pollsite/settings.py`` and add ``'pollsite.polls'``
+to the ``INSTALLED_APPS`` list. It will look like this::
+
+    INSTALLED_APPS = (
+       'django.contrib.auth',
+       'django.contrib.contenttypes',
+       'django.contrib.sessions',
+       'django.contrib.sites',
+       'pollsite.polls',
+    )
+   
+.. note:: 
+
+   As you see, there were a couple of apps already included in your project.
+   These apps are included on every Django project by default, providing some of
+   the basic features of the framework, like sessions.
+
+After that, we make sure we are located on the project directory and run::
+
+    $ jython manage.py syncdb
+
+If the database connection information was correctly specified, Django will
+create tables and indexes for our models *and* for the models of the other apps
+which were also included by default on ``INSTALLED_APPS``. One of these extra
+apps is ``django.contrib.auth``, which handle user authentication. That's why
+you will also be asked for the username and password for the initial admin user for
+your site::
+
+    Creating table auth_permission
+    Creating table auth_group
+    Creating table auth_user
+    Creating table auth_message
+    Creating table django_content_type
+    Creating table django_session
+    Creating table django_site
+    Creating table polls_poll
+    Creating table polls_choice
+    
+    You just installed Django's auth system, which means you don't have any
+    superusers defined.
+    Would you like to create one now? (yes/no): 
+
+Answer yes to that question, and provide the requested information::
+
+    Username (Leave blank to use u'lsoto'): admin
+    E-mail address: admin@mailinator.com
+    Warning: Problem with getpass. Passwords may be echoed.
+    Password: admin
+    Warning: Problem with getpass. Passwords may be echoed.
+    Password (again): admin
+    Superuser created successfully.
+
+After this, Django will continue mapping your models to RDBMS artifacts,
+creating some indexes for your tables::
+
+    Installing index for auth.Permission model
+    Installing index for auth.Message model
+    Installing index for polls.Choice model
+
+If we want to know what's doing Django behind the scenes, we can ask that, using
+the ``sqlall`` management command (which are how the commands recognized by
+``manage.py`` are called, like the recently used ``syncdb``). This command
+requires an app *label* as argument and prints the SQL statements corresponding
+to the models contained in the app. By the way, the emphasis on *label* was
+intentional, as it corresponding to the last part of the "full name" of an app
+and not to the full name itself. In our case, the label of "pollsite.polls" is
+simply "polls". So, we can run::
+
+    $ jython manage.py sqlall polls
+
+And we get the following output::
+
+    BEGIN;
+    CREATE TABLE "polls_poll" (
+        "id" serial NOT NULL PRIMARY KEY,
+        "question" varchar(200) NOT NULL,
+        "pub_date" timestamp with time zone NOT NULL
+    )
+    ;
+    CREATE TABLE "polls_choice" (
+        "id" serial NOT NULL PRIMARY KEY,
+        "poll_id" integer NOT NULL 
+	    REFERENCES "polls_poll" ("id") DEFERRABLE INITIALLY DEFERRED,
+        "choice" varchar(200) NOT NULL,
+        "votes" integer NOT NULL
+    )
+    ;
+    CREATE INDEX "polls_choice_poll_id" ON "polls_choice" ("poll_id");
+    COMMIT;
+
+Two things to note here. First, each table got an ``id`` field which wasn't
+explicitely specified on our model definition. That's automatic, and is a
+sensible default (which can be overridden if you really need a different type of
+primary key, but that's outside the scope of this quick tour). Second, see how
+the sql is tailored to the particular RDBMS we are using (PostgreSQL in this
+case), so naturally it may change if you use a different database backend.
+
+OK, Let's move on. We have our model defined, and ready to store polls. The
+typical next step here would be to make a CRUD administrative interface so polls
+can be created, edited, removed, etc. Oh, and of course we may envision some
+searching and filtering capabilities for this administrative, knowing in advance
+that once the amount of polls grow too much it will become really hard to
+manage. 
+
+Well, no. We won't write this administrative interface from scratch. We will use
+one of the most useful features of Django: The admin app.
+
+Bonus: The Admin
+----------------
+
+This is an intermission on our tour through the main architectural points of a
+Django project (namely: models, views and templates) but is a very nice
+intermission. The code for the administrative interface we talked about a couple
+of paragraph back will consist on less than 20 lines of code!
+
+First, let's enable the admin app. To do this, edit ``pollsite/settings.py`` and
+add ``'django.contrib.admin'`` to the ``INSTALLED_APPS``. Then edit
+``pollsite/urls.py`` which looks like this::
+
+    from django.conf.urls.defaults import *
+    
+    # Uncomment the next two lines to enable the admin:
+    # from django.contrib import admin
+    # admin.autodiscover()
+    
+    urlpatterns = patterns('',
+        # Example:
+        # (r'^pollsite/', include('pollsite.foo.urls')),
+    
+        # Uncomment the admin/doc line below and add 'django.contrib.admindocs' 
+        # to INSTALLED_APPS to enable admin documentation:
+        # (r'^admin/doc/', include('django.contrib.admindocs.urls')),
+    
+        # Uncomment the next line to enable the admin:
+        # (r'^admin/(.*)', admin.site.root),
+    )
+
+And uncomment the lines which enable the admin (but not the ``admin/doc``!), so
+the file will look this way::
+
+    from django.conf.urls.defaults import *
+    
+    # Uncomment the next two lines to enable the admin:
+    from django.contrib import admin
+    admin.autodiscover()
+    
+    urlpatterns = patterns('',
+        # Example:
+        # (r'^pollsite/', include('pollsite.foo.urls')),
+    
+        # Uncomment the admin/doc line below and add 'django.contrib.admindocs' 
+        # to INSTALLED_APPS to enable admin documentation:
+        # (r'^admin/doc/', include('django.contrib.admindocs.urls')),
+    
+        # Uncomment the next line to enable the admin:
+        (r'^admin/(.*)', admin.site.root),
+    )
+
+Now you can remove all the remaining commented lines, so ``urls.py`` ends up
+with the following contents::
+
+    from django.conf.urls.defaults import *
+    
+    from django.contrib import admin
+    admin.autodiscover()
+    
+    urlpatterns = patterns('',
+        (r'^admin/(.*)', admin.site.root),
+    )
+
+I know I haven't explained this ``urls.py`` file yet, but trust me, we will see
+it in the next section.
+
+Finally, let's create the database artifacts needed by the admin app, running::
+
+    $ jython manage.py syncdb 
+
+Now we will see how this admin looks like. Let's run our site in development
+mode by executing::
+
+    $ jython manage.py runserver
+
+.. note::
+
+   The development web server is an easy way to test your web project. It will
+   run indefinitely until you abort it (for example, hitting ``Ctrl + C``) and
+   will reload itself when you change a source file already loaded by the
+   server, thus giving almost instant feedback. But, be advised that using this
+   development server in production is a really, really bad idea.
+
+Using a web browser, navigate to http://localhost:8000/admin/. You will
+be presented with a login screen. Use the user credential you made when we first
+ran ``syncdb`` in the previous section. Once you log in, you will see a page
+like the one shown in the figure :ref:`fig-django-tour-admin`.
+
+.. _fig-django-tour-admin:
+
+.. figure:: images/chapter14-tour-admin.png
+   
+   The Django Admin
+
+As you can see, the central area of the admin shows two boxes, titled "Auth" and
+"Sites". Those boxes correspond to the "auth" and "sites" apps that are built in
+on Django. The "Auth" box contain two entries: "Groups" and "Users", each one
+corresponding to a model contained in the auth app. If you click the "Users"
+link you will be presented with the typical options to add, modify and remove
+users. This is the kind of interfaces that the admin can provide to any other
+Django app, so we will add our polls app to it.
+
+Doing so is a matter of creating an ``admin.py`` file under your app (that is,
+``pollsite/polls/admin.py``) and declaratively telling the admin how you want to
+present your models in the admin. To administer polls, the following will make
+the trick::
+
+    # polls admin.py
+    from pollsite.polls.models import Poll, Choice
+    from django.contrib import admin
+
+    class ChoiceInline(admin.StackedInline):
+        model = Choice
+        extra = 3
+
+    class PollAdmin(admin.ModelAdmin):
+        fieldsets = [
+            (None,               {'fields': ['question']}),
+            ('Date information', {'fields': ['pub_date'], 
+	                          'classes': ['collapse']}),
+        ]
+        inlines = [ChoiceInline]
+
+    admin.site.register(Poll, PollAdmin)
+ 
+This may read like magic to you, but remember that I'm moving quick, as I want
+you to take a look at what's possible to do with Django. Let's look first at
+what we get after writting this code. Start the development server, go to
+http://localhost:8000/admin/ and see how a new "Polls" box appears now. If you
+click the "Add" link in the "Polls" entry, you will see a page like the one on
+the figure :ref:`fig-django-tour-addpoll`.
+
+.. _fig-django-tour-addpoll:
+
+.. figure:: images/chapter14-tour-addpoll.png
+
+   Adding a Poll using the Admin
+
+Play a bit with the interface: create a couple of polls, remove one, modify
+them. Note that the user interface is divided in three parts, one for the
+question, another for the date (initially hidden) and other for the choices. The
+first two were defined by the ``fieldsets`` of the ``PollAdmin`` class, which
+let you define the titles of each section (where ``None`` means no title), the
+fields contained (they can be more than one, of course) and additional CSS
+classes providing behaviors like ``'collapse'``
+
+It's fairly obvious that we have "merged" the administration of our two models
+(``Poll`` and ``Choice``) into the same user interface, since choices ought to
+be edited "inline" with their corresponding poll. That was done via the
+``ChoiceInline`` class which declares what model will be inlined and how many empty
+slots will be shown. The inline is hooked up into the ``PollAdmin`` later (since
+you can include many inlines on any ``ModelAdmin`` class.
+
+Finally, ``PollAdmin`` is registered as the administrative interface for the
+``Poll`` model using ``admin.site.register()``. As you can see, everything is
+absolutely declarative and works like a charm.
+
+The attentive reader is probably wondering what about the search/filter features
+I talked about a few paragraphs back. Well, we will implement that, in the poll
+list interface which you can access when clicking the "Change" link for Polls in
+the main interface (or also by clicking the link "Polls", or after adding a
+Poll).
+
+So, add the following lines to the ``PollAdmin`` class::
+
+    search_fields = ['question']
+    list_filter = ['pub_date']
+
+And play with the admin again (that's why it was a good idea to create a few
+polls in the last step). The figure :ref:`fig-django-tour-adminsearch` shows the
+search working, using "django" as the search string.
+
+.. _fig-django-tour-adminsearch:
+
+.. figure:: images/chapter14-tour-adminsearch.png
+
+   Searching on the Django Admin
+
+Now, if you try the filter by publishing date, it feels a bit awkward because
+the list of polls only shows the name of the poll, so you can't see what's the
+publishing date of the polls being filtered, to check if the filter worked as
+advertished. That's easy to fix, by adding the following line to the
+``PollAdmin`` class::
+
+    list_display = ['question', 'pub_date']
+
+The figure :ref:`fig-django-tour-adminfilter` shows how the interface looks
+after all these additions.
+
+.. _fig-django-tour-adminfilter:
+
+.. figure:: images/chapter14-tour-adminfilter.png
+
+   Filtering and listing more fields on the Django Admin
+
+Once again you can see how admin offers you all these commons features
+almost for free, and you only have to say what you want in a purely declarative
+way. However, in case you have more special needs, the admin has hooks which you
+can use customize its behavior. It is so powerful that sometimes it happens
+that a whole web application can be built based purely on the admin. See the
+official docs http://docs.djangoproject.com/en/1.0/ref/contrib/admin/ for more
+information.
+
+Views and Templates
+--------------------
+
+Well, now that you know the admin I won't be able to use a CRUD to showcase the
+rest of the main architecture of the web framework. That's OK: CRUDs are part of
+almost all data driven web applications, but they aren't what make your site
+different. So, now that we have delegated the tedium to the admin app, we will
+concentrate on polls, which is our business.
+
+We already have our models in place, so it's time to write our views, which are
+the HTTP-oriented functions that will make our app talk with the outside (which
+is, after all, the point of creating a *web* application).
+
+.. note:: 
+
+  Django developers half-jokingly say that Django follows the "MTV" pattern:
+  Model, Template and View. These 3 components map directly to what other modern
+  frameworks call Model, View and Controller. Django takes this apparently
+  unorthodox naming schema because, strictly, the controller is the framework
+  itself. What is called "controller" code in other frameworks is really tied to
+  HTTP and output templates, so it's really part of the view layer. If you don't
+  like this viewpoint, just remember to mentally map Django templates to "views"
+  and Django views to "controllers".
+
+By convention, code for views go into the app ``views.py`` file. Views are
+simple functions which take an HTTP request, do some processing and return an
+HTTP response. Since an HTTP response typically involves the construction of an
+HTML page, templates aid views with the job of creating HTML output (and other
+text-based outputs) in a more maintainable way than manually pasting strings
+together.
+
+The polls app will have a very simple navigation. First, the user will be
+presented with an "index" with access to the list of the latest polls. He will
+select one and we will show the poll "details", that is, a form with the
+available choices and a button so he can submit his choice. Once a choice is
+made, the user will be directed to a page showing the current results of the
+poll he just voted on.
+
+Before writting the code for the views: a good way to start designing a Django
+app is to design its URLs. In Django you map URLs to views, using regular
+expressions. Modern web development takes URLs seriously, and nice URLs (i.e,
+without cruft like "DoSomething.do" or "ThisIsNotNice.aspx") are the
+norm. Instead of patching ugly names with URL rewriting, Django offers a layer
+of indirection between the URL which triggers a view and the internal name you
+happen to give to such view. Also, as Django has an emphasis on apps that can be
+reused across multiple projects, there is a modular way to define URLs so an app
+can define the relative URLs for its views, and they can be later included on
+different projects.
+
+Let's start by modifying the ``pollsite/urls.py`` file to the following::
+
+    from django.conf.urls.defaults import *
+    
+    from django.contrib import admin
+    admin.autodiscover()
+    
+    urlpatterns = patterns('',
+        (r'^admin/(.*)', admin.site.root),
+        (r'^polls/', include('pollsite.polls.urls')),
+    )
+
+Note how we added the pattern which says: if the URL starts with ``polls/``
+continue mat matching it following the patters defined on module
+``pollsite.polls.urls``. So let's create the file ``pollsite/polls/urls.py``
+(note that it will live inside the app) and put the following code in it::
+
+    from django.conf.urls.defaults import *
+    
+    urlpatterns = patterns('pollsite.polls.views',
+        (r'^$', 'index'),
+        (r'^(\d+)/$', 'detail'),
+        (r'^(\d+)/vote/$', 'vote'),
+        (r'^(\d+)/results/$', 'results'),
+    )
+
+The first pattern says: If there is nothing else to match (remember that
+``polls/`` was already matched by the previous pattern), use the ``index``
+view. The others patterns include a placeholder for numbers, written in the
+regular expression as ``\d+``, and it is captured (using the parenthesis) so it
+will be passed as argument to their respective views. The end result is that an
+URL like ``polls/5/results/`` will call the ``results`` view passing the string
+``'5'`` as the second argument (the first view argument is always the
+``request`` object). If you want to know more about Django URL dispatching, see
+http://docs.djangoproject.com/en/1.0/topics/http/urls/.
+
+So, from the URL patterns we just created, it can be seen that we need to write
+the view functions named ``index``, ``detail``, ``vote`` and ``results``. Here
+is code for ``pollsite/polls/views.py``::
+
+    from django.shortcuts import get_object_or_404, render_to_response
+    from django.http import HttpResponseRedirect
+    from django.core.urlresolvers import reverse
+    from pollsite.polls.models import Choice, Poll
+    
+    def index(request):
+        latest_poll_list = Poll.objects.all().order_by('-pub_date')[:5]
+        return render_to_response('polls/index.html', 
+	                          {'latest_poll_list': latest_poll_list})
+    
+    def detail(request, poll_id):
+        poll = get_object_or_404(Poll, pk=poll_id)
+        return render_to_response('polls/detail.html', {'poll': poll})
+    
+    def vote(request, poll_id):
+        poll = get_object_or_404(Poll, pk=poll_id)
+        try:
+            selected_choice = poll.choice_set.get(pk=request.POST['choice'])
+        except (KeyError, Choice.DoesNotExist):
+            # Redisplay the poll voting form.
+            return render_to_response('polls/detail.html', {
+                'poll': poll,
+                'error_message': "You didn't select a choice.",
+            })
+        else:
+            selected_choice.votes += 1
+            selected_choice.save()
+            # Always return an HttpResponseRedirect after successfully dealing
+            # with POST data. This prevents data from being posted twice if a
+            # user hits the Back button.
+            return HttpResponseRedirect(
+	        reverse('pollsite.polls.views.results', args=(poll.id,)))
+    
+    def results(request, poll_id):
+        poll = get_object_or_404(Poll, pk=poll_id)
+        return render_to_response('polls/results.html', {'poll': poll})
+    
+I know this was a bit fast, but remember that we are taking a *quick* tour. The
+important thing here is to grasp the high level concepts. Each function defined
+in this file is a view. You can identify them because, well, they are defined on
+the ``views.py`` file. But perhaps more importantly, because they receive a
+``request`` as a first argument.
+
+So, we defined the views named ``index``, ``details``, ``vote`` and ``results``
+which are going to be called when an URL match the patterns defined
+previously. With the exception of ``vote``, they are straightforward, and follow
+the same pattern: They search some data (using the Django ORM and helper
+functions like ``get_object_or_404`` which, even if you aren't familiar with
+them it's easy to intuitively imagine what they do), and then end up calling
+``render_to_response``, passing the path of a template and a dictionary with the
+data passed to the template.
+
+.. note:: 
+
+   The three trivial views described above represent cases so common in web
+   development that Django provides an abstraction to implement them with even
+   less code. The abstraction is called "Generic Views" and you can learn about
+   them on http://docs.djangoproject.com/en/1.0/ref/generic-views/, as well as
+   in the Django tutorial at
+   http://docs.djangoproject.com/en/1.0/intro/tutorial04/#use-generic-views-less-code-is-better
+
+The ``vote`` view is a bit more involved, and it ought to be, since it is the
+one which do interesting things, namely, registering a vote. It has two paths:
+one for the exceptional case in which the user has not selected any choice and
+one in which the used did select one. See how in the first case the view ends up
+rendering the same template which is rendered by the ``detail`` view:
+``polls/detail.html``, but we pass an extra variable to the template to display
+the error message so the user can know why he is still viewing the same page. In
+the successful case in which the user selected a choice, we increment the votes
+and *redirect* the user to the ``results`` view. 
+
+We could have archived the redirection by just calling the view (something like
+``return results(request, poll.id)``) but, as the comments say, is a good
+practice to do an *actual* HTTP redirect after POST submissions to avoid
+problems with the browser back button (or the refresh button). Since the view
+code don't know to what URLs they are mapped (as that is expected to chance from
+site to site when you reuse the app) the ``reverse`` function gives you the URL
+for a given view and parameters.
+
+Before taking a look at templates, a note about them. The Django template
+language is pretty simple and intentionally *not* as powerful as a programming
+language. You can't execute arbitrary python code nor call any function. It is
+designed this way to keep templates simple and webdesigner-friendly. The main
+features of the template language are expressions, delimited by double braces
+(``{{`` and ``}}``), and directives (called "template tags"), delimited by
+braces and the percent character (``{%`` and ``%}``). Expression can contain
+dots which do both attribute access and item access (so you write ``{{ foo.bar
+}}`` even if in Python you would write ``foo['bar']``) and also pipes to apply
+filters to the expressions (like, for example, cut a string expression at some
+given maximum length). And that's pretty much it. You see how obvious they are
+on the following templates, but I'll give a bit of explanation when introducing
+some non obvious template tags.
+
+Now, it's time to see the templates for our views. As you can infer by reading
+the views code we just wrote we need three templates: ``polls/index.html``,
+``polls/detail.html`` and ``polls/results.html``. We will create the
+``templates`` subdirectory inside the ``polls`` app, and then create the
+templates under it. So here is the content of
+``pollsite/polls/templates/polls/index.html``:
+
+.. code-block:: django
+
+    {% if latest_poll_list %}
+    <ul>
+      {% for poll in latest_poll_list %}
+      <li><a href="{{ poll.id }}/">{{ poll.question }}</a></li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <p>No polls are available.</p>
+    {% endif %}
+
+Pretty simple, as you can see. Let's move to
+``pollsite/polls/templates/polls/detail.html``:
+
+.. code-block:: django
+
+    <h1>{{ poll.question }}</h1>
+    
+    {% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
+    
+    <form action="./vote/" method="post">
+    {% for choice in poll.choice_set.all %}
+        <input type="radio" name="choice" id="choice{{ forloop.counter }}"
+    value="{    { choice.id }}" />
+        <label for="choice{{ forloop.counter }}">{{ choice.choice }}</label><br />
+    {% endfor %}
+    <input type="submit" value="Vote" />
+    </form>
+
+One perhaps surprising construct on this template is the ``{{ forloop.counter
+}}`` expression, which simply exposes the internal counter the surrounding ``{%
+for %}`` loop. 
+
+Also note that the ``{% if %}`` template tag will evaluate to false a expression
+that is not defined, as will be the case with ``error_message`` when this
+template is called from the ``detail`` view.
+
+Finally, here is ``pollsite/polls/templates/polls/results.html``:
+
+.. code-block:: django
+
+    <h1>{{ poll.question }}</h1>
+     
+    <ul>
+    {% for choice in poll.choice_set.all %}
+        <li>{{ choice.choice }} -- {{ choice.votes }} 
+	vote{{ choice.votes|pluralize }}</li>
+    {% endfor %}
+    </ul>
+
+In this template you can see the use of a filter, in the expression ``{{
+choice.votes|pluralize }}``. It will output an "s" if the number of votes is
+greater than 1, and nothing otherwise. To learn more about the template tags
+and filters available by default in Django, see
+http://docs.djangoproject.com/en/1.0/ref/templates/builtins/. And to know more
+on how it works and how to create new filters and template tags, see
+http://docs.djangoproject.com/en/1.0/ref/templates/api/.
+
+At this point we have a fully working poll site. It's not pretty, and can use a
+lot of polishing. But it works! Try it navigating to
+http://localhost:8000/polls/.
+
+
+
+J2EE deployment and integration 
 -------------------------------
 
 At the time of this writing, Django on Jython works on the 1.0.x release.
