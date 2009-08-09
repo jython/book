@@ -847,8 +847,59 @@ Note that the base template is going to be site-wide, so it belongs to the
 project, not to an app. We will create a ``templates`` subdirectory under the
 *project* directory. Here is the content for ``pollsite/templates/base.html``::
 
-    [TODO paste file here]
-
+    <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+    "http://www.w3.org/TR/    xhtml1/DTD/xhtml1-strict.dtd">
+    <html xmlns="http://www.w3.org/1999/xhtml">
+      <head>
+        <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+        <title>Polls</title>
+        <link rel="alternate" type="application/rss+xml" 
+              title="RSS Feed"  href="/feeds/polls/" />
+        <style>
+          /* Irrelevant CSS code, see book sources if you are interested */
+        </style>
+      </head>
+      <body>
+        <!-- start header -->
+        <div id="header">
+          <div id="logo">
+            <h1><a href="/polls/">Polls</a></h1>
+            <p>an example for the Jython book</a></p>
+          </div>
+          <div id="menu">
+            <ul>
+              <li><a href="/polls/">Home</a></li>
+              <li><a href="/contact/">Contact Us</a></li>
+              <li><a href="/admin/">Admin</a></li>
+            </ul>
+          </div>
+        </div>
+    <!-- end header -->
+    <!-- start page -->
+        <div id="page">
+        <!-- start content -->
+          <div id="content">
+            {% block content %} {% endblock %}
+          </div>
+    <!-- end content -->
+          <br style="clear: both;" />
+        </div>
+    <!-- end page -->
+    <!-- start footer -->
+        <div id="footer">
+          <p> <a href="/feeds/polls/">Subscribe to RSS Feed</a> </p>
+          <p class="legal">
+            &copy;2009 Apress. All Rights Reserved.
+            &nbsp;&nbsp;&bull;&nbsp;&nbsp;
+            Design by 
+	    <a href="http://www.freecsstemplates.org/">Free CSS Templates</a>
+            &nbsp;&nbsp;&bull;&nbsp;&nbsp;
+            Icons by <a href="http://famfamfam.com/">FAMFAMFAM</a>. </p>
+        </div>
+    <!-- end footer -->
+      </body>
+    </html>
+    
 As you can see, the template declares only one block, named "content" (near the
 end of the template before the footer). You can define as many blocks as
 you want, but to keep things simple we will do only one.
@@ -901,8 +952,8 @@ http://localhost:8000/polls/. It will look as shown on the figure
 
 At this point we could consider our sample web application to be complete. But I
 want to highlight some other features included in Django that can help you to
-develop your web apps (just like the admin). To showcase them we will add four
-features to our site:
+develop your web apps (just like the admin). To showcase them we will add the
+following features to our site:
 
 1. A contact form (note that the link is already included in our common base
    template)
@@ -910,9 +961,9 @@ features to our site:
 2. A RSS feed for the latest polls (also note the link was already added on the
    footer) 
 
-3. User authentication
+.. 3. User authentication
 
-4. User Comments on polls.
+.. 4. User Comments on polls.
 
 
 Forms
@@ -1110,15 +1161,15 @@ preferred feed reader. Opera, for example, displays the feed as shown by figure
 
    Poll feed displayed on the Opera browser
 
-User authentication
--------------------
 
-Remember that the admin interface requires you to provide an username and
-password to get access to it. Also remember that you could add new users using
-the admin. The authentication framework behind it is available to any Django
-app. We will make use of it, by requiring user authentication for votes.
+.. User authentication
+.. -------------------
 
-[Pending explanation]
+.. Remember that the admin interface requires you to provide an username and
+.. password to get access to it. Also remember that you could add new users using
+.. the admin. The authentication framework behind it is available to any Django
+.. app. We will make use of it, by requiring user authentication for votes.
+.. TODO!
 
 
 J2EE deployment and integration 
