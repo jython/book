@@ -335,195 +335,193 @@ The remainder of our use-case will be coded in Jython.  Although all of the hibe
 
 As said previously, for this example we are coding a hockey roster implementation.  The application runs on the command line and basically allows one to add players to a roster, remove players, and check the current roster.  All of the database transactions will make use of the Player entity we coded in our Java application, and we’ll make use of hibernate’s transaction management from within our Jython code. ::
 
-
-
-
-
-	# HockeyRoster.py
-	#
-	# Implemenatation logic for the HockeyRoster application
-
-	# Import Player class from the Player module
-	from org.hibernate.cfg import Environment
-	from org.hibernate.cfg import Configuration
-	from org.hibernate import Query
-	from org.hibernate import Session
-	from org.hibernate import SessionFactory
-	from org.hibernate import Transaction
-	from org.jythonbook.entity import Player
-	import sys
-
-	# Define a list to hold each of te Player objects
-	playerList = []
-	factory = None
-
-	# makeSelection()
-	#
-	# Creates a selector for our application.  The function prints output to the
-	# command line.  It then takes a parameter as keyboard input at the command line
-	# in order to choose our application option.
-
-	def makeSelection():
-	    validOptions = ['1','2','3','4','5']
-	    print "Please chose an option\n"
-
-	    selection = raw_input("Press 1 to add a player, 2 to print the roster, 3 to search for a player on the team, 4 to remove player, 5 to quit: ")
-	    if selection not in validOptions:
-	        print "Not a valid option, please try again\n"
-	        makeSelection()
-	    else:
-	        if selection == '1':
-	            addPlayer()
-	        elif selection == '2':
-	            printRoster()
-	        elif selection == '3':
-	            searchRoster()
-	        elif selection == '4':
-	            removePlayer()
-	        else:
-	            print "Thanks for using the HockeyRoster application."
-
-	# addPlayer()
-	#
-	# Accepts keyboard input to add a player object to the roster list.  This function
-	# creates a new player object each time it is invoked and appends it to the list.
-	def addPlayer():
-	    addNew = 'Y'
-	    print "Add a player to the roster by providing the following information\n"
-	    while addNew.upper() == 'Y':
-	        first = raw_input("First Name: ")
-	        last = raw_input("Last Name: ")
-	        position = raw_input("Position: ")
-	        id = len(playerList)
-	        session = factory.openSession()
-	        try:
-	    tx = session.beginTransaction()
-	            player = Player()
-	            player.first = first
-	            player.last = last
-	            player.position = position
-	            session.save(player)
-	            tx.commit()
-	        except Exception,e:
-	    if tx!=None:
-	                tx.rollback()
-	print e
-	        finally:
-	    session.close()
-	        print "Player successfully added to the roster\n"
-	        addNew = raw_input("Add another? (Y or N)")
-	    makeSelection()
-
-	# printRoster()
-	#
-	# Prints the contents of the list to the command line as a report
-	def printRoster():
-	    print "====================\n"
-	    print "Complete Team Roster\n"
-	    print "======================\n\n"
-	    playerList = returnPlayerList()
-	    for player in playerList:
-	        print "%s %s - %s" % (player.first, player.last, player.position)
-	    print "\n"
-	    print "=== End of Roster ===\n"
-	    makeSelection()
-
-	# searchRoster()
-	#
-	# Takes input from the command line for a player's name to search within the
-	# roster list.  If the player is found in the list then an affirmative message
-	# is printed.  If not found, then a negative message is printed.
-	def searchRoster():
-	    index = 0
-	    found = False
-	    print "Enter a player name below to search the team\n"
-	    first = raw_input("First Name: ")
-	    last = raw_input("Last Name: ")
-	    position = None
-	    playerList = returnPlayerList()
-	    while index < len(playerList):
-	        player = playerList[index]
-	        if player.first.upper() == first.upper() and player.last.upper() == last.upper():
-	            found = True
-	            position = player.position
-	        index = index + 1
-	    if found:
-	        print '%s %s is in the roster as %s' % (first, last, position)
-	    else:
-	        print '%s %s is not in the roster.' % (first, last)
-	    makeSelection()
-
-	#  removePlayer()
-	#
-	# Removes a player from the team roster
-	def removePlayer():
-	    index = 0
-	    found = False
-	    print "Enter a player name below to remove them from the team roster\n"
-	    first = raw_input("First Name: ")
-	    last = raw_input("Last Name: ")
-	    position = None
-	    playerList = returnPlayerList()
-	    foundPlayer = Player()
-	    while index < len(playerList):
-	        player = playerList[index]
-	        if player.first.upper() == first.upper() and player.last.upper() == last.upper():
-	            found = True
-	            foundPlayer = player
-	        index = index + 1
-	    if found:
-	        print '%s %s is in the roster as %s, are you sure you wish to remove?' % (foundPlayer.first, foundPlayer.last, foundPlayer.position)
-	        yesno = raw_input("Y or N")
-	        if yesno.upper() == 'Y':
-	            session = factory.openSession()
-	            try:
-	                delQuery = "delete from Player player where id = %s" % (foundPlayer.id)
-
-	                tx = session.beginTransaction()
-	                q = session.createQuery(delQuery)
-	                q.executeUpdate()
-	                tx.commit()
-	                print 'The player has been removed from the roster', foundPlayer.id
-	            except Exception,e:
-	                if tx!=None:
-	                    tx.rollback()
-	                print e
-	            finally:
-	                session.close
-	        else:
-	            print 'The player will not be removed'
-	    else:
-	        print '%s %s is not in the roster.' % (first, last)
-	    makeSelection()
-
-	# Returns a complete list of players on the roster
-	def returnPlayerList():
-	    session = factory.openSession()
-	    try:
-	        tx = session.beginTransaction()
-	        playerList = session.createQuery("from Player").list()
-	        tx.commit()
-	    except Exception,e:
-	        if tx!=None:
-	            tx.rollback()
-	        print e
-	    finally:
-	        session.close
-	    return playerList
-
-
-	# main
-	#
-	# This is the application entry point.  It simply prints the applicaion title
-	# to the command line and then invokes the makeSelection() function.
-	if __name__ == "__main__":
-	    print sys.path
-	    print "Hockey Roster Application\n\n"
-	    cfg = Configuration().configure()
-
-	    factory = cfg.buildSessionFactory()
-	    makeSelection()
-	    
+    # HockeyRoster.py
+    #
+    # Implemenatation logic for the HockeyRoster application
+    
+    # Import Player class from the Player module
+    from org.hibernate.cfg import Environment
+    from org.hibernate.cfg import Configuration
+    from org.hibernate import Query
+    from org.hibernate import Session
+    from org.hibernate import SessionFactory
+    from org.hibernate import Transaction
+    from org.jythonbook.entity import Player
+    import sys
+    
+    # Define a list to hold each of te Player objects
+    playerList = []
+    factory = None
+    
+    # makeSelection()
+    #
+    # Creates a selector for our application.  The function prints output to the
+    # command line.  It then takes a parameter as keyboard input at the command line
+    # in order to choose our application option.
+    
+    def makeSelection():
+        validOptions = ['1','2','3','4','5']
+        print "Please chose an option\n"
+    
+        selection = raw_input("Press 1 to add a player, 2 to print the roster, 3 to search for a player on the team, 4 to remove player, 5 to quit: ")
+        if selection not in validOptions:
+            print "Not a valid option, please try again\n"
+        else:
+            if selection == '1':
+                addPlayer()
+            elif selection == '2':
+                printRoster()
+            elif selection == '3':
+                searchRoster()
+            elif selection == '4':
+                removePlayer()
+            else:
+                global runApp
+                runApp = False
+                print "Thanks for using the HockeyRoster application."
+    
+    # addPlayer()
+    #
+    # Accepts keyboard input to add a player object to the roster list.  This function
+    # creates a new player object each time it is invoked and appends it to the list.
+    def addPlayer():
+        addNew = 'Y'
+        print "Add a player to the roster by providing the following information\n"
+        while addNew.upper() == 'Y':
+            first = raw_input("First Name: ")
+            last = raw_input("Last Name: ")
+            position = raw_input("Position: ")
+            id = len(playerList)
+            session = factory.openSession()
+            try:
+                tx = session.beginTransaction()
+                player = Player()
+                player.first = first
+                player.last = last
+                player.position = position
+                session.save(player)
+                tx.commit()
+            except Exception,e:
+                if tx!=None:
+                    tx.rollback()
+                    print e
+            finally:
+                session.close()
+    
+           # playerList.append(player)
+            print "Player successfully added to the roster\n"
+            addNew = raw_input("Add another? (Y or N)")
+        makeSelection()
+    
+    # printRoster()
+    #
+    # Prints the contents of the list to the command line as a report
+    def printRoster():
+        print "====================\n"
+        print "Complete Team Roster\n"
+        print "======================\n\n"
+        playerList = returnPlayerList()
+        for player in playerList:
+            print "%s %s - %s" % (player.first, player.last, player.position)
+        print "\n"
+        print "=== End of Roster ===\n"
+        makeSelection()
+    
+    # searchRoster()
+    #
+    # Takes input from the command line for a player's name to search within the
+    # roster list.  If the player is found in the list then an affirmative message
+    # is printed.  If not found, then a negative message is printed.
+    def searchRoster():
+        index = 0
+        found = False
+        print "Enter a player name below to search the team\n"
+        first = raw_input("First Name: ")
+        last = raw_input("Last Name: ")
+        position = None
+        playerList = returnPlayerList()
+        while index < len(playerList):
+            player = playerList[index]
+            if player.first.upper() == first.upper() and player.last.upper() == last.upper():
+                found = True
+                position = player.position
+            index = index + 1
+        if found:
+            print '%s %s is in the roster as %s' % (first, last, position)
+        else:
+            print '%s %s is not in the roster.' % (first, last)
+        makeSelection()
+    
+    def removePlayer():
+        index = 0
+        found = False
+        print "Enter a player name below to remove them from the team roster\n"
+        first = raw_input("First Name: ")
+        last = raw_input("Last Name: ")
+        position = None
+        playerList = returnPlayerList()
+        foundPlayer = Player()
+        while index < len(playerList):
+            player = playerList[index]
+            if player.first.upper() == first.upper() and player.last.upper() == last.upper():
+                found = True
+                foundPlayer = player
+            index = index + 1
+        if found:
+            print '%s %s is in the roster as %s, are you sure you wish to remove?' % (foundPlayer.first, foundPlayer.last, foundPlayer.position)
+            yesno = raw_input("Y or N")
+            if yesno.upper() == 'Y':
+                session = factory.openSession()
+                try:
+                    delQuery = "delete from Player player where id = %s" % (foundPlayer.id)
+    
+                    tx = session.beginTransaction()
+                    q = session.createQuery(delQuery)
+                    q.executeUpdate()
+                    tx.commit()
+                    print 'The player has been removed from the roster', foundPlayer.id
+                except Exception,e:
+                    if tx!=None:
+                        tx.rollback()
+                    print e
+                finally:
+                    session.close
+            else:
+                print 'The player will not be removed'
+        else:
+            print '%s %s is not in the roster.' % (first, last)
+        makeSelection()
+    
+    def returnPlayerList():
+        session = factory.openSession()
+        try:
+            tx = session.beginTransaction()
+            playerList = session.createQuery("from Player").list()
+            tx.commit()
+        except Exception,e:
+            if tx!=None:
+                tx.rollback()
+            print e
+        finally:
+            session.close
+        return playerList
+    
+    
+    # main
+    #
+    # This is the application entry point.  It simply prints the applicaion title
+    # to the command line and then invokes the makeSelection() function.
+    if __name__ == "__main__":
+        print "Hockey Roster Application\n\n"
+        cfg = Configuration().configure()
+    
+        factory = cfg.buildSessionFactory()
+        global runApp
+        runApp = True
+        while runApp:
+            makeSelection()
+    
+    
 We begin our implementation in the main block, where the hibernate configuration is loaded.  All of the hibernate configuration resides within the Java project, so we are not working with XML here, just making use of it.  The code then begins to branch so that various tasks can be performed.  In the case of adding a player to the roster, a user could enter the number 1 at the command prompt.  You can see that the addPlayer() function simply creates a new Player object, populates it, and saves it into the database.  Likewise, the searchRoster() function calls another function named returnPlayerList() which queries the player table using hibernate query language and returns a list of Player objects.
 
 
