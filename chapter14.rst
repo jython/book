@@ -1031,12 +1031,94 @@ http://docs.djangoproject.com/en/1.0/topics/forms/ for detailed information.
 
    Django Form Validation in Action
 
+Feeds
+-----
 
+It's time to implement the feed we are offering on the link right before the
+footer. It surely won't surprise you to know that Django include ways to state
+declaratively your feeds and write them very quickly. Let's start by modifying
+``pollsite/urls.py`` to leave it as follows::
 
+    from django.conf.urls.defaults import *
+    from pollsite.polls.feeds import PollFeed
+    
+    from django.contrib import admin
+    admin.autodiscover()
+    
+    urlpatterns = patterns('',
+        (r'^admin/(.*)', admin.site.root),
+        (r'^polls/', include('pollsite.polls.urls')),
+        (r'^contact/', include('pollsite.contactus.urls')),
+        (r'^feeds/(?P<url>.*)/$', 'django.contrib.syndication.views.feed',
+         {'feed_dict': {'polls': PollFeed}}),
+    )
 
+The changes are the import of the ``PollFeed`` class (which we haven't wrote
+yet) and the last pattern for URLs starting with ``/feeds/``, which will map to
+a built-in view which takes a dictionary with feeds as argument (in our case,
+``PollFeed`` is the only one). Writing the this class, which will describe the
+feed, is very easy.  Let's create the file ``pollsite/polls/feeds.py`` and put
+the following code on it::
 
+    from django.contrib.syndication.feeds import Feed
+    from django.core.urlresolvers import reverse
+    from pollsite.polls.models import Poll
+    
+    class PollFeed(Feed):
+        title = "Polls"
+        link = "/polls"
+        description = "Latest Polls"
+    
+        def items(self):
+            return Poll.objects.all().order_by('-pub_date')
+    
+        def item_link(self, poll):
+            return reverse('pollsite.polls.views.detail', args=(poll.id,))
+    
+        def item_pubdate(self, poll):
+            return poll.pub_date
+        
+And we are almost ready. When a request for the URL ``/feeds/polls/`` is
+received by Django, it will use this feed description to build all the XML
+data. The missing part is how will be the content of polls displayed on the
+feeds. To do this, we need to create a template. By convention, it has to be
+named ``feeds/<feed_name>_description.html``, where ``<feed_name>`` is what we
+specified as the key on the ``feed_dict`` in ``pollsite/urls.py``. Thus we
+create the file ``pollsite/polls/templates/feeds/polls_description.html`` with
+this very simple content:
 
+.. code-block:: django
 
+    <ul>
+      {% for choice in obj.choice_set.all %}
+      <li>{{ choice.choice }}</li>
+      {% endfor %}
+   </ul>
+
+The idea is simple: Django passes each object returned by ``PollFeed.items()``
+to this template, in which it takes the name ``obj``. You then generate an
+HTML fragment which will be embedded on the feed result. 
+
+And that's all. Test it by pointing your browser to
+http://localhost:8000/feeds/polls/, or by subscribing to that URL with your
+preferred feed reader. Opera, for example, displays the feed as shown by figure
+:ref:`fig-django-tour-feed`
+
+.. _fig-django-tour-feed:
+
+.. figure:: images/chapter14-tour-feed.png
+
+   Poll feed displayed on the Opera browser
+
+User authentication
+-------------------
+
+Remember that the admin interface requires you to provide an username and
+password to get access to it. Also remember that you could add new users using
+the admin. The authentication framework behind it is available to any Django
+app. We will make use of it, by requiring user authentication for votes.
+
+[Pending explanation]
 
 
 J2EE deployment and integration 
