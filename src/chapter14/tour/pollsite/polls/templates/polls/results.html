@@ -1,3 +1,5 @@
+{% extends 'base.html' %}
+{% block content %}
 <h1>{{ poll.question }}</h1>
 
 <ul>
@@ -5,3 +7,4 @@
     <li>{{ choice.choice }} -- {{ choice.votes }} vote{{ choice.votes|pluralize }}</li>
 {% endfor %}
 </ul>
+{% endblock %}

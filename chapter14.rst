@@ -821,6 +821,85 @@ At this point we have a fully working poll site. It's not pretty, and can use a
 lot of polishing. But it works! Try it navigating to
 http://localhost:8000/polls/.
 
+Reusing Templates without "include": Template Inheritance
+---------------------------------------------------------
+
+Like many other template languages, Django also has a "include" directive. But
+it's use is very rare, because there is a better solution for reusing templates:
+inheritance.
+
+It works just like class inheritance. You define a base template, with many
+"blocks". Each block has a name. Then other templates can inherit from the base
+template and override or extend the blocks. You are free to build inheritance
+chains of any length you want, just like with class hierarchies. 
+
+You may have noted that our templates weren't producing valid HTML, but only
+fragments. It was convenient, to focus on the important parts of the templates,
+of course. But it also happens that with a very minor modification they will
+generate a complete, pretty HTML pages. As you probably guessed by now, they
+will extend from a site-wide base template.
+
+Since I'm not exactly good with web design, we will take a ready-made template
+from http://www.freecsstemplates.org/. In particular, we will modify
+this template: http://www.freecsstemplates.org/preview/exposure/.
+
+Note that the base template is going to be site-wide, so it belongs to the
+project, not to an app. We will create a ``templates`` subdirectory under the
+*project* directory. Here is the content for ``pollsite/templates/base.html``::
+
+    [TODO paste file here]
+
+As you can see, the template declares only one block, named "content" (near the
+end of the template before the footer). You can define as many blocks as
+you want, but to keep things simple we will do only one.
+
+Now, to let Django find this template we need to tweak the settings. Edit
+``pollsite/settings.py`` and locate the ``TEMPLATE_DIRS`` section. replace it
+with the following::
+
+    import os
+    TEMPLATE_DIRS = (
+        os.path.dirname(__file__) + '/templates',
+        # Put strings here, like "/home/html/django_templates" or
+        # "C:/www/django/templates".
+        # Always use forward slashes, even on Windows.
+        # Don't forget to use absolute paths, not relative paths.
+    )
+
+That's a trick to avoid hardcoding the project root directory. The trick may not
+work on all situations, but it will work for us. Now, that we have this
+``base.html`` template in place, we will inherit from it in
+``pollsite/polls/templates/polls/index.html``:
+
+.. code-block:: django
+
+    {% extends 'base.html' %}
+    {% block content %}
+    {% if latest_poll_list %}
+    <ul>
+      {% for poll in latest_poll_list %}
+      <li><a href="{{ poll.id }}/">{{ poll.question }}</a></li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <p>No polls are available.</p>
+    {% endif %}
+    {% endblock %}
+
+As you can see, the changes are limited to the addition of the two first lines
+and the last one. The practical implication is that the template is overriding
+the "content" block and inheriting all the rest. Do the same with the other two
+templates of the poll app and test the application again, visiting
+http://localhost:8000/polls/. It will look as shown on the figure
+:ref:`fig-django-tour-aftertemplate`.
+
+.. _fig-django-tour-aftertemplate:
+
+.. figure:: images/chapter14-tour-aftertemplate.png
+
+   The Poll Site After Applying a Template
+
+
 
 
 J2EE deployment and integration 
