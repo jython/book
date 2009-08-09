@@ -201,9 +201,9 @@ In Jython ::
 
 Now that we have looked at a simple example, it makes sense to see what a medium
 sized app might look like in Jython.  Since Twitter apps have become the "Hello
-World" of GUI applications these days, we will go with the trend.
-
-Larger example ::
+World" of GUI applications these days, we will go with the trend.  The following
+application gives the user a log in prompt.  When the user successfully logs in
+the  most recent tweets in their timeline are displayed.  Here is the code: ::
 
     import twitter
     import re
@@ -287,3 +287,24 @@ Larger example ::
 
     if __name__ == '__main__':
         JyTwitter()
+
+This code depends on the python-twitter package. This package can be found on
+the Python package index (PyPi).  If you have easy_install (see chapter ? for
+instructions on easy_install) then you can install python-twitter like this: ::
+
+    jython easy_install python-twitter
+
+This will automatically install python-twitter's dependancy: simplejson.  Now
+you should be able to run the application.  You should see the following login
+prompt:
+
+.. image:: images/chapter17-login.jpg
+   :align: center
+
+If you put in the wrong password, you should see:
+
+.. image:: images/chapter17-failed-login.jpg
+   :align: center
+
+And finally, once you have successfully logged in, you should see something
+like this:
