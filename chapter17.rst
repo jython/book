@@ -309,7 +309,7 @@ If you put in the wrong password, you should see:
 And finally, once you have successfully logged in, you should see something
 like this:
 
-.. image:: images/chapter17-success.jpg
+.. image:: images/chapter17-twitter.jpg
    :align: center
 
 The constructor creates the outer frame, imaginatively called self.frame.
@@ -404,3 +404,7 @@ to get the JTextArea to display correctly. ::
              ))
         self.resultPanel.add(p)
 
+And that concludes are quick tour of Swing from Jython.  Again, Swing is a very
+large subject, so you'll want to look into some more dedicated Swing resources
+to really get a handle on it.  After this chapter, it should be reasonably 
+straightforward to translate the Java examples you find into Jython examples.
