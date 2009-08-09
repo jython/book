@@ -48,7 +48,7 @@ same application in Jython. ::
 
 This simple application draws a JFrame that is completely filled with a JButton.  When the button is pressed, "Clicked!" prints out on the command line.
 
-.. image:: src/chapter17/hello_java.jpg
+.. image:: images/chapter17-hello-java.jpg
    :align: center
 
 Now let's see what this program looks like in Jython ::
@@ -70,7 +70,7 @@ Now let's see what this program looks like in Jython ::
 Except for the title, the application produces the same JFrame with JButton,
 outputting "Clicked!" when the button is clicked.
 
-.. image:: src/chapter17/hello_jython.jpg
+.. image:: images/chapter17-hello-jython.jpg
    :align: center
 
 Let's go through the Java and the Jython examples line by line to get a feel
@@ -204,6 +204,7 @@ sized app might look like in Jython.  Since Twitter apps have become the "Hello
 World" of GUI applications these days, we will go with the trend.
 
 Larger example ::
+
     import twitter
     import re
 
