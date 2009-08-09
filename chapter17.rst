@@ -46,7 +46,9 @@ same application in Jython. ::
         }
     }
 
-This simple application draws a JFrame that is completely filled with a JButton.  When the button is pressed, "Clicked!" prints out on the command line.
+This simple application draws a JFrame that is completely filled with a
+JButton.  When the button is pressed, "Clicked!" prints out on the command
+line.
 
 .. image:: images/chapter17-hello-java.jpg
    :align: center
@@ -343,10 +345,11 @@ in and make the frame visible. ::
         self.frame.pack()
         self.frame.visible = True
 
-The login method changes the label text and calls into python-twitter to attempt
-a login.  It's in a try/excpet block that will display "Log in failed" if something
-goes wrong.  A real application would check different types of excpetions to see
-what went wrong and change the display message accordingly.  ::
+The login method changes the label text and calls into python-twitter to
+attempt a login.  It's in a try/excpet block that will display "Log in failed"
+if something goes wrong.  A real application would check different types of
+excpetions to see what went wrong and change the display message accordingly.
+::
 
     def login(self,event):
         self.message.text = "Attempting to Log in..."
@@ -363,11 +366,11 @@ what went wrong and change the display message accordingly.  ::
         self.frame.size = 400,800
         self.frame.show()
 
-If the login succeeds, we call the timeline method, which populates the frame with
-the latest tweets that the user is following.  In the timeline method, we call
-GetFriendsTimeline from the python-twitter API, then we iterate through the status
-objects and call showTweet on each.  All of this gets dropped into a JScrollPane
-and set to a reasonable size, then added to the main frame. ::
+If the login succeeds, we call the timeline method, which populates the frame
+with the latest tweets that the user is following.  In the timeline method, we
+call GetFriendsTimeline from the python-twitter API, then we iterate through
+the status objects and call showTweet on each.  All of this gets dropped into a
+JScrollPane and set to a reasonable size, then added to the main frame. ::
 
     def timeline(self, username):
         timeline = self.api.GetFriendsTimeline(username)
@@ -384,9 +387,9 @@ and set to a reasonable size, then added to the main frame. ::
         self.frame.add(scrollpane)
 
 In the showTweet method, we go through the tweets and add a a JLabel with the
-user's icon (fetched by url from user.profile_image_url) and a JTextArea to 
-contain the text of the tweet.  Note all of the bean properties that we set
-to get the JTextArea to display correctly. ::
+user's icon (fetched by url from user.profile_image_url) and a JTextArea to
+contain the text of the tweet.  Note all of the bean properties that we set to
+get the JTextArea to display correctly. ::
 
     def showTweet(self, status):
         user = status.user
@@ -404,7 +407,7 @@ to get the JTextArea to display correctly. ::
              ))
         self.resultPanel.add(p)
 
-And that concludes are quick tour of Swing from Jython.  Again, Swing is a very
+And that concludes our quick tour of Swing from Jython.  Again, Swing is a very
 large subject, so you'll want to look into some more dedicated Swing resources
-to really get a handle on it.  After this chapter, it should be reasonably 
+to really get a handle on it.  After this chapter, it should be reasonably
 straightforward to translate the Java examples you find into Jython examples.
