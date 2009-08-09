@@ -845,7 +845,9 @@ this template: http://www.freecsstemplates.org/preview/exposure/.
 
 Note that the base template is going to be site-wide, so it belongs to the
 project, not to an app. We will create a ``templates`` subdirectory under the
-*project* directory. Here is the content for ``pollsite/templates/base.html``::
+*project* directory. Here is the content for ``pollsite/templates/base.html``:
+
+.. code-block:: django
 
     <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
     "http://www.w3.org/TR/    xhtml1/DTD/xhtml1-strict.dtd">
