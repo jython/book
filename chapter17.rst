@@ -218,7 +218,7 @@ the  most recent tweets in their timeline are displayed.  Here is the code: ::
     class JyTwitter(object):
         def __init__(self):
             self.frame = JFrame("Jython Twitter")
-            self.frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE)
+            self.frame.defaultCloseOperation = WindowConstants.EXIT_ON_CLOSE
      
             self.loginPanel = JPanel(GridLayout(0,2))
             self.frame.add(self.loginPanel)
@@ -308,3 +308,99 @@ If you put in the wrong password, you should see:
 
 And finally, once you have successfully logged in, you should see something
 like this:
+
+.. image:: images/chapter17-success.jpg
+   :align: center
+
+The constructor creates the outer frame, imaginatively called self.frame.
+We set defaultCloseOperation so that the app will terminate if the user closes
+the main window.  We then create a loginPanel that holds the text fields for
+the user to enter username and password, and create a login button that will
+call the self.login method when clicked.  We then put a "Please log in " label
+in and make the frame visible. ::
+
+    def __init__(self):
+        self.frame = JFrame("Jython Twitter")
+        self.frame.defaultCloseOperation = WindowConstants.EXIT_ON_CLOSE
+ 
+        self.loginPanel = JPanel(GridLayout(0,2))
+        self.frame.add(self.loginPanel)
+
+        self.usernameField = JTextField('',15)
+        self.loginPanel.add(JLabel("username:", SwingConstants.RIGHT))
+        self.loginPanel.add(self.usernameField)
+
+        self.passwordField = JPasswordField('', 15)
+        self.loginPanel.add(JLabel("password:", SwingConstants.RIGHT))
+        self.loginPanel.add(self.passwordField)
+
+        self.loginButton = JButton('Log in',actionPerformed=self.login)
+        self.loginPanel.add(self.loginButton)
+
+        self.message = JLabel("Please Log in")
+        self.loginPanel.add(self.message)
+
+        self.frame.pack()
+        self.frame.visible = True
+
+The login method changes the label text and calls into python-twitter to attempt
+a login.  It's in a try/excpet block that will display "Log in failed" if something
+goes wrong.  A real application would check different types of excpetions to see
+what went wrong and change the display message accordingly.  ::
+
+    def login(self,event):
+        self.message.text = "Attempting to Log in..."
+        self.frame.show()
+        username = self.usernameField.text
+        try:
+            self.api = twitter.Api(username, self.passwordField.text)
+            self.timeline(username)
+            self.loginPanel.visible = False
+            self.message.text = "Logged in"
+        except:
+            self.message.text = "Log in failed."
+            raise
+        self.frame.size = 400,800
+        self.frame.show()
+
+If the login succeeds, we call the timeline method, which populates the frame with
+the latest tweets that the user is following.  In the timeline method, we call
+GetFriendsTimeline from the python-twitter API, then we iterate through the status
+objects and call showTweet on each.  All of this gets dropped into a JScrollPane
+and set to a reasonable size, then added to the main frame. ::
+
+    def timeline(self, username):
+        timeline = self.api.GetFriendsTimeline(username)
+        self.resultPanel = JPanel()
+        self.resultPanel.layout = BoxLayout(self.resultPanel, BoxLayout.Y_AXIS)
+        for s in timeline:
+            self.showTweet(s)
+
+        scrollpane = JScrollPane(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
+                                 JScrollPane.HORIZONTAL_SCROLLBAR_NEVER)
+        scrollpane.preferredSize = 400, 800
+        scrollpane.viewport.view = self.resultPanel
+
+        self.frame.add(scrollpane)
+
+In the showTweet method, we go through the tweets and add a a JLabel with the
+user's icon (fetched by url from user.profile_image_url) and a JTextArea to 
+contain the text of the tweet.  Note all of the bean properties that we set
+to get the JTextArea to display correctly. ::
+
+    def showTweet(self, status):
+        user = status.user
+        p = JPanel()
+
+        # image grabbing seems very expensive, good place for a callback?
+        p.add(JLabel(ImageIcon(URL(user.profile_image_url))))
+
+        p.add(JTextArea(text = status.text,
+                        editable = False,
+                        wrapStyleWord = True,
+                        lineWrap = True,
+                        alignmentX = Component.LEFT_ALIGNMENT,
+                        size = (300, 1)
+             ))
+        self.resultPanel.add(p)
+
