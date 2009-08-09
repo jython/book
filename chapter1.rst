@@ -79,13 +79,16 @@ To define a variable in the Python language, you simply name it using an identif
 
 Once declared, a variable is untyped and can take any value.  This is one difference between using a statically typed language such as Java, and using dynamic languages like Python.  In Java, you need to declare the type of variable which you are creating, and you do not in Python.  It may not sound like very much at first, but this ability can lead to some extraordinary results.  Consider the following, lets define a value ‘x’ below and we’ll give it a value of zero.  
 
-::
+*Java - Declare Variable* ::
 
-	int x = 0;
-
-
+    int x = 0;
 
 
+*Python - Declare Variable* ::
+   
+    x = 0
+    
+    
 As you see, we did not have to give a type to this variable.  We simply name it and assign a value.  You can also see that in Python there is no need to end the declaration with a semicolon.  Since we do not need to declare a type for the variable, we can change it to a different value and type later in the program.
 
 
