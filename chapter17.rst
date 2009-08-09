@@ -112,6 +112,93 @@ In Jython ::
                 size = (300, 300)
             )
 
+In Java a new JFrame is created, then the bean properties defaultCloseOperation
+and size are set.  In Jython, we are able to add the bean property setters
+right in the call to the constructor.  This shortcut is covered in detail in
+chapter [FJW]? already.  Still, it will bare some repeating here, since bean
+properties are so important in the Swing libraries.  In short, if you have a 
+getters and setters of the form getFoo/setFoo, you can treat them as properties
+of the object with the name "foo".  So instead of x.getFoo() you can use x.foo.
+Instead of x.setFoo(bar) you can use x.foo = bar.  If you take a look at any
+Swing app above a reasonable size, you are likely to see large blocks of setters
+like: ::
+
+    JTextArea t = JTextArea();
+    t.setText(message)
+    t.setEditable(false)
+    t.setWrapStyleWord(true)
+    t.setLineWrap(true)
+    t.setAlignmentX(Component.LEFT_ALIGNMENT)
+    t.setSize(300, 1)
+
+which, in my opinion, look better in the idiomatic Jython property setting style: ::
+
+    t = JTextArea()
+    t.text = message
+    t.editable = False
+    t.wrapStyleWord = True
+    t.lineWrap = True
+    t.alignmentX = Component.LEFT_ALIGNMENT
+    t.size = (300, 1)
+
+Or rolled into the constructor: ::
+
+    p.add(JTextArea(text = message,
+                    editable = False,
+                    wrapStyleWord = True,
+                    lineWrap = True,
+                    alignmentX = Component.LEFT_ALIGNMENT,
+                    size = (300, 1)
+                   ))
+
+One thing to watch out for when you use properties rolled into the constructor,
+is that you don't know the order in which the setters will be called.
+Generally this is not a problem, as the bean properties are not usually order
+dependant.  The big exception to this is setVisible(), you probably want to set
+the visible property outside of the constructor to avoid any strangeness while
+the properties are being set.  Going back to our short example, the next block
+of code creates a JButton, and binds the button to an action that prints out
+"Clicked!".
+
+In Java ::
+
+    JButton button = new JButton("Click Me!");
+    button.addActionListener(
+        new ActionListener() {
+            public void actionPerformed(ActionEvent event) {
+                System.out.println("Clicked!");
+            }
+        }
+    );
+    frame.add(button);
+
+In Jython ::
+
+    def change_text(event):
+        print 'Clicked!'
+
+    button = JButton('Click Me!', actionPerformed=change_text)
+    frame.add(button)
+
+I think Jython's method is particularly nice here when compared to Java. Here
+we can pass a first class function "change_text" directly to the JButton in
+it's constructore, in place of the more cumbersome Java "addActionListener"
+method where we need to create an anonymous ActionListener class and define
+it's actionPerfomed method with all of the ceramony of the static type
+declarations.  This is one case where Jython's readibility really stands out.
+Finally, in both examples we set the visible property to True.
+
+In Java ::
+
+    frame.setVisible(true);
+
+In Jython ::
+
+    frame.visible = True
+
+Now that we have looked at a simple example, it makes sense to see what a medium
+sized app might look like in Jython.
+
 Larger example ::
     import twitter
     import re
