@@ -900,10 +900,8 @@ http://localhost:8000/polls/. It will look as shown on the figure
    The Poll Site After Applying a Template
 
 
-
-
-J2EE deployment and integration 
--------------------------------
+J2EE deployment and integration
+===============================
 
 At the time of this writing, Django on Jython works on the 1.0.x release.
 Unfortunately, the official Django site hasn't released a new build with all
