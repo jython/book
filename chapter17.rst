@@ -9,7 +9,7 @@ modern Java installation, we will focus on the use of Swing GUIs in this
 chapter.
 
 Swing is a large subject, and can't really be covered in a single chapter.  In
-fact there are entire books devoted to the subjuect.  I will provide some
+fact there are entire books devoted to the subject.  I will provide some
 introduction to Swing, but only enough to describe the use of Swing from
 Jython. For in depth coverage of Swing, one of the many books or web tutorials
 should be used. [FJW: some suggested books/tutorials?].
@@ -143,13 +143,13 @@ which, in my opinion, look better in the idiomatic Jython property setting style
 
 Or rolled into the constructor: ::
 
-    p.add(JTextArea(text = message,
-                    editable = False,
-                    wrapStyleWord = True,
-                    lineWrap = True,
-                    alignmentX = Component.LEFT_ALIGNMENT,
-                    size = (300, 1)
-                   ))
+    t = JTextArea(text = message,
+                  editable = False,
+                  wrapStyleWord = True,
+                  lineWrap = True,
+                  alignmentX = Component.LEFT_ALIGNMENT,
+                  size = (300, 1)
+                 ))
 
 One thing to watch out for when you use properties rolled into the constructor,
 is that you don't know the order in which the setters will be called.
@@ -184,9 +184,12 @@ I think Jython's method is particularly nice here when compared to Java. Here
 we can pass a first class function "change_text" directly to the JButton in
 it's constructore, in place of the more cumbersome Java "addActionListener"
 method where we need to create an anonymous ActionListener class and define
-it's actionPerfomed method with all of the ceramony of the static type
+it's actionPerfomed method with all of the ceremony of the static type
 declarations.  This is one case where Jython's readibility really stands out.
-Finally, in both examples we set the visible property to True.
+Finally, in both examples we set the visible property to True.  Again, although
+we could have set this property in the frame constructor, the visible property
+is one of those rare order-dependant properties that we want to set at the
+right time (in this case, last).
 
 In Java ::
 
@@ -197,7 +200,8 @@ In Jython ::
     frame.visible = True
 
 Now that we have looked at a simple example, it makes sense to see what a medium
-sized app might look like in Jython.
+sized app might look like in Jython.  Since Twitter apps have become the "Hello
+World" of GUI applications these days, we will go with the trend.
 
 Larger example ::
     import twitter
