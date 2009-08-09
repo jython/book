@@ -899,8 +899,147 @@ http://localhost:8000/polls/. It will look as shown on the figure
 
    The Poll Site After Applying a Template
 
+At this point we could consider our sample web application to be complete. But I
+want to highlight some other features included in Django that can help you to
+develop your web apps (just like the admin). To showcase them we will add four
+features to our site:
 
-J2EE deployment and integration
+1. A contact form (note that the link is already included in our common base
+   template)
+  
+2. A RSS feed for the latest polls (also note the link was already added on the
+   footer) 
+
+3. User authentication
+
+4. User Comments on polls.
+
+
+Forms
+-----
+
+Django features some help to deal with HTML forms, which is always a bit
+tiresome. We will use this help to implement the "contact us" feature. Since it
+sounds like a common feature that could be reused on in the future, we will
+create a new app for it. Move to the project directory and run::
+
+  $ jython manage.py startapp contactus
+
+Remember to add an entry for this app on ``pollsite/settings.py`` under the
+``INSTALLED_APPS`` list as ``'pollsite.contactus'``.
+
+Then we will delegate URL matching the ``/contact/`` pattern to the app, by
+modifying ``pollsite/urls.py`` and adding one line for it::
+
+    from django.conf.urls.defaults import *
+     
+    from django.contrib import admin
+    admin.autodiscover()
+    
+    urlpatterns = patterns('',
+        (r'^admin/(.*)', admin.site.root),
+        (r'^polls/', include('pollsite.polls.urls')),
+        (r'^contact/', include('pollsite.contactus.urls')),
+    )
+
+Later, we create ``pollsite/contactus/urls.py``. For simplicity's sake we will
+use only one view to display and process the form. So the file
+``pollsite/contactus/urls.py`` will simply consist of::
+
+    from django.conf.urls.defaults import *
+    
+    urlpatterns = patterns('pollsite.contactus.views',
+        (r'^$', 'index'),
+    )
+
+And the contents of ``pollsite/contactus/views.py`` is::
+
+    from django.shortcuts import render_to_response
+    from django.core.mail import mail_admins
+    from django import forms
+    
+    class ContactForm(forms.Form):
+        name = forms.CharField(max_length=200)
+        email = forms.EmailField()
+        title = forms.CharField(max_length=200)
+        text = forms.CharField(widget=forms.Textarea)
+    
+    
+    def index(request):
+        if request.method == 'POST':
+            form = ContactForm(request.POST)
+            if form.is_valid():
+                mail_admins(
+                    "Contact Form: %s" % form.title,
+                    "%s <%s> Said: %s" % (form.name, form.email, form.text))
+                return render_to_response("contactus/success.html")
+        else:
+            form = ContactForm()
+        return render_to_response("contactus/form.html", {'form': form})
+
+The important bit here is the ``ContactForm`` class in which the form is
+declaratively defined and which encapsulates the validation logic. We just call
+the ``is_valid()`` method on our view to invoke that logic and act
+accordingly. See http://docs.djangoproject.com/en/1.0/topics/email/#mail-admins
+to learn about the ``main_admins`` function included on Django and how to
+adjust the project settings to make it work.
+
+Forms also provide quick ways to render them in templates. We will try that
+now. This is the code for ``pollsite/contactus/templates/contactus/form.html``
+which is the template used the the view we just wrote:
+
+.. code-block:: django
+
+    {% extends "base.html" %}
+    {% block content %}
+    <form action="." method="POST">
+    <table>
+    {{ form.as_table }}
+    </table>
+    <input type="submit" value="Send Message" >
+    </form>
+    {% endblock %}
+
+Here we take advantage of the ``as_table()`` method of Django forms, which also
+takes care of rendering validation errors. Django forms also provide other
+convenience functions to render forms, but if none of them suits your need, you
+can always render the form in custom ways. See
+http://docs.djangoproject.com/en/1.0/topics/forms/ for details on form handling.
+
+Before testing this contact form, we need to write the template
+``pollsite/contactus/templates/contactus/success.html`` which is also used from
+``pollsite.contactus.views.index``:: This template is quite simple::
+
+    {% extends "base.html" %}
+    {% block content %}
+    <h1> Send us a message </h1>
+    <p><b>Message received, thanks for your feedback!</p> 
+    {% endblock %}
+
+And we are done. Test it by navigation to http://localhost:8000/contact/. Try
+submitting the form without data, or with erroneous data (for example with an
+invalid email address). You will get something like what's shown on the figure
+:ref:`fig-django-tour-formvalidation`. Without needing to write much code you
+get all that validation, almost for free. Of course the forms framework is
+extensible, so you can create custom form field types with their own validation
+or rendering code. Again, I'll refer you to
+http://docs.djangoproject.com/en/1.0/topics/forms/ for detailed information.
+
+.. _fig-django-tour-formvalidation:
+
+.. figure:: images/chapter14-tour-formvalidation.png
+
+   Django Form Validation in Action
+
+
+
+
+
+
+
+
+
+J2EE deployment and integration 
 ===============================
 
 At the time of this writing, Django on Jython works on the 1.0.x release.
