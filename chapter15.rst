@@ -5,12 +5,21 @@ is by no means your only choice.  Where Django grew out of the needs
 of newsrooms to implement content management solutions rapidly -
 Pylons grew out of a need to build web applications in environments
 that may have existing databases to integrate with and the
-applications don't fit into the a nice
+applications don't fit neatly into the class of applications that
+are loosely defined in the "content management" space.
 
 Pylons greatest strength is that it takes a best of breed approach to
 constructing it's technology stack.  Where everything is 'built in'
-with Django - Pylons assembles carefully selected libraries together
-and wires them together into a full webstack.
+with Django and the entire application stack is specifically designed
+with a single world view of how applications should be done - Pylons
+takes precisely the opposite approach. Pylons - the core codebase that
+lives in the 'pylons' namespace - it's remarkably small.  With the
+0.9.7 release, it's hovering around 5,500 lines of code. Django by
+comparison weighs in at about 125,000 lines of code. 
+
+Pylons manages to do this magic by leveraging existing libraries
+extensively and the Pylons community works with many other Python
+projects to develop standard APIs to promote interoperability.
 
 Ultimately picking Django or Pylons is about deciding which tradeoffs
 you're willing to make.  While Django is extremly easy to learn
@@ -18,28 +27,26 @@ because all the documentation is in one place and all the
 documentation relating to any particular component is always discussed
 in the context of building a web application - you lose some
 flexibility when you need to start doing things that are at the
-margins of what most web developers do. 
+margins of what Django was designed for.
 
 For example, in a project I've worked on recently, I needed to
 interact with a nontrivial database that was implemented in SQL Server
 2000.  For Django, implementing the SQL Server backend was quite
 difficult.  There aren't that many web developers using Django on
-Windows, never mind SQL Server.  The Django ORM is a part of Django,
-but it's obviously not the core focus of Django so building a working
-SQL Server backend meant I had to read code in the ODBC implmentation,
-parts of the ADODBAPI implementation and the psycopg2 implementation
-of the database backends.  
+Windows, never mind SQL Server.  While the Django ORM is a part of Django,
+it is also not the core focus of Django.  Supporting arbitrary
+databases is simply not a goal for Django and rightly so.
 
-This was fairly painful and took weeks of work - but again - can you
-really blame a webframework for not supporting a 10 year old database
-on a platform that nobody runs webservers on?  That's a bit unfair.
+The Django project assumes you'll do a rational thing and simply use
+Postgresql as your database backend.  Web developers have better
+things to do than build backend drivers for every possible database.
 
 Pylons on the other hand leverages SQLAlchemy.  SQLAlchemy is probably
 the most powerful database toolkit available in Python.  It *only*
 focuses on database access.  The SQL Server backend was already built
 in a robust way for CPython and implementing the extra code for a
 Jython backend took 2 days - and this was from not seeing any of the
-code in SQLAlchemy's internals.
+code in SQLAlchemy's internals. 
 
 That experience alone sold me on Pylons.  I don't have to rely the
 'webframework' people to experts in databases.  Similarily, I don't
@@ -49,10 +56,6 @@ templating.
 In short when you have to deal with the weird stuff - Pylons makes a
 fabulous choice - and lets be honest - there's almost always weird
 stuff you're going to have to do.
-
-    * Convention over Configuration
-    * Sensible defaults
-    * Flexibilty to pick components that you need
 
 A guide for the impatient
 =========================
@@ -66,7 +69,7 @@ Create your application ::
 
     > paster create --template=pylons RosterTool
 
-    # TODO: just use the defaults for everything.
+    # TODO: just use the defaults for everything.  No sqlalchemy
 
 Launch the development server ::
 
@@ -129,13 +132,13 @@ pattern.
 
 In Pylons this maps to:
 
-===========  =========================================================================================  
+===========  ========================================================
 Component    Implementation
-===========  =========================================================================================
+===========  ========================================================
 Model        SQLAlchemy (or any other database toolkit you prefer)
 View         Mako (or any templating language you prefer)
-Controller   Python
-===========  =========================================================================================
+Controller   Plain Python code
+===========  ========================================================
 
 To reiterate - Pylons is about letting you - the application developer
 decide on the particular tradeoffs you're willing to make.  If using a
@@ -143,14 +146,18 @@ templating language more similar to Django is better for your web
 designers, then switch go Jinja2.  If you don't really want to deal
 with SQLAlchemy - you can use SQLObject or raw SQL if you prefer.
 
-Pylons provides some plumbing to let you hook these pieces together
-using Routes and webhelpers.
+Pylons provides some tools to help you hook these pieces together in a
+rational way.
 
-Routes is a library SQLAlchemy uses to define how URLs will be mapped
-to invocations of methods on particular controller classes.
-Webhelpers are a bundle of functions that web develeopers usually need
-on any site - these can help you setup the templates that Pylons will
-use as the views for your appliation.
+Routes is a library that maps URLs to classes.  This is your basic
+mechanism for dispatching methods whenever your webserver is hit.
+Routes provides similar functionality to what Django's URL dispatcher
+provides.
+
+Webhelpers is the defacto standard library for Pylons. It contains
+commonly used functions for the web like flashing status messages to
+users, date conversion functions, HTML tag generation, pagination
+functions, text processing  - the list goes on.
 
 Pylons also provides infrastructure so that you can manipulate things
 that are particular to web applications including:
@@ -158,7 +165,7 @@ that are particular to web applications including:
   * WSGI middleware to add functionality to your application with
     minimal intrusion into your existing codebase.
   * A robust testing framework including a shockingly good debugger
-    you can use through the web. 
+    you can use through the web.
   * Helpers to enable REST-ful API development so you can expose your
     application as a programmatic interface.
 
@@ -174,7 +181,6 @@ In the process, we'll use the interactive debugger from both command
 line and through the web to directly observe and interact with the
 state of the running application.
 
-
 An interlude into Java's memory model
 -------------------------------------
 
@@ -188,15 +194,21 @@ Pylons on Jython, Java will through an OutOfMemory error like this ::
 Java keeps track of class definitions in something called the Permanent
 Generation heap space.  This is a problem for Pylons when the HTTP threads are
 restarted and your classes are reloaded.  The old class definitions don't go
-away.  In fact, you can think of Jython as a Java class generator.  So each
-time your develpment server restarts - you're gettings hundreds of new versions
-of your classes loaded *for the first time* since classes are never updated.
+away - they never get garbage collected..  Since Jython is dynamically
+creating Java classes behind the scenes, each time your develpment
+server restarts - you're potentially getting hundreds of new classes
+loaded into the JVM. 
 
-If you're really interestd in bumping up the permgen size, you can use
--XX:MaxPermSize=128M - or use another heap size setting to increase the generation's size.
+Repeat this several times and it doesn't take long until your JVM has
+run out of permgen space and it keels over and dies.  
 
-You can edit your Jython startup script in JYTHON_HOME/bin/jython (or
-jython.bat) by editting the line that reads ::
+To modify the permgen heap size, you'll need to instruct Java using
+some extended command line options. To set the heap to 128M, you'll
+need to use "-XX:MaxPermSize=128M".  
+
+To get this behavior by default for Jython, you'll want to edit your
+Jython startup script in JYTHON_HOME/bin/jython (or jython.bat) by
+editting the line that reads ::
 
     set _JAVA_OPTS=
 
@@ -206,12 +218,10 @@ to be ::
 
 This shouldn't be a problem in production environments where you're
 not generating new class definitions during runtime, but it can be
-quite annoying during development.
+quite frustratig during development.
 
 Invoking the Pylons shell
 -------------------------
-
-# cribbed from - Chapter 12: Testing
 
 Yes, I'm going to start with testing right away because it will
 provide you with a way to explore the Pylons application in an
@@ -255,7 +265,7 @@ HTTP wrapper code.
 The request and the response objects both have literally dozens of
 attributes and methods that are provided by the framework.  You'
 almost certainly going to benefit if you take time to browse through
-WebOb's documentation [1]_.
+WebOb's documentation.
 
 Here's four attributes you really have to know to make sense of the
 request object.  The best thing to do is to try playing with the
@@ -279,8 +289,8 @@ depending on how you choose to fetch values from the dictionary.  This
 can cause subtle bugs if you're not paying attention.
 
 request.POST 
-    POST does the same thing, but it includes only the variables that
-    were sent up during HTML form submission.
+    POST is similar to GET, but appropriatley  - it only returns the 
+    variables that were sent up during an HTTP POST submisssion.
 
 request.params 
     Pylons merges all the GET and POST data into a single
@@ -299,17 +309,22 @@ Context Variables and Application Globals
 Most webframeworks provide a request scoped variable to act as a bag
 of values. Pylons is no exception - whenever you create a new
 controller with paste - it will automatically import an attribute 'c'
-which is the context variable.  Note that this is a special variable
-that will be available to the entire request, and that *paste* is
-importing the variable for you.  The 'c' value is *not* an attribute
-of your controller - Pylons has special global threadsafe variables
- - this is just one of them.
+which is the context variable.  
 
-Application Globals are literally global variables available to all threads.
-You should be careful about using something like this in the context of running
-your application in an application server.  Your system administrator may
-decide that your application will be redeployed in a multiserver configuration
-and your shared state won't be quite so shared.
+This is one aspect of Pylons which I've found to be frustrating.  The
+'c' attribute is code generated as an import when you instruct paste
+to bulid you a new controller.  The 'c' value is *not* an attribute of
+your controller - Pylons has special global threadsafe variables -
+this is just one of them.   You can store variables that you want to
+exist for the duration of the request in the context.  These values
+won't persist after the request/response cycle has completed so don't
+confuse this with the session variable.
+
+The other global variable you'll end up using a lot is pylons.session.
+This is where you'll store variables that need to persist over the
+course of several request/response cycles.  You can treat this
+variable as aa special dictionary - just use standard Jython
+dictionary syntax and Pylons will handle the rest.
 
 Routes
 ------
@@ -568,10 +583,10 @@ buttons for edit and delete. ::
 This template assumes that there is a 'player' value assigned to the
 context and not suprisingly - it's going to be a full blown instance
 of the Player object that we first saw in chapter 12.  The helper
-functions let us define our HTML form using simple functions.  This
-means you won't have to worry about escaping characters or remember
-the particular details of the HTML attributes.  The helper.tag
-functions will do sensible things by default.
+functions let us define our HTML form using webhelper tag generation
+functions.  This means you won't have to worry about escaping
+characters or remember the particular details of the HTML attributes.
+The helper.tag functions will do sensible things by default.
 
 I've setup the edit and delete forms to point to different URLs.  You
 might want to 'conserve' URLs but having discrete URLs for each action
@@ -713,31 +728,300 @@ format to create new player is almost as easy ::
 Unit testing, Functional Testing and Logging
 --------------------------------------------
 
-## Regular nosetests testscases, and using the TestController object to
-make sure our URLs are behaving in the way that we expect.
+One of my favourite features in Pylons is its rich set of testing,
+and debugging.  It even manages to take social networking, turn it
+upside down and make it into a debugger feature.  We'll get to that
+shortly.
 
-XXX: Show how Pylon's logger supports chainsaw for people
-coming from the log4j world.
+The first step to knowing how to test code in pylons is to familiarize
+yourself with the nose testing framework.  nose makes testing simple
+by getting out of your way.  There are no classes to subclass, just
+start writing functions that start with the word 'test' and nose will
+run them.  Write a class that has "Test" prefixed in the name and nose
+wll treat it as a suite of tests running each method that starts with
+'test'.  For each test method, nose will execute the setup() method
+just prior to executing your test and nose will execute the teardown()
+method after your test case.
+
+Best of all, nose will automatically huntdown anything that looks like
+a test and will run it for you. There is no complicated chain of
+testcases you need to organize in a tree.  The computer will do that
+for you.
+
+Let's take a look at your first testcase - we'll just instrument the
+model, in this case - SQLAlchemy.  Since the model layer has no
+dependency on Pylons - this effectivey - a test of just SQLAlchemy. 
+
+In ROSTERTOOL_HOME/rostertool/tests, create a module called
+"test_models.py" with the following content ::
+
+    from rostertool.model import Player, Session, engine
+
+    class TestModels(object):
+
+        def setup(self):
+            self.cleanup()
+
+        def teardown(self):
+            self.cleanup()
+
+        def cleanup(self):
+            session = Session()
+            for player in session.query(Player):
+                session.delete(player)
+            session.commit()
+
+        def test_create_player(self):
+            session = Session()
+            player1 = Player('Josh', 'Juneau', 'forward')
+            player2 = Player('Jim', 'Baker', 'forward')
+            session.add(player1)
+            session.add(player2)
+
+            # But 2 are in the session, but not in the database
+            assert 2 == session.query(Player).count()
+            assert 0 == engine.execute("select count(id) from player").fetchone()[0]
+            session.commit()
+
+            # Check that 2 records are all in the database
+            assert 2 == session.query(Player).count()
+            assert 2 == engine.execute("select count(id) from player").fetchone()[0]
+
+Before we can run the tests, we'll need to edit the model module a
+little so that the models know to lookup the connection URL from
+Pylon's configuration file.  In your test.ini, add a line setting the
+sqlalchemy.url setting to point to your database in the [app:main]
+section.
+
+You should have a line that looks something like this ::
+
+    [app:main]
+    use = config:development.ini
+    sqlalchemy.url = postgresql+zxjdbc://username:password@localhost:5432/mydb
+
+Now edit the model file so that the create_engine call uses that
+configuration.  This is as simple as importing config from pylons and
+doing a dictionary lookup.  The two lines you want are ::
+
+    from pylons import config
+    engine = create_engine(config['sqlalchemy.url'])
+
+and that's it.  Your model will now lookup your database connection
+string from Pylons. Even better - nose will know how to use that
+configuration as well.
+
+From the command line, you can run the tests from ROSTERTOOL_HOME like this now ::
+
+    ROSTERTOOL_HOME $ nosetests rostertool/tests/test_models.py
+    .
+    ----------------------------------------------------------------------
+    Ran 1 test in 0.502s
+
+Perfect!  To capture stdout and get verbose output, you can choose to
+use the '-sv' option.  Nose has it's own active community of developers. You can
+get plugins to do coverage analysis and performance profiling with
+some of the plugins.   Use "nosetests --help" for a list of the
+options available for a complete list.
+
+Due to the nature of Pylons and it's pathologically decoupled design,
+writing small unit tests to test each little piece of code is very
+easy.  Feel free to assemble your tests any which way you want.  Just
+want to have a bunch of test functoins?   Great!  If you need to have
+setup and teardown and writing a test class makes sense - then do so.
+
+Testing with nose is a joy - you aren't forced to fit into any
+particular structure with respect to where you tests must go so that
+they will be executed.  You can organize your tests in a way that
+makes the most sense to *you*.
+
+That covers basic unit testing, but suppose we want to test the JSON
+interface to our hockey roster. We really want to be able to invoke
+GET and POSt on the URLs to make sure that URL routing is working as
+we expect. We want to make sure that the content-type is properly set
+to 'application/x-json'.  In other words - we want to have a proper
+functional test - a test that's not as fine grained as a unit test.
+
+The prior exposure to the 'app' object when we ran the paste shell
+should give you a rough idea of what is required.  In Pylons, you can
+instrument your application code by using a TestController.  Lucky for
+you, Pylons has already create one for you in your <app>/tests
+directory.  Just import it, subclass it and you can start using the
+'app' object just like you did inside of the shell.
+
+Lets take a look at a functional test in detail now.  Here's a sample
+you cna save into rostertool/tests/functional/test_api.py ::
+
+    from rostertool.tests import *
+    import simplejson as json
+    from rostertool.model.models import Session, Player
+
+    class TestApiController(TestController):
+        # Note that we're using subclasses of unittest.TestCase so we need
+        # to be careful with setup/teardown camelcasing unlike nose's
+        # default behavior
+
+        def setUp(self):
+            session = Session()
+            for player in session.query(Player):
+                session.delete(player)
+            session.commit()
+
+        def test_add_player(self):
+            data = json.dumps({'first': 'Victor', 
+                'last': 'Ng',
+                'position': 'Goalie'})
+            # Note that the content-type is set in the headers to make
+            # sure that paste.test doesn't URL encode our data
+            response = self.app.post(url(controller='api', action='add_player'),
+                params=data, 
+                headers={'content-type': 'application/x-json'})
+            obj = json.loads(response.body)
+            assert obj['result'] == 'OK'
+
+            # Do it again and fail
+            response = self.app.post(url(controller='api', action='add_player'),
+                params=data, 
+                headers={'content-type': 'application/x-json'})
+            obj = json.loads(response.body)
+            assert obj['result'] <> 'OK'
+
+
+There's a minor detail which you can easily miss when you're using the
+TestController as your superclass.  First off, TestController is a
+descendant of unittest.TestCase frmo the standard python unit test
+library.  Nose will not run 'setup' and 'teardown' methods on TestCase
+subclasses.  Instead, you'll have to use the camel case names that
+TestCase uses. 
+
+Reading through the testcase should show you how much detail you can
+be exposed. All your headers are exposed, the response content is
+exposed - indeed the HTTP response is completely exposed as an object
+for you to inspect and verify.
+
+So great, now we can run small unit tests, bigger functional tests -
+lets's take a look at the debugging facilities provided through the
+web.
+
+Consider what happens with most web application stacks when an error
+occurs.  Maybe you get a stack trace, maybe you don't.  If you're
+lucky, you can see the local variables at each stack frame like Django
+does.  Usually though, you're out of luck if you want to interact with
+the live application as thee error is occuring.  
+
+Eventually, you may locate the part of the stack trace that triggered
+the error, but the only way of sharing that information is through
+either the mailing lists or by doing a formal patch against source
+control.  Let's take a look at an example of that.
+
+We're going to startup our application in development mode.  We're
+also going to intentionally break some code in the controller to see
+the stack trace.  But first, we'll need to put some data into our app.
+run 
+
+Add a sqlalchemy.url configuration line as you did in the test.ini
+configuration, and let's startup the application in development mode.
+We're going to have the server run so that any code changes on the
+file system are automatically detected and the code is reloaded ::
+
+    $ paster serve development.ini --reload
+
+We'll add a single player "John Doe" as a center, and save the record
+::
+
+    # TODO: insert screenshot of the add user interface
+
+Now let's intentionally break some code to trigger the debugger.
+Modify the RosterController's index method and edit the call that
+loads the list of players.  We'll use the web session instead of the
+database session to try loading the Player objects. ::
+
+    def index(self):
+        db_session = Session()
+        c.page_title = 'Player List'
+        c.players = session.query(Player).all()
+        return render('list_players.html')
+
+Load http://localhost:5000/ to see the error page.  You should see
+something like this ::
+
+    # XXX: insert screen capture of the error page listing
+    'AttributeError: Session object hsa no attribute 'not_a_method'
+
+There's a lot of information that Pylons throws back at you.  Along
+the top of the screen, you'll see 4 tabs: Traceback, Extra Data,
+Template and Source - Pylons will have put you in the Traceback tab by
+default to start with.  If you look at the error, you'll see the exact
+line number in the source file that the error occured in.  What's
+special about Pylons traceback tab is that this is actually a fully
+interactive session.  
+
+You can select the "+" signs to expand each stackframe and a text
+input along with some local variables on that frame will be revealed.
+That text input is an interface into your server process. You can type
+virtually any python command into it, hit enter and you will get back
+live results.  From here, we can see that we should have used the
+'db_session' and not the 'session' variable.
+
+.. image:: images/chapter15_traceback.png
+   :alt: Inspecting the application stack
+
+This is pretty fantastic.  If you click on the 'view' link, you can
+even jump to the full source listing of the Jython module that caused
+the error.  One bug in Pylons at the time of writing is that
+sometimes, the hyper link is malformed.  So while the traceback will
+correctly list the line number that the error occured at, the source
+listing may go to the wrong line.
+
+The Pylons developers have also embedded an interface into search
+engines to see if your error has been previously reported.  If you
+scroll down to the bottom of your traceback page, you'll see another
+tab control with a 'Search Mail Lists' option.  Here, Pylons will
+automatically extract the exception message and provide you an
+interface so you can literally search all the mailing lists that are
+relevant to your particular Pylons installation.
+
+If you  can't find your error on the mailing lists, you can go to the
+next tab "Post traceback" and submit your stacktrace to a webservice
+on PylonsHQ.com so that you can try to debug your problems online with
+other collaborators.  Combining unit tests, functional tests, and the
+myriad of debugging options afforded to you in the web debugger -
+Pylons makes the debugging experience as painless as possible.
 
 Deployment into a servlet container
 -----------------------------------
 
-# TODO: copy screenshots from work...
-# Installing snakefight
-# Using bdist_war
-# use snakefight to deploy the application into Glassfish v2.1
+Deploying your pylons application into a servlet container is very
+straight forward.  Just install snakefight from PyPI using using
+easy_install and you can start building WAR files. ::
+
+    $ easy_install snakefight
+    ...snakefight will download and install here ...
+    $ jython setup.py bdist_war --paste-config test.ini
+
+By default, snakefight will bundle a complete instance of your Jython
+installation into the WAR file.  What it doesn't include is any JAR
+files that your application depends on.  For our small example, this
+is just the postgresql JDBC driver.  You can use the --include-jars
+options and provide a comma separated list of JAR files.  ::
+
+    $ jython setup.py bdist_war \
+        --include-jars=postgresql-8.3-604.jdbc4.jar \
+        --paste-config=test.ini 
+
+The final WAR file will be located under the dist directory.  It will
+contain your postgreql JDBC driver, a complete installation of Jython
+including anything located in site-packages and your application.
+Your war file should deploy without any issues into any standards
+compliant servlet container.
 
 Conclusion
 ----------
 
 We've only scratched the surface of what's possible with Pylons, but I
-hope you've gotten a taste of whats available.
-
-The paste configuration files have an enormous number of configurable
-options.'
-
-FormEncode supports *much* more advanced form validation techniques
-than I've shown, but I hope you can see how easy it is to just get
-started with the most basic validation routines.
+hope you've gotten a taste of what is possible with Pylons.  Pylons
+uses a large number of packages so you will need to spend more time
+getting over the initial learning curve, but the dividend is the
+ability to pick and choose the libraries that best solve your
+particular problems.
 
 
