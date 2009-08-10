@@ -81,4 +81,5 @@ INSTALLED_APPS = (
     'pollsite.polls',
     'django.contrib.admin',
     'pollsite.contactus',
-) 
+    'django.contrib.comments',
+)

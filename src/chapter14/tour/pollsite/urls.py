@@ -10,4 +10,5 @@ urlpatterns = patterns('',
     (r'^contact/', include('pollsite.contactus.urls')),
     (r'^feeds/(?P<url>.*)/$', 'django.contrib.syndication.views.feed',
      {'feed_dict': {'polls': PollFeed}}),
+    (r'^comments/', include('django.contrib.comments.urls')),
 )

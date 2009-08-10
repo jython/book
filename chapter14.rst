@@ -350,7 +350,7 @@ And we get the following output::
     COMMIT;
 
 Two things to note here. First, each table got an ``id`` field which wasn't
-explicitely specified on our model definition. That's automatic, and is a
+explicitly specified on our model definition. That's automatic, and is a
 sensible default (which can be overridden if you really need a different type of
 primary key, but that's outside the scope of this quick tour). Second, see how
 the sql is tailored to the particular RDBMS we are using (PostgreSQL in this
@@ -493,7 +493,7 @@ the trick::
  
 This may read like magic to you, but remember that I'm moving quick, as I want
 you to take a look at what's possible to do with Django. Let's look first at
-what we get after writting this code. Start the development server, go to
+what we get after writing this code. Start the development server, go to
 http://localhost:8000/admin/ and see how a new "Polls" box appears now. If you
 click the "Add" link in the "Polls" entry, you will see a page like the one on
 the figure :ref:`fig-django-tour-addpoll`.
@@ -547,7 +547,7 @@ search working, using "django" as the search string.
 Now, if you try the filter by publishing date, it feels a bit awkward because
 the list of polls only shows the name of the poll, so you can't see what's the
 publishing date of the polls being filtered, to check if the filter worked as
-advertished. That's easy to fix, by adding the following line to the
+advertised. That's easy to fix, by adding the following line to the
 ``PollAdmin`` class::
 
     list_display = ['question', 'pub_date']
@@ -607,7 +607,7 @@ available choices and a button so he can submit his choice. Once a choice is
 made, the user will be directed to a page showing the current results of the
 poll he just voted on.
 
-Before writting the code for the views: a good way to start designing a Django
+Before writing the code for the views: a good way to start designing a Django
 app is to design its URLs. In Django you map URLs to views, using regular
 expressions. Modern web development takes URLs seriously, and nice URLs (i.e,
 without cruft like "DoSomething.do" or "ThisIsNotNice.aspx") are the
@@ -963,10 +963,7 @@ following features to our site:
 2. A RSS feed for the latest polls (also note the link was already added on the
    footer) 
 
-.. 3. User authentication
-
-.. 4. User Comments on polls.
-
+3. User Comments on polls.
 
 Forms
 -----
@@ -1047,7 +1044,7 @@ which is the template used the the view we just wrote:
     {% block content %}
     <form action="." method="POST">
     <table>
-    {{ form.as_table }}
+    {{ form.as_p }}
     </table>
     <input type="submit" value="Send Message" >
     </form>
@@ -1163,15 +1160,115 @@ preferred feed reader. Opera, for example, displays the feed as shown by figure
 
    Poll feed displayed on the Opera browser
 
+Comments
+--------
 
-.. User authentication
-.. -------------------
+Since comments are a common feature of current web sites, Django includes a
+mini-framework to make it easy the incorporation of comments to any project or
+app. I will show you how to use it in our project. First, add a new URL pattern for
+the Django comments app, so the ``pollsite/urls.py`` file will look like this::
 
-.. Remember that the admin interface requires you to provide an username and
-.. password to get access to it. Also remember that you could add new users using
-.. the admin. The authentication framework behind it is available to any Django
-.. app. We will make use of it, by requiring user authentication for votes.
-.. TODO!
+    from django.conf.urls.defaults import *
+    from pollsite.polls.feeds import PollFeed
+    
+    from django.contrib import admin
+    admin.autodiscover()
+    
+    urlpatterns = patterns('',
+        (r'^admin/(.*)', admin.site.root),
+        (r'^polls/', include('pollsite.polls.urls')),
+        (r'^contact/', include('pollsite.contactus.urls')),
+        (r'^feeds/(?P<url>.*)/$', 'django.contrib.syndication.views.feed',
+         {'feed_dict': {'polls': PollFeed}}),
+        (r'^comments/', include('django.contrib.comments.urls')),
+    )
+
+Then, add ``'django.contrib.comments'`` to the ``INSTALLED_APPS`` on
+``pollsite/settings.py``. After that, we will let Django create the necessary
+tables by running::
+
+    $ jython manage.py syncdb
+
+The comments will be added to the poll page, so we must edit
+``pollsite/polls/templates/polls/detail.html``. We will add the following code
+just before the ``{% endblock %}`` line which currently is the last line of the
+file:
+
+.. code-block:: django
+
+    {% load comments %}
+    {% get_comment_list for poll as comments %}
+    {% get_comment_count for poll as comments_count %}
+    
+    {% if comments %}
+    <p>{{ comments_count }} comments:</p>
+    {% for comment in comments %}
+    <div class="comment">
+      <div class="title">
+        <p><small>
+    	Posted by <a href="{{ comment.user_url }}">{{ comment.user_name }}</a>,
+            {{ comment.submit_date|timesince }} ago:
+        </small></p>
+      </div>
+      <div class="entry">
+        <p>
+        {{ comment.comment }}
+        </p>
+      </div>
+    </div>
+    
+    {% endfor %}
+    
+    {% else %}
+    <p>No comments yet.</p>
+    {% endif %}
+    
+    <h2>Left your comment:</h2>
+    {% render_comment_form for poll %}
+    
+Basically, we are importing the "comments" template tag library (by doing ``{%
+load comments %}``) and then we just use it. It supports binding comments to
+*any database object*, so we don't need to do anything special to make it
+work. The figure :ref:`fig-django-tour-comments` shows what we get in exchange
+for that short snippet of code.
+
+.. _fig-django-tour-comments:
+
+.. figure:: images/chapter14-tour-comments.png
+
+   Comments Powered Poll
+
+If you try the application by yourself you will note that after submiting a
+comment you get a ugly page showing the success message. Or if you don't enter
+all the data, an ugly error form. That's because we are using the comments
+templates. A quick and effective fix for that is creating the file
+``pollsite/templates/comments/base.html`` with the following content:
+
+.. code-block:: django
+
+    {% extends 'base.html' %}
+
+Yeah, it's only one line! It shows the power of template inheritance: all what we
+need was to change the base template of the comments framework to inherit from
+our global base template.
+
+And more...
+------------
+
+At this point I hope you have learned to appreciate Django strenghts: It's a
+very good web framework in itself, but it also takes the "batteries included"
+philosophy and comes with solutions for many common problems in web
+development. This usually speed up a lot the process of creating a new
+website. And we didn't touched other common topics that Django provides out of
+the box like user authentication (from the login dialog to easily declaring
+which views require an authenticated user, or an user with some special
+characteristic like being an site administrator), or generic views. 
+
+But this book is about *Jython* and we will use the rest of this chapter to show
+the interesting possibilities that appear when you run Django *on Jython*. If
+you want to learn more about Django itself, I recommend (again) the excellent
+official documentation available on http://docs.djangoproject.com/.
+
 
 
 J2EE deployment and integration 
