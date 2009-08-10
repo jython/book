@@ -180,7 +180,7 @@ starting with ``DATABASE`` with something like this::
     DATABASE_USER = '<the name of the user with R/W access to that database>' 
     DATABASE_PASSWORD = '<the password of such user>'
 
-With this, you are telling Django to use the postgresql driver provided by the
+With this, you are telling Django to use the PostgreSQL driver provided by the
 ``doj`` package (which, if you remember from the `Getting Django`_ section, was
 the package name of the django-jython project) and to connect with the given
 credentials. Now, this backend requires the PostgreSQL JDBC driver, which you
@@ -1274,27 +1274,6 @@ official documentation available on http://docs.djangoproject.com/.
 J2EE deployment and integration 
 ===============================
 
-At the time of this writing, Django on Jython works on the 1.0.x release.
-Unfortunately, the official Django site hasn't released a new build with all
-the latest patches from source control.  To download the latest 1.0.x
-release, you'll need to download the code with subversion and install
-it ::
-
-    svn co http://code.djangoproject.com/svn/django/tags/releases/1.0.2/ django-1.0.x
-    cd django-1.0.x
-    jython setup.py install
-
-Next, you'll need to install the Django On Jython - a set of extensions
-to Django to enable Jython integration. Grab the latest release from
-Google Code ::
-
-    http://code.google.com/p/django-jython/downloads/list
-
-Download either the zip or the tar file and run "jython setup.py install" on
-the package. This will install the 'doj' package into your Jython
-installation. You've now got everything you need to start deploying
-Django on Jython applications into a servlet container. 
-
 Although you *could* deploy your application using Django's built in
 development server, it's a terrible idea.  The development server
 isn't designed to operate under heavy load and this is really a job
@@ -1349,11 +1328,11 @@ will be able to reach the web administration screen through a browser
 by going to http://localhost:5000/. The default login is 'admin' and
 the password is 'adminadmin'.
 
-Currently, Django on Jython only supports the Postgresql database
+Currently, Django on Jython only supports the PostgreSQL database
 officially, but there is a preliminary release of a SQL Server backend
-as well as a SQLite3 backend.  Let's get the postgresql backend
-working - you will need to obtain the Postgresql JDBC driver from
-http://jdbc.postgresql.org.   
+as well as a SQLite3 backend.  Let's get the PostgreSQL backend
+working - you will need to obtain the PostgreSQL JDBC driver from
+http://jdbc.PostgreSQL.org.   
 
 At the time of this writing, the latest version was in
 postgresql-8.4-701.jdbc4.jar, copy that jar file into your
@@ -1396,19 +1375,15 @@ Your urls.py should now look something like this ::
         (r'^admin/(.*)', admin.site.root),
     )
 
-One downside with running Django on Jython is that there is only support for
-Postgresql currently.  Work is underway to support MSSQL, Oracle and SQLite.
-For now, let's just use the postgresql backend to get things going.
-
-Disabling Postgresql logins
+Disabling PostgreSQL logins
 ---------------------------
 
-The first thing I inevitably do on a development machine with Postgresql is
+The first thing I inevitably do on a development machine with PostgreSQL is
 disable authenticaion checks to the database.  The fastest way to do this is to enable
 only local connections to the database by editting the pg_hba.conf file.  For
-Postgresql 8.3, this file is typically located in
-c:\postgresql\8.3\data\pg_hba.conf and on UNIXes - it is typically located in
-/etc/postgresql/8.3/data/pg_hba.conf  
+PostgreSQL 8.3, this file is typically located in
+c:\PostgreSQL\8.3\data\pg_hba.conf and on UNIXes - it is typically located in
+/etc/PostgreSQL/8.3/data/pg_hba.conf  
 
 At the bottom of the file, you'll find connection configuration information.
 Comment out all the lines and enable trusted connections from localhost. 
@@ -1419,18 +1394,18 @@ Your editted configuration should look something like this ::
 
 This will let any username password to connect to the database.  You do not
 want to do this for a public facing production server.  You should
-consult the Postgresql documentation for instructions for more
+consult the PostgreSQL documentation for instructions for more
 suitable settings.  After you've editted the connection configuration,
-you will need to restart the postgresql server.
+you will need to restart the PostgreSQL server.
 
-Create your postgresql database using the createdb command now ::
+Create your PostgreSQL database using the createdb command now ::
 
     > createdb demodb
 
 Setting up the database is straightforward - just enable the pgsql
 backend from Django on Jython.  Note that backend will expect a
 username and password pair even though we've disabled them in
-Postgresql.  You can populate anything you want for the DATABASE_NAME
+PostgreSQL.  You can populate anything you want for the DATABASE_NAME
 and DATABASE_USER settings.  The database section of your settings
 module should now look something like this ::
 
@@ -1628,7 +1603,7 @@ upper limit means you can reason about how your application will
 perform when the upper limit of database connections is hit.
 
 While Django does not natively support database connection pools with CPython,
-you can enable them in the Postgresql driver for Django on Jython.  Creating a
+you can enable them in the PostgreSQL driver for Django on Jython.  Creating a
 connection pool that is visible to Django/Jython is a two step process in
 Glassfish.  First, we'll need to create a JDBC connection pool, then we'll need
 to bind a JNDI name to that pool.  In a JavaEE container, JNDI - the Java Naming
