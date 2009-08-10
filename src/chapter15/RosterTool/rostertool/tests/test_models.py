@@ -36,17 +36,3 @@ class TestModels(object):
         assert 5 == session.query(Player).count()
         assert 5 == engine.execute("select count(id) from player").fetchone()[0]
 
-        # Load records up
-        players = session.query(Player).filter_by(first='Josh', last='Juneau').all()
-        assert len(players) == 1
-        # SA keeps an identity map - this is the *same* object
-        assert players[0] == player1
-
-        # Edit the object and commit the session
-        player1.position  = 'goalie'
-        session.commit()
-
-        # now just fetch the goalie
-        goalie = session.query(Player).filter_by(position='goalie').one()
-        assert goalie == player1
-

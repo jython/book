@@ -21,7 +21,7 @@ class PlayerForm(formencode.Schema):
 
 class RosterController(BaseController):
     def index(self):
-        session = Session()
+        db_session = Session()
         c.page_title = 'Player List'
         c.players = session.query(Player).all()
         return render('list_players.html')

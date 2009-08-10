@@ -341,12 +341,13 @@ module called urllib3 with our WAR file.::
 
 You can have multiple JAR files or python packages listed, but you
 must delimit them with your operating system's path separator.  For
-UNIX like systems - this means ":" and for Windows it is ";". 
+UNIX systems - this means ":" and for Windows it is ";". 
 
 Eggs can also be installed using "--include-py-path-entries" using the
 egg filename.  For example ::
 
     $ jython manage.py war --include-py-path-entries=$HOME/PYTHON_ENV/lib/python2.5/site-packages/urllib3
+
 
 Connection pooling with JavaEE
 ------------------------------
@@ -613,7 +614,7 @@ the status of each unit of work.  Ignoring the actual WorkUnit class,
 the actual code to manage the threadpool is about a dozen lines long.
 
 JavaEE standards and thread pools
--------------------------------
+---------------------------------
 
 Unfortunately, this API is not standard in the JavaEE 5 specification
 yet so the code  listed here will only work in Glassfish.  The
@@ -1003,3 +1004,10 @@ technologies is what gives Jython so much power.  You can use both the
 technology in JavaEE, leverging years of hard won experience and get
 the benefit of using a lighter weight, more modern web application
 stack like Django.
+
+The future of Jython and Django support in application server is very
+promising.  Websphere now uses Jython for it's official scripting
+language and the version 3 release of Glassfish will offer first class
+support of Django applications.  You'll be able to deploy your web
+applications without building WAR files up.  Just deploy straight from
+your source directory and you're off to the races.

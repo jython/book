@@ -1,11 +1,11 @@
+from pylons import config
 from sqlalchemy import create_engine, MetaData
 from sqlalchemy import String, Integer
 from sqlalchemy.schema import Sequence, Table, Column, UniqueConstraint
 from sqlalchemy.orm import mapper
 from sqlalchemy.orm import sessionmaker
 
-#engine = create_engine('postgresql+zxjdbc://localhost:5432/mydb')
-engine = create_engine('postgresql://repustate:repustate@localhost:5432/mydb')
+engine = create_engine(config['sqlalchemy.url'])
 Session = sessionmaker(bind=engine)
 connection = engine.connect()
 metadata = MetaData()
