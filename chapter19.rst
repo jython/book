@@ -79,9 +79,9 @@ these other assertion functions::
     
         def testDivision(self):
             self.assertRaises(ZeroDivisionError, operator.div, 1, 0)
-	    # Could also be writen as:
-            # self.assertRaises(ZeroDivisionError, lambda: 1 / 0)
- 
+            # The same assertion using a different idiom:
+            self.assertRaises(ZeroDivisionError, lambda: 1 / 0)
+    
 Now, you may be wondering how to run this testcase. The simple answer is to add
 the following to the file in which we defined it::
 
@@ -162,3 +162,123 @@ Now, as your application gets bigger, the number of test cases will grow
 too. Eventually, you may not want to keep all the tests on one python module,
 for maintainability reasons. 
 
+Let's create a new module, named ``test_lists.py`` with the following test
+code::
+
+    import unittest
+    
+    class TestLists(unittest.TestCase):
+        def setUp(self):
+            self.list = ['foo', 'bar', 'baz']
+    
+        def testLen(self):
+            self.assertEqual(3, len(self.list))
+    
+        def testContains(self):
+            self.assert_('foo' in self.list)
+            self.assert_('bar' in self.list)
+            self.assert_('baz' in self.list)
+    
+        def testSort(self):        
+            self.assertNotEqual(['bar', 'baz', 'foo'], self.list)
+            self.list.sort()
+            self.assertEqual(['bar', 'baz', 'foo'], self.list)
+                
+.. note:: 
+
+   In the previous code you can see an example on a ``setUp()`` method, which
+   allows us to avoid repeating the same initialization code on each ``test*()``
+   method.
+
+And, restoring our math tests to a good state, the ``test_math.py`` will contain
+the following::
+ 
+    import math
+    import unittest
+    import operator
+    
+    class TestMath(unittest.TestCase):
+        def testFloor(self):
+            self.assertEqual(1, math.floor(1.01))
+            self.assertEqual(0, math.floor(0.5))
+            self.assertEqual(-1, math.floor(-0.5))
+            self.assertEqual(-2, math.floor(-1.1))
+    
+        def testCeil(self):
+            self.assertEqual(2, math.ceil(1.01))
+            self.assertEqual(1, math.ceil(0.5))
+            self.assertEqual(0, math.ceil(-0.5))
+            self.assertEqual(-1, math.ceil(-1.1))
+    
+        def testDivision(self):
+            self.assertRaises(ZeroDivisionError, operator.div, 1, 0)
+            # The same assertion using a different idiom:
+            self.assertRaises(ZeroDivisionError, lambda: 1 / 0)
+
+        def testMultiplication(self):
+            self.assertAlmostEqual(0.3, 0.1 * 3)
+
+Now, how do we run, in one pass, tests defined in different modules? One option
+is to manually build a *test suite*. A test suite is a simply collection of test
+cases (and/or other test suites) which, when ran, will run all the test cases
+(and/or test suites) contained by it. Note that a new test case instance is
+built for each test method, so suites have already been build under the hood
+every time you have run a test module. Our work, then, is to "paste" the suites
+together.
+
+Let's build suites using the interactive interpreter. First, import the involved
+modules:
+
+    >>> import unittest, test_math, test_lists
+
+Then, we will obtain the test suites for each one of our test modules (which
+were implicitly created when running them using the ``unittest.main()``
+shortcut), using the ``unittest.TestLoader`` class::
+
+    >>> loader = unittest.TestLoader()
+    >>> math_suite = loader.loadTestsFromModule(test_math)
+    >>> lists_suite = loader.loadTestsFromModule(test_lists)
+
+Now we build a new suite which combine these suites::
+
+    >>> global_suite = unittest.TestSuite([math_suite, lists_suite])
+
+And finally, we run the suite::
+
+    >>> unittest.TextTestRunner().run(global_suite)
+    .......
+    ----------------------------------------------------------------------
+    Ran 7 tests in 0.010s
+    
+    OK
+    <unittest._TextTestResult run=7 errors=0 failures=0>
+    
+Or, if you feel like wanting a more verbose output::
+
+    >>> unittest.TextTestRunner(verbosity=2).run(global_suite)              
+    testCeil (test_math.TestMath) ... ok
+    testDivision (test_math.TestMath) ... ok
+    testFloor (test_math.TestMath) ... ok
+    testMultiplication (test_math.TestMath) ... ok
+    testContains (test_lists.TestLists) ... ok
+    testLen (test_lists.TestLists) ... ok
+    testSort (test_lists.TestLists) ... ok
+    
+    ----------------------------------------------------------------------
+    Ran 7 tests in 0.020s
+    
+    OK
+    <unittest._TextTestResult run=7 errors=0 failures=0>
+
+Using this low level knowledge about loaders, suites and runner you can easily
+write a script to run the tests of any project. Obviously, the details of the
+script will vary from project to project depending the way in which you decide
+to organize your tests. 
+
+On the other hand, in practice you won't write custom scripts to run all your
+tests. Using test tools which do automatic test discovery will be a much
+convenient approach. We will look one of them very shortly. But first, I must
+show you other testing tool very popular in the Python world: doctests.
+
+
+        
