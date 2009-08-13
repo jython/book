@@ -180,7 +180,7 @@ starting with ``DATABASE`` with something like this::
     DATABASE_USER = '<the name of the user with R/W access to that database>' 
     DATABASE_PASSWORD = '<the password of such user>'
 
-With this, you are telling Django to use the postgresql driver provided by the
+With this, you are telling Django to use the PostgreSQL driver provided by the
 ``doj`` package (which, if you remember from the `Getting Django`_ section, was
 the package name of the django-jython project) and to connect with the given
 credentials. Now, this backend requires the PostgreSQL JDBC driver, which you
@@ -1274,32 +1274,11 @@ official documentation available on http://docs.djangoproject.com/.
 J2EE deployment and integration 
 ===============================
 
-At the time of this writing, Django on Jython works on the 1.0.x release.
-Unfortunately, the official Django site hasn't released a new build with all
-the latest patches from source control.  To download the latest 1.0.x
-release, you'll need to download the code with subversion and install
-it ::
-
-    svn co http://code.djangoproject.com/svn/django/tags/releases/1.0.2/ django-1.0.x
-    cd django-1.0.x
-    jython setup.py install
-
-Next, you'll need to install the DjangoOnJython - a set of extensions
-to Django to enable Jython integration. Grab the latest release from
-Google Code ::
-
-    http://code.google.com/p/django-jython/downloads/list
-
-Download either the zip or the tar file and run "jython setup.py install" on
-the package. This will install the 'doj' package into your Jython
-installation. You've now got everything you need to start deploying
-Django on Jython applications into a servlet container. 
-
 Although you *could* deploy your application using Django's built in
 development server, it's a terrible idea.  The development server
 isn't designed to operate under heavy load and this is really a job
 that is more suited to a proper application server.  We're going to
-install Glassfish v2.1 - an opensource highly performant J2EE
+install Glassfish v2.1 - an opensource highly performant JavaEE 5 
 application server from Sun Microsystems and show deployment onto it.
 
 Let's install Glassfish now - obtain the release from ::
@@ -1349,11 +1328,11 @@ will be able to reach the web administration screen through a browser
 by going to http://localhost:5000/. The default login is 'admin' and
 the password is 'adminadmin'.
 
-Currently, Django on Jython only supports the Postgresql database
+Currently, Django on Jython only supports the PostgreSQL database
 officially, but there is a preliminary release of a SQL Server backend
-as well as a SQLite3 backend.  Let's get the postgresql backend
-working - you will need to obtain the Postgresql JDBC driver from
-http://jdbc.postgresql.org.   
+as well as a SQLite3 backend.  Let's get the PostgreSQL backend
+working - you will need to obtain the PostgreSQL JDBC driver from
+http://jdbc.PostgreSQL.org.   
 
 At the time of this writing, the latest version was in
 postgresql-8.4-701.jdbc4.jar, copy that jar file into your
@@ -1396,19 +1375,15 @@ Your urls.py should now look something like this ::
         (r'^admin/(.*)', admin.site.root),
     )
 
-One downside with running Django on Jython is that there is only support for
-Postgresql currently.  Work is underway to support MSSQL, Oracle and SQLite.
-For now, let's just use the postgresql backend to get things going.
-
-Disabling Postgresql logins
+Disabling PostgreSQL logins
 ---------------------------
 
-The first thing I inevitably do on a development machine with Postgresql is
+The first thing I inevitably do on a development machine with PostgreSQL is
 disable authenticaion checks to the database.  The fastest way to do this is to enable
 only local connections to the database by editting the pg_hba.conf file.  For
-Postgresql 8.3, this file is typically located in
-c:\postgresql\8.3\data\pg_hba.conf and on UNIXes - it is typically located in
-/etc/postgresql/8.3/data/pg_hba.conf  
+PostgreSQL 8.3, this file is typically located in
+c:\PostgreSQL\8.3\data\pg_hba.conf and on UNIXes - it is typically located in
+/etc/PostgreSQL/8.3/data/pg_hba.conf  
 
 At the bottom of the file, you'll find connection configuration information.
 Comment out all the lines and enable trusted connections from localhost. 
@@ -1418,19 +1393,19 @@ Your editted configuration should look something like this ::
     host    all         all         127.0.0.1/32          trust
 
 This will let any username password to connect to the database.  You do not
-want to do this for a public facing production server.  Consult the Postgresql
-documentation for instructions for more suitable settings.  After you've
-editted the connection configuration, you will need to restart the
-postgresql server.
+want to do this for a public facing production server.  You should
+consult the PostgreSQL documentation for instructions for more
+suitable settings.  After you've editted the connection configuration,
+you will need to restart the PostgreSQL server.
 
-Create your postgresql database using the createdb command now ::
+Create your PostgreSQL database using the createdb command now ::
 
     > createdb demodb
 
 Setting up the database is straightforward - just enable the pgsql
 backend from Django on Jython.  Note that backend will expect a
 username and password pair even though we've disabled them in
-Postgresql.  You can populate anything you want for the DATABASE_NAME
+PostgreSQL.  You can populate anything you want for the DATABASE_NAME
 and DATABASE_USER settings.  The database section of your settings
 module should now look something like this ::
 
@@ -1474,7 +1449,7 @@ into any Java servlet container.
 A note about WAR files
 ----------------------
 
-For J2EE servers, a common way to deploy your applications is to
+For JavaEE servers, a common way to deploy your applications is to
 deploy a 'WAR' file.  This is just a fancy name for a zip file that
 contains your application and any dependencies it requires that the
 application server has not made available as a shared resource.  This
@@ -1569,16 +1544,69 @@ That's it.  Your basic deployment to a servlet container is now working.
 Extended installation
 ---------------------
 
-XXX: TODO: war command extensions
+The war command in doj provides extra options for you to specify extra
+JAR files to include with your application and which can bring down the size of
+your WAR file. By default, the 'war' command will bundle the following items:
 
-Connection pooling with J2EE
-----------------------------
+    * Jython
+    * Django and it's administration media files
+    * your project and media files
+    * all of your libraries in site-packages
+
+You can specialize your WAR file to include specific JAR files and you
+can instruct doj to assemble a WAR file with just the python packages
+that you require.  The respective options for "manage.py war" are
+"--include-py-packages" and "--include-jar-libs".  The basic usage is
+straight forward, simply pass in the location of your custom python
+packages and the JAR files to these two arguments and distutils will
+automatially decompress the contents of those compressed volumes and
+recompess them into your WAR file.
+
+To bundle JAR files up, you will need to specify a list of files to
+"--include-java-libs".  
+
+The following example bundles the jTDS JAR flie and a regular python
+module called urllib3 with our WAR file.::
+
+    $ jython manage.py war --include-java-libs=$HOME/downloads/jtds-1.2.2.jar \
+            --include-py-package=$HOME/PYTHON_ENV/lib/python2.5/site-packages/urllib3
+
+You can have multiple JAR files or python packages listed, but you
+must delimit them with your operating system's path separator.  For
+UNIX systems - this means ":" and for Windows it is ";". 
+
+Eggs can also be installed using "--include-py-path-entries" using the
+egg filename.  For example ::
+
+    $ jython manage.py war --include-py-path-entries=$HOME/PYTHON_ENV/lib/python2.5/site-packages/urllib3
+
+
+Connection pooling with JavaEE
+------------------------------
+
+Whenever your web application goes to fetch data from the database,
+that data has to come back over a database connection.  Some databases
+have 'cheap' database connections like MySQL, but for many databases -
+creating and releasing connections is quite expensive.  Under high
+load conditions - opening and closing database connections on every
+request can quickly consume too many file handles - and your
+application will crash.
+
+The general solution to this is to employ database connection pooling.
+While your application will continue to create new connections and close them off,
+a connection pool will manage your database connections from a
+reusable set.  When you go to close your connection - the connection
+pool will simply reclaim your connection for use at a later time.
+Using a pool means you can put an enforced upper limit restriction on
+the number of concurrent connections to the database.  Having that
+upper limit means you can reason about how your application will
+perform when the upper limit of database connections is hit.
 
 While Django does not natively support database connection pools with CPython,
-you can enable them in the Postgresql driver for Django on Jython.  Creating a
+you can enable them in the PostgreSQL driver for Django on Jython.  Creating a
 connection pool that is visible to Django/Jython is a two step process in
 Glassfish.  First, we'll need to create a JDBC connection pool, then we'll need
-to bind a JNDI name to that pool.  In a J2EE container, JNDI - the Java Naming
+to bind a JNDI name to that pool.  In a JavaEE container, JNDI - the Java Naming
 and Directory Interface - is a registry of names bound to objects.   It's
 really best thought of as a hashtable that typically abstracts a factory that
 emits objects.
@@ -1675,12 +1703,12 @@ long running tasks.
 Thread Pools
 ------------
 
-The first strategy is is to leverage managed thread pools in the J2EE
-container.  When your webapplication is running within Glassfish, each HTTP
-request is processed by the HTTP Service which contains a threadpool.  You can
-change the number of threads to affect the performance of the webserver.
-Glassfish will also let you create your own threadpools to execute arbitrary
-work units for you.
+The first strategy is is to leverage managed thread pools in the
+JavaEE container.  When your webapplication is running within
+Glassfish, each HTTP request is processed by the HTTP Service which
+contains a threadpool.  You can change the number of threads to affect
+the performance of the webserver.  Glassfish will also let you create
+your own threadpools to execute arbitrary work units for you.
 
 The basic API for threadpools is simple:
 
@@ -1817,12 +1845,12 @@ That covers all the code you need to access thread pools and monitor
 the status of each unit of work.  Ignoring the actual WorkUnit class,
 the actual code to manage the threadpool is about a dozen lines long.
 
-J2EE standards and thread pools
--------------------------------
+JavaEE standards and thread pools
+---------------------------------
 
-Unfortunately, this API is not standard in the J2EE 5 specification
+Unfortunately, this API is not standard in the JavaEE 5 specification
 yet so the code  listed here will only work in Glassfish.  The
-API for parallel processing is being standardized for J2EE 6, and
+API for parallel processing is being standardized for JavaEE 6, and
 until then you will need to know a little bit of the internals of your
 particular application server to get threadpools working.  If you're
 working with Weblogic or Websphere, you will need to use the CommonJ
@@ -1852,7 +1880,7 @@ using OpenMQ and JMS has many advantages.
    that.
 
 2) The JMS standard is just that - standard.  You gain the ability to
-   send and receive messages between any J2EE code.
+   send and receive messages between any JavaEE code.
 
 3) Interoperability.  JMS isn't the only messaging broker in town.
    The Streaming Text Orientated Messaing Protocol (STOMP) is another
@@ -1907,7 +1935,7 @@ destination name to 'MyQueue' and the resource type to
 # TODO: create the queue image
 
 Like the database connections discussed earlier, the JMS services are
-also acquired in the J2EE container through the use of JNDI name
+also acquired in the JavaEE container through the use of JNDI name
 lookups.  Unlike the database code, we're going to have to do some
 manual work to acquire the naming context which we do our lookups
 against.    When our application is running inside of Glassfish,
@@ -2101,27 +2129,117 @@ dequeue objects from the JMS queue instead of acting as a passive
 subscriber.
 
 The beauty of this JMS code is that you can send messages to the
-broker and be assured that in case the server goes down, your messages
-are not lost.  When the server comes back up and your endpoint client
-reconnects - it will still receive all of it's pending messages.
+broker and be assured that even in case the server goes down, your
+messages are not lost.  When the server comes back up and your
+endpoint client reconnects - it will still receive all of it's pending
+messages.
 
-We can extend this example even further.  Using stompconnect, we can turn our
-JMS broker into a STOMP message broker.  This will enable us to have
-applications written in just about *any* language communicate with our
-applications over JMS.  There are times when I have existing CPython
-code that leverages various C libraries like Imagemagick or NumPy to
-do computations that are simply not supported with Jython or Java.
+We can extend this example even further.  Codehaus.org has a messaing
+project called STOMP - the Streaming Text Orientated Messaging
+Protocol.  STOMP is simpler, but less performant than raw JMS
+messages, but the tradeoff is that clients exist in a dozen different
+languages.  STOMP also provides an adapter called 'stomp-connect'
+which allows us to turn a JMS broker into a STOMP messaging broker.
+
+This will enable us to have applications written in just about *any*
+language communicate with our applications over JMS.  There are times
+when I have existing CPython code that leverages various C libraries
+like Imagemagick or NumPy to do computations that are simply not
+supported with Jython or Java.  
 
 By using stompconnect, I can send work messages over JMS, bridge those
 messages over STOMP and have CPython clients process my requests.  The
 completed work is then sent back over STOMP, bridged to JMS and
 received by my Jython code.
 
-# TODO: add instructions for installing and connecting
-Obtain the stompconnect
+First, you'll need to obtain latest version of stomp-connect from
+codehaus.org. Download stompconnect-1.0.zip from here :
 
-Complete code examples can be found
+    http://stomp.codehaus.org/Download
 
-XXX: TODO need to list the JAR files you'll need to make sure these code samples work
+After you've unpacked the zip file, you'll need to configure a JNDI
+property file so that STOMP can act as a JMS client.  The
+configuration is identical to our Jython client.  Create a file called
+"jndi.properties" and place it in your stompconnect directory. The
+contents should have the two following lines ::
 
+    java.naming.factory.initial=com.sun.appserv.naming.S1ASCtxFactory
+    java.naming.provider.url=iiop://127.0.0.1:3700
 
+You now need to pull in some JAR files from Glassfish to gain access
+to JNDI, JMS and some logging classes that STOMP requires. Copy the
+following JAR files from GLASSFISH_HOME/lib into 
+STOMPCONNECT_HOME/lib :
+
+ * appserv-admin.jar
+ * appserv-deployment-client.jar
+ * appserv-ext.jar
+ * appserv-rt.jar
+ * j2ee.jar
+ * javaee.jar
+
+Copy the imqjmsra.jar file from GLASSFISH_HOME/imq/lib/imqjmsra.jar to
+STOMPCONNECT_HOME/lib.
+
+You should be able to now start the connector with the following
+command line ::
+
+    java -cp "lib\*;stompconnect-1.0.jar" \
+        org.codehaus.stomp.jms.Main tcp://0.0.0.0:6666 \
+        "jms/MyConnectionFactory"
+
+If it works, you should see a bunch of output that ends with a message
+that the server is listening for connection on tcp://0.0.0.0:6666.
+Congratulations, you now have a STOMP broker acting as a bidirectional
+proxy for the OpenMQ JMS broker.
+
+Receiving messages in CPython that orginate from Jython+JMS is as
+simple as the following code. ::
+
+    import stomp
+    serv = stomp.Stomp('localhost', 6666)
+    serv.connect({'client-id': 'reader_client', \
+                      'login': 'recvuser', \
+                   'passcode': 'recvpass'})
+    serv.subscribe({'destination': '/queue/MyQueue', 'ack': 'client'})
+    frame = self.serv.receive_frame()
+    if frame.command == 'MESSAGE':
+        # The message content will arrive in the STOMP frame's
+        # body section
+        print frame.body
+        serv.ack(frame)
+
+Sending messages is just as straight forward. From our CPython ocde,
+we just need to import the stomp client and we can send messages back
+to our Jython code.  ::
+
+    import stomp
+    serv = stomp.Stomp('localhost', 6666)
+    serv.connect({'client-id': 'sending_client', \
+                      'login': 'senduser', \
+                   'passcode': 'sendpass'})
+    serv.send({'destination': '/queue/MyQueue', 'body': 'Hello world!'})
+
+Conclusion
+----------
+
+We've covered a lot of ground here.  I've shown you how to get Django
+on Jython to use database connection pooling to enforce limits on the
+database resources an application can consume.  We've looked at
+setting up JMS queues and topic to provide both point to point and
+publish/subscribe messages between Jython processes.  We then took
+those messaging services and provided interoperability between
+Jython code and non-Java code.
+
+In my experience, the ability to remix a hand picked collection of
+technologies is what gives Jython so much power.  You can use both the
+technology in JavaEE, leverging years of hard won experience and get
+the benefit of using a lighter weight, more modern web application
+stack like Django.
+
+The future of Jython and Django support in application server is very
+promising.  Websphere now uses Jython for it's official scripting
+language and the version 3 release of Glassfish will offer first class
+support of Django applications.  You'll be able to deploy your web
+applications without building WAR files up.  Just deploy straight from
+your source directory and you're off to the races.

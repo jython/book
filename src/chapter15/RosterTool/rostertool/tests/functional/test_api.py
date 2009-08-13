@@ -8,12 +8,6 @@ class TestApiController(TestController):
     # default behavior
 
     def setUp(self):
-        self.cleanup()
-
-    def tearDown(self):
-        self.cleanup()
-
-    def cleanup(self):
         session = Session()
         for player in session.query(Player):
             session.delete(player)

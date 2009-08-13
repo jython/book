@@ -1,4 +1,13 @@
 \.class$
+
+\.pyc$
+\.cache$
+\.lock$
+\.war$
+\.egg-info
+
+data/templates
+
 ~$
 /\.#
 # sphinx-related patterns:
