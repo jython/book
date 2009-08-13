@@ -280,5 +280,138 @@ tests. Using test tools which do automatic test discovery will be a much
 convenient approach. We will look one of them very shortly. But first, I must
 show you other testing tool very popular in the Python world: doctests.
 
+Doctests
+--------
 
+Doctests are a very ingenious combination of, well, documentation and tests. A
+doctest is, in essence, no more than a snapshot of a interactive interpreter
+session, mixed with paragraphs of documentation, typically inside of a
+docstring. Here is a simple example::
+
+    def is_even(number):
+        """
+        Checks if an integer number is even. 
         
+        >>> is_even(0)
+        True
+        
+        >>> is_even(2)
+        True
+        
+        >>> is_even(3)
+        False
+    
+        It works with very long numbers:
+        
+        >>> is_even(100000000000000000000000000000)
+        True
+        
+        And also with negatives:
+        
+        >>> is_even(-1000000000000000000000000000001)
+        False
+        
+        But not with floats:
+        
+        >>> is_even(4.1)
+        Traceback (most recent call last):
+        ...
+        ValueError: 4.1 isn't an integer
+        
+        However, a value of type float as long as it value is an integer:
+        
+        >>> is_even(4.0)
+        True
+        """
+        remainder = number % 2
+        if 0 < remainder < 1:
+            raise ValueError("%f isn't an integer" % number)
+        return remainder == 0
+
+Note that, if we weren't talking about testing, we may have thought that the
+docstring of ``is_even()`` is just normal documentation, in which the convention
+of using the interpreter prompt to mark examples and output was adopted (also
+note also that irrelevant stack trace has been striped of in the exception
+example). After all, in many cases we use examples as part of the
+documentation. Take a look at Java's ``SimpleDateFormat`` documentation located
+in http://java.sun.com/javase/6/docs/api/java/text/SimpleDateFormat.html and you
+will spot fragments like:
+
+* "...using a pattern of MM/dd/yy and a SimpleDateFormat instance created on
+  Jan 1, 1997, the string 01/11/12 would be interpreted as Jan 11, 2012..."
+
+* "...01/02/3 or 01/02/003 are parsed, using the same pattern, as Jan 2, 3 AD..."
+
+* "..."01/02/-3" is parsed as Jan 2, 4 BC..."
+
+The magic of doctests if that it encourages the inclusion of these examples by
+doubling them as tests. Let's save our example code as ``even.py`` and add the
+following snippet at the end::
+
+    if __name__ == "__main__":
+        import doctest
+        doctest.testmod()
+    
+Then, run it::
+
+    $ jython even.py
+
+And well, doctests are a bit shy and don't show any output on success. But to
+convince you that it is indeed testing our code, run it with the ``-v`` option::
+
+    $ jython even.py -v
+
+    Trying:
+        is_even(0)
+    Expecting:
+        True
+    ok
+    Trying:
+        is_even(2)
+    Expecting:
+        True
+    ok
+    Trying:
+        is_even(3)
+    Expecting:
+        False
+    ok
+    Trying:
+        is_even(100000000000000000000000000000)
+    Expecting:
+        True
+    ok
+    Trying:
+        is_even(-1000000000000000000000000000001)
+    Expecting:
+        False
+    ok
+    Trying:
+        is_even(4.1)
+    Expecting:
+        Traceback (most recent call last):
+        ...
+        ValueError: 4.1 isn't an integer
+    ok
+    Trying:
+        is_even(4.0)
+    Expecting:
+        True
+    ok
+    1 items had no tests:
+        __main__
+    1 items passed all tests:
+       7 tests in __main__.is_even
+    7 tests in 2 items.
+    7 passed and 0 failed.
+    Test passed.
+
+Doctests are a very, very convenient way to do testing, since the interactive
+examples can be directly copy-pasted from the interactive shell, transforming
+the manual testing in documentation example and automated tests in one shot. 
+
+Of course, we have to follow some simple rules, like using the ``>>>`` prompt
+and leaving a blank line between sample output and the next paragraph. But if
+you think about it, is the same kind of sane rules which makes the documentation
+readable by persons.
+
