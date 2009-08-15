@@ -273,19 +273,19 @@ Object Factory Application Design
 
 The applicaiton we'll be developing in this section is a simple GUI that takes a line of text and redisplays it in JTextArea.  I used Netbeans 6.7 to develop the application, so some of this section may reference particular features that are available in that IDE.  To get started with creating an object factory web start application, we first need to create a project.  I created a new Java application in Netbeans named *JythonSwingApp* and then added *jython.jar* and *plyjy.jar* to the classpath.
 
-First, create the *Main.java* class which will really be the driver for the application.  The goal for Main.java is to use the Jython object factory pattern to coerce a Jython-based Swing application into Java.  This class will be the starting point for the application and then the Jython code will perform all of the work under the covers.  Using this pattern, we also need a Java interface that can be implemented via the Jython code, so this example also uses a very simple interface that defines a *start()* method which will be used to make our GUI visible.  Lastly, the Jython class named  Below is the code for our *Main.java* driver and the Java interface.  The directory structure of this application is as follows.
+First, create the *Main.java* class which will really be the driver for the application.  The goal for Main.java is to use the Jython object factory pattern to coerce a Jython-based Swing application into Java.  This class will be the starting point for the application and then the Jython code will perform all of the work under the covers.  Using this pattern, we also need a Java interface that can be implemented via the Jython code, so this example also uses a very simple interface that defines a *start()* method which will be used to make our GUI visible.  Lastly, the Jython class named  Below is the code for our *Main.java* driver and the Java interface.  In our example, we named this class *MainOF.java* to differentiate it from the next example that uses *PythonInterpreter*.  The directory structure of this application is as follows.
 
 JythonSwingApp
     JythonSimpleSwing.py
         jythonswingapp
-            Main.java
+            MainOF.java
         jythonswingapp.interfaces
             JySwingType.java
             
 
 ::
 
-    *Main.java*
+    *MainOF.java*
     
 
     package jythonswingapp;
@@ -312,7 +312,7 @@ JythonSwingApp
     }
 
 
-As you can see, *Main.java* doesn't do much other than coercing the Jython module and invoking the *start()* method.  Next, you will see the *JySwingType.java* interface along with the implmentation class that is obviously coded in Jython.
+As you can see, *MainOF.java* doesn't do much other than coercing the Jython module and invoking the *start()* method.  Next, you will see the *JySwingType.java* interface along with the implmentation class that is obviously coded in Jython.
 
 ::
 
@@ -373,9 +373,9 @@ If you are using Netbeans then when you clean and build your project a JAR files
 
 To manually create the necessary files for a web start application, you'll need to generate two additional files that will be placed outside of the application JAR.  Create the JAR for your project as you would normally do, and then create a corresponding JNLP file which is used to launch the application, and an HTML page that will reference the JNLP.  The HTML page obviously is where you'd open the application if running it from the web.  Below is some example code for generating a JNLP as well as embedding in HTML.
 
-::
 
-    *launch.jnlp*
+    *launch.jnlp* ::
+    
     <?xml version="1.0" encoding="UTF-8" standalone="no"?>
     <jnlp codebase="file:/path-to-jar/" href="launch.jnlp" spec="1.0+">
         <information>
@@ -398,7 +398,9 @@ To manually create the necessary files for a web start application, you'll need 
         </application-desc>
     </jnlp>
     
-    *launch.html*
+    
+    *launch.html* ::
+    
     <html>
         <head>
             <title>Test page for launching the application via JNLP</title>
@@ -419,6 +421,30 @@ To manually create the necessary files for a web start application, you'll need 
     </html>
 
 In the end, Java web start is a very good way to distribute Jython applications via the web.
+
+PythonInterpreter Application Design
+------------------------------------
+
+It is also possible to invoke a Jython script using a Jython specific class known as the PythonInterpreter.  This class essentially allows embedding of Python code within Java.  Once instantiated, the PythonInterpreter takes a line of Python code as a string and executes it.  This technique was first introduced in chapter 10 of this text, which covered Jython and Java integration.  Using the PythonInterpreter, one can invoke Jython scripts directly within Java application code.  This technique can also be used to invoke a Jython GUI application using a Java *Main* class.  This technique is especially useful when packaging code into a JAR file for distribution.
+
+Let's take a look at the example from above, this time using PythonInterpreter as opposed to object factories for invoking our Jython code.  The only piece of code shown here will be *Main.java* as it is the only piece of code that needs to change when using this technique.  Of course, the Java interface is no longer needed so it may be removed from the application as well.
+
+*Main.java* ::
+
+    package jythonswingapp;
+
+    import org.python.core.PyException;
+    import org.python.util.PythonInterpreter;
+    
+    public class Main {
+        public static void main(String[] args) throws PyException{
+            PythonInterpreter intrp = new PythonInterpreter();
+            intrp.exec("import JythonSimpleSwing as jy");
+            intrp.exec("jy.JythonSimpleSwing().start()");
+        }
+    }
+
+The advantage of using this technique is that we can do away with the object factory design.  However, the disadvantages are that embedding script within Java code is not the most clean technique.  This leads to code that is difficult to maintain and troubleshoot if issues are found.  The other disadvantage is that this technique forces the Java developer to know how to instantiate the Jython module and use it in any way.  The object factory design helps to enforce absraction and simplification as the Java developer only needs to be aware of those methods defined within the Java interface.  In most scenarios however, there is only one developer for the application so this such nuances to not matter. 
 
 Distributing via Standalone JAR
 -------------------------------

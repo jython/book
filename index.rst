@@ -3,8 +3,10 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-The Definitive Guide to Jython with Django
-==========================================
+The Definitive Guide to Jython
+==============================
+Python for the Java Platform
+----------------------------
 
 :Authors: 
     Josh Juneau, 
