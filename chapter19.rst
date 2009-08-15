@@ -410,11 +410,6 @@ Doctests are a very, very convenient way to do testing, since the interactive
 examples can be directly copy-pasted from the interactive shell, transforming
 the manual testing in documentation example and automated tests in one shot. 
 
-To take advantage of doctests we have to follow some simple rules, like using
-the ``>>>`` prompt and leaving a blank line between sample output and the next
-paragraph. But if you think about it, is the same kind of sane rules that makes
-the documentation readable by people.
-
 You don't really *need* to include doctests as part of the documentation of the
 feature they test. Nothing stops you to write the following code in, say, the
 ``test_math_using_doctest.py`` module::
@@ -463,6 +458,24 @@ feature they test. Nothing stops you to write the following code in, say, the
         import doctest
         doctest.testmod()
     
+To take advantage of doctests we have to follow some simple rules, like using
+the ``>>>`` prompt and leaving a blank line between sample output and the next
+paragraph. But if you think about it, is the same kind of sane rules that makes
+the documentation readable by people.
+
+The only common rule not shown by the above example is the way to write
+expressions which are written in more than one line. As you may expect, you have
+to follow the same convention used by the interactive interpreter: start the
+continuation lines with an ellipsis: ``...``. For example::
+
+    """    
+    Addition is commutative:
+
+    >>> ((1 + 2) ==
+    ...  (2 + 1))
+    True
+    """
+
 By the way, as you can see on the last test in the previous example, in some
 cases doctests are not the most clean way to express a test. And note that, if
 that test fails you will *not* get useful information from the failure, as it
@@ -483,5 +496,4 @@ very well in some cases and not fit well in others.
    That's the big downfall of doctests: It always does a textual comparison of
    the expression, converting the result to string. It isn't aware of the
    objects structure.
-
 
