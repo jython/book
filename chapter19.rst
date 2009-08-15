@@ -82,7 +82,7 @@ these other assertion functions::
             # The same assertion using a different idiom:
             self.assertRaises(ZeroDivisionError, lambda: 1 / 0)
     
-Now, you may be wondering how to run this testcase. The simple answer is to add
+Now, you may be wondering how to run this test case. The simple answer is to add
 the following to the file in which we defined it::
 
     if __name__ == '__main__':
@@ -127,8 +127,8 @@ equal. The last line also shows the grand total of 1 failure.
 
 By the way, now you can imagine why using ``assertEquals(x, y)`` is better than
 ``assert_(x == y)``: if the test fails, ``assertEquals()`` provides helpful
-information, which ``assert_()`` can't possibly provide. To see this in action,
-let's change ``testMultiplication()`` to use ``assert_()``::
+information, which ``assert_()`` can't possibly provide by itself. To see this
+in action, let's change ``testMultiplication()`` to use ``assert_()``::
 
     class TestMath(unittest.TestCase):
         
@@ -153,14 +153,24 @@ If you run the test again, the output will be::
     
     FAILED (failures=1)
 
-As you can see, now all what we have is the traceback and the "AssertionError"
-message. No extra information is provided to help us diagnostic the failure, as
-it was the case when we use ``assertEqual()``. That's why all the specialized
-``assert*()`` methods are so helpful.
+Now all what we have is the traceback and the "AssertionError" message. No extra
+information is provided to help us diagnostic the failure, as it was the case
+when we use ``assertEqual()``. That's why all the specialized ``assert*()``
+methods are so helpful. Actually, with the exception of ``assertRaises()`` all
+assertion methods accept an extra parameter meant to be the debugging message
+which will be shown in case the test fails. That lets you write helper methods
+like::
 
-Now, as your application gets bigger, the number of test cases will grow
+    class SomeTestCase(unittest.TestCase):
+        def assertGreaterThan(a, b):
+	    self.assert_(a > b, '%d isn't greater than %d')
+
+	def testSomething(self):
+	    self.assertGreaterThan(10, 4)
+
+As your application gets bigger, the number of test cases will grow
 too. Eventually, you may not want to keep all the tests on one python module,
-for maintainability reasons. 
+for maintainability reasons.
 
 Let's create a new module, named ``test_lists.py`` with the following test
 code::
@@ -226,8 +236,9 @@ built for each test method, so suites have already been build under the hood
 every time you have run a test module. Our work, then, is to "paste" the suites
 together.
 
-Let's build suites using the interactive interpreter. First, import the involved
-modules:
+Let's build suites using the interactive interpreter! 
+
+First, import the involved modules:
 
     >>> import unittest, test_math, test_lists
 
@@ -275,7 +286,7 @@ write a script to run the tests of any project. Obviously, the details of the
 script will vary from project to project depending the way in which you decide
 to organize your tests. 
 
-On the other hand, in practice you won't write custom scripts to run all your
+On the other hand, typically you won't write custom scripts to run all your
 tests. Using test tools which do automatic test discovery will be a much
 convenient approach. We will look one of them shortly. But first, I must show
 you other testing tool very popular in the Python world: doctests.
@@ -458,15 +469,38 @@ feature they test. Nothing stops you to write the following code in, say, the
         import doctest
         doctest.testmod()
     
+
+One thing to note on the last test in the previous example, is that in some
+cases doctests are not the most clean way to express a test. Also note that if
+that test fails you will *not* get useful information from the failure. It will
+tell you that the output was ``False`` when ``True`` was expected, without the
+extra details that ``assertAlmostEquals()`` would give you. The morale of the
+history is to realize that doctest is just another tool in the toolbox, which
+can fit very well in some cases and not fit well in others.
+
+.. warning::
+
+   Speaking of doctests gotchas: The use of dictionary outputs in doctests is a
+   very common error that breaks the portability of your doctests across Python
+   implementations (e.g. Jython, CPython and IronPython) . The trap here is that
+   *the order of dict keys is implementation-dependent*, so the test may pass
+   when working on some implementation and fail horribly on others. The
+   workaround is to convert the dict to a sequence of tuples and sort them,
+   using ``sorted(mydict.items())``.
+
+   That shows the big downfall of doctests: It always does a textual comparison
+   of the expression, converting the result to string. It isn't aware of the
+   objects structure.
+
 To take advantage of doctests we have to follow some simple rules, like using
 the ``>>>`` prompt and leaving a blank line between sample output and the next
 paragraph. But if you think about it, is the same kind of sane rules that makes
 the documentation readable by people.
 
-The only common rule not shown by the above example is the way to write
-expressions which are written in more than one line. As you may expect, you have
-to follow the same convention used by the interactive interpreter: start the
-continuation lines with an ellipsis: ``...``. For example::
+The only common rule not shown by the examples shown in this section is the way
+to write expressions which are written in more than one line. As you may expect,
+you have to follow the same convention used by the interactive interpreter:
+start the continuation lines with an ellipsis: ``...``. For example::
 
     """    
     Addition is commutative:
@@ -476,24 +510,678 @@ continuation lines with an ellipsis: ``...``. For example::
     True
     """
 
-By the way, as you can see on the last test in the previous example, in some
-cases doctests are not the most clean way to express a test. And note that, if
-that test fails you will *not* get useful information from the failure, as it
-will say that the output was ``False`` when ``True`` was expected, without the
-extra details ``assertAlmostEquals()`` would give you. The morale of the history
-is to realize that doctest is just another tool in the toolbox, which can fit
-very well in some cases and not fit well in others.
+A Complete Example
+------------------
 
-.. warning::
+Having seen the two test frameworks used in the Python world, let's see them
+applied to a more meaningful program. We will write code to check for solutions
+of the eight-queens chess puzzle. The idea of the puzzle is to place eight
+queens in a chessboard, with no queen attacking each other. Queens can attack
+any piece placed in the same row, column or diagonals. The figure
+:ref:`fig-eightqueens` shows one of the solutions of the puzzle.
 
-   A very common temptation that breaks the portability of your doctests across
-   Python implementations (e.g. Jython, CPython and IronPython) is the usage of
-   dictionary outputs in doctests. The trap here is that *the order of dict keys
-   is implementation-dependent*, so the test may pass when working on some
-   implementation and fail horribly on others. The workaround is to convert the
-   dict to a sequence of tuples and sort them, using ``sorted(mydict.items())``.
+.. _fig-eightqueens:
 
-   That's the big downfall of doctests: It always does a textual comparison of
-   the expression, converting the result to string. It isn't aware of the
-   objects structure.
+.. figure:: images/chapter19-eightqueens.png
+
+   Eight queens solution
+
+I like to use doctests to check the contract of the program with the outside,
+and unittest for what we could see as the internal tests. I do that because
+external interfaces tend to be clearly documented, and automated testing of the
+examples in the documentation is always a great thing. On the other hand,
+unittests shine on pointing us to the very specific source of a bug, or at the
+very least on providing more useful debugging information than doctests. 
+
+.. note::
+
+   In practice, both type of tests have strengths and weakness, and you may find
+   some cases in which you will prefer the readability and simplicity of
+   doctests and only use them on your project. Or you will favor the
+   granularity and isolation of unittests and only use them on your project. As
+   many things in life, it's a trade-off.
+
+We'll develop this program in a test-driven development fashion. Test will be
+written first, as a sort of specification for our program, and code will be
+written later to fulfill the tests requirements.
+
+Let's start by specifying the public interface of our puzzle checker, which will
+live on the ``eightqueen`` package. This is the start of the main module,
+``eightqueen.checker``::
+
+    """
+    eightqueen.checker: Validates solutions for the eight queens puzzle.
+    
+    Provides the function is_solution(board) to determine if a board represents a
+    valid solution of the puzzle.
+    
+    The chess board is represented by list of 8 strings, each string of length
+    8. Positions occupied by a Queen are marked by the character 'Q', and empty
+    spaces are represented by an space character.
+    
+    Here is a valid board:
+    
+    >>> board = ['Q       ',
+    ...          ' Q      ',
+    ...          '  Q     ',
+    ...          '   Q    ',
+    ...          '    Q   ',
+    ...          '     Q  ',
+    ...          '      Q ',
+    ...          '       Q']
+    
+    Naturally, it is not a correct solution:
+    
+    >>> is_solution(board)
+    False
+    
+    Here is a correct solution:
+    
+    >>> is_solution(['Q       ',
+    ...              '    Q   ',
+    ...              '       Q',
+    ...              '     Q  ',
+    ...              '  Q     ',
+    ...              '      Q ',
+    ...              ' Q      ',
+    ...              '   Q    '])
+    True
+    
+    Malformed boards are rejected and a ValueError is thrown:
+    
+    >>> is_solution([])
+    Traceback (most recent call last):
+    ...
+    ValueError: Malformed board
+    
+    Only 8 x 8 boards are supported.
+    
+    >>> is_solution(['Q   ',
+    ...              ' Q  ',
+    ...              '  Q ',
+    ...              '   Q'])
+    Traceback (most recent call last):
+    ...
+    ValueError: Malformed board
+    
+    And they must only contains Qs and spaces:
+    
+    >>> is_solution(['X       ',
+    ...              '    X   ',
+    ...              '       X',
+    ...              '     X  ',
+    ...              '  X     ',
+    ...              '      X ',
+    ...              ' X      ',
+    ...              '   X    '])
+    Traceback (most recent call last):
+    ...
+    ValueError: Malformed board
+    
+    And the total number of Qs must be eight:
+    
+    >>> is_solution(['QQQQQQQQ',
+    ...              'Q       ',
+    ...              '        ',
+    ...              '        ',
+    ...              '        ',
+    ...              '        ',
+    ...              '        ',
+    ...              '        '])
+    Traceback (most recent call last):
+    ...
+    ValueError: There must be exactly 8 queens in the board
+    
+    >>> is_solution(['QQQQQQQ ',
+    ...              '        ',
+    ...              '        ',
+    ...              '        ',
+    ...              '        ',
+    ...              '        ',
+    ...              '        ',
+    ...              '        '])
+    Traceback (most recent call last):
+    ...
+    ValueError: There must be exactly 8 queens in the board
+                 
+    """
+    
+That's a good start: we know what we have to build. The doctests play the role
+of a more precise problem statement. Actually, it's an executable problem
+statement which can be used to verify our solution to the problem.
+
+Now we will specify the "internal" interface which shows how we can solve the
+problem of writing the solution checker. It's a common practice to write the
+unit tests on a separate module. So here is the code for
+``eightqueens.test_checker``::
+
+    import unittest
+    from eightqueens import checker
+    
+    BOARD_TOO_SMALL = ['Q' * 3 for i in range(3)]
+    BOARD_TOO_BIG = ['Q' * 10 for i in range(10)]
+    BOARD_WITH_TOO_MANY_COLS = ['Q' * 9 for i in range(8)]
+    BOARD_WITH_TOO_MANY_ROWS = ['Q' * 8 for i in range(9)]
+    BOARD_FULL_OF_QS = ['Q' * 8 for i in range(8)]
+    BOARD_FULL_OF_CRAP = [chr(65 + i) * 8 for i in range(8)]
+    BOARD_EMPTY = [' ' * 8 for i in range(8)]
+    
+    BOARD_WITH_QS_IN_THE_SAME_ROW = ['Q   Q   ',
+                                     '        ',
+                                     '       Q',
+                                     '     Q  ',
+                                     '  Q     ',
+                                     '      Q ',
+                                     ' Q      ',
+                                     '   Q    ']
+    BOARD_WITH_WRONG_SOLUTION = BOARD_WITH_QS_IN_THE_SAME_ROW
+    
+    BOARD_WITH_QS_IN_THE_SAME_COL = ['Q       ',
+                                     '    Q   ',
+                                     '       Q',
+                                     'Q       ',
+                                     '  Q     ',
+                                     '      Q ',
+                                     ' Q      ',
+                                     '   Q    ']
+    
+    BOARD_WITH_QS_IN_THE_SAME_DIAG_1 = ['        ',
+                                        '        ',
+                                        '        ',
+                                        '        ',
+                                        '        ',
+                                        '        ',
+                                        'Q       ',
+                                        ' Q      ']
+    
+    BOARD_WITH_QS_IN_THE_SAME_DIAG_2 = ['        ',
+                                        '   Q    ',
+                                        '        ',
+                                        '     Q  ',
+                                        '        ',
+                                        '        ',
+                                        '        ',
+                                        '        ']
+    
+    BOARD_WITH_QS_IN_THE_SAME_DIAG_3 = ['        ',
+                                        '      Q ',
+                                        '        ',
+                                        '        ',
+                                        '        ',
+                                        '  Q     ',
+                                        '        ',
+                                        '        ']
+    
+    
+    BOARD_WITH_QS_IN_THE_SAME_DIAG_4 = ['        ',
+                                        '    Q   ',
+                                        '        ',
+                                        '        ',
+                                        '        ',
+                                        'Q       ',
+                                        '        ',
+                                        '        ']
+    
+    
+    BOARD_WITH_QS_IN_THE_SAME_DIAG_5 = ['       Q',
+                                        '      Q ',
+                                        '     Q  ',
+                                        '    Q   ',
+                                        '   Q    ',
+                                        '  Q     ',
+                                        ' Q      ',
+                                        'Q       ']
+    
+    
+    
+    BOARD_WITH_SOLUTION = ['Q       ',
+                           '    Q   ',
+                           '       Q',
+                           '     Q  ',
+                           '  Q     ',
+                           '      Q ',
+                           ' Q      ',
+                           '   Q    ']
+    
+    
+    class ValidationTest(unittest.TestCase):
+        def testValidateShape(self):
+            def assertNotValidShape(board):
+                self.assertFalse(checker._validate_shape(board))
+    
+            # Some invalid shapes:
+            assertNotValidShape([])
+            assertNotValidShape(BOARD_TOO_SMALL)
+            assertNotValidShape(BOARD_TOO_BIG)
+            assertNotValidShape(BOARD_WITH_TOO_MANY_COLS)
+            assertNotValidShape(BOARD_WITH_TOO_MANY_ROWS)
+            
+            def assertValidShape(board):
+                self.assert_(checker._validate_shape(board))
+    
+            assertValidShape(BOARD_WITH_SOLUTION)
+            # Shape validation doesn't care about board contents:
+            assertValidShape(BOARD_FULL_OF_QS)        
+            assertValidShape(BOARD_FULL_OF_CRAP)
+    
+        def testValidateContents(self):
+            # Valid content => only 'Q' and ' ' in the board
+            self.assertFalse(checker._validate_contents(BOARD_FULL_OF_CRAP))
+            self.assert_(checker._validate_contents(BOARD_WITH_SOLUTION))
+            # Content validation doesn't care about the number of queens:
+            self.assert_(checker._validate_contents(BOARD_FULL_OF_QS))
+    
+    
+        def testValidateQueens(self):
+            self.assertFalse(checker._validate_queens(BOARD_FULL_OF_QS))
+            self.assertFalse(checker._validate_queens(BOARD_EMPTY))
+            self.assert_(checker._validate_queens(BOARD_WITH_SOLUTION))
+            self.assert_(checker._validate_queens(BOARD_WITH_WRONG_SOLUTION))
+            
+    
+    class PartialSolutionTest(unittest.TestCase):
+        def testRowsOK(self):
+            self.assert_(checker._rows_ok(BOARD_WITH_SOLUTION))
+            self.assertFalse(checker._rows_ok(BOARD_WITH_QS_IN_THE_SAME_ROW))
+    
+        def testColsOK(self):
+            self.assert_(checker._cols_ok(BOARD_WITH_SOLUTION))
+            self.assertFalse(checker._cols_ok(BOARD_WITH_QS_IN_THE_SAME_COL))
+    
+        def testDiagonalsOK(self):
+            self.assert_(checker._diagonals_ok(BOARD_WITH_SOLUTION))
+            self.assertFalse(
+                checker._diagonals_ok(BOARD_WITH_QS_IN_THE_SAME_DIAG_1))
+            self.assertFalse(
+                checker._diagonals_ok(BOARD_WITH_QS_IN_THE_SAME_DIAG_2))
+            self.assertFalse(
+                checker._diagonals_ok(BOARD_WITH_QS_IN_THE_SAME_DIAG_3))
+            self.assertFalse(
+                checker._diagonals_ok(BOARD_WITH_QS_IN_THE_SAME_DIAG_4))
+            self.assertFalse(
+                checker._diagonals_ok(BOARD_WITH_QS_IN_THE_SAME_DIAG_5))
+    
+    class SolutionTest(unittest.TestCase):
+        def testIsSolution(self):
+            self.assert_(checker.is_solution(BOARD_WITH_SOLUTION))
+    
+            self.assertFalse(checker.is_solution(BOARD_WITH_QS_IN_THE_SAME_COL))
+            self.assertFalse(checker.is_solution(BOARD_WITH_QS_IN_THE_SAME_ROW))
+            self.assertFalse(checker.is_solution(BOARD_WITH_QS_IN_THE_SAME_DIAG_5))
+    
+            self.assertRaises(ValueError, checker.is_solution, BOARD_TOO_SMALL)
+            self.assertRaises(ValueError, checker.is_solution, BOARD_FULL_OF_CRAP)
+            self.assertRaises(ValueError, checker.is_solution, BOARD_EMPTY)
+            
+        
+These unit tests propose a way to solve the problem, decomposing it in two big
+tasks (input validation and the actual verification of solutions) and each task
+is decomposed on a smaller portion meant to be implemented by a function. In
+some way, they are an executable design of the solution.
+
+So we have a mix of doctests and unit tests. How do we run all of them in one
+shot? Previously I showed you how to manually compose a test suite for unit
+tests belonging to different modules, so that may be an answer. And indeed,
+there is a way to add doctests to test suites. But, since we are working on a
+more real testing example, we will use a real world solution to this problem (as
+you can imagine, people got tired of the tedious work and more automated
+solutions appeared).
+
+Nose
+----
+
+Nose is a tool for test discovery and execution. By default, nose tries to run
+tests on any module whose name starts with "test". You can override that, of
+course. In our case, the example code of the previous section followed the
+convention (the test module is named ``eightqueens.test_checker``).
+
+.. XXX: I'm duplicating setuptools instructions here, from Chapter 14. We need
+..      to rethink in which part of the book we want to introduce setuptools
+
+An easy way to install nose is via setuptools. First, download ez_setup.py from
+http://peak.telecommunity.com/dist/ez_setup.py. Then, go to the directory where
+you left the downloaded file and execute::
+
+    $ jython ez_setup.py
+
+You will see the following output::
+
+    Downloading http://pypi.python.org/packages/2.5/s/setuptools/setuptools-0.6c9-py2.5.egg
+    Processing setuptools-0.6c9-py2.5.egg
+    Copying setuptools-0.6c9-py2.5.egg to /home/lsoto/jython2.5.0/Lib/site-packages
+    Adding setuptools 0.6c9 to easy-install.pth file
+    Installing easy_install script to /home/lsoto/jython2.5.0/bin
+    Installing easy_install-2.5 script to /home/lsoto/jython2.5.0/bin
+    
+    Installed /home/lsoto/jython2.5.0/Lib/site-packages/setuptools-0.6c9-py2.5.egg
+    Processing dependencies for setuptools==0.6c9
+    Finished processing dependencies for setuptools==0.6c9
+
+(Naturally, the filesystem paths will change, but it will be essentially the
+same)
+
+After this, you have setuptools installed, and the ``easy_install`` command
+available. Armed with this we proceed to install nose::
+
+    $ easy_install nose
+  
+.. note::
+
+   I'm assuming that the ``bin`` directory of the Jython installation is on your
+   ``PATH``. If it's not, you will have to explicitly type that path preceding
+   each command like ``jython`` or ``easy_install`` with that path (i.e., you
+   will need to type something like ``/path/to/jython/bin/easy_install`` instead
+   of just ``easy_install``)
+
+Once nose is installed, an executable named ``nosetests`` will appear on the
+``bin/`` directory of your Jython installation. Let's try it, locating ourselves
+on the parent directory of ``eightqueens`` and running::
+
+    $ nosetests --with-doctest
+
+By default nose do *not* run doctests, so we have to explicitly enable the
+doctest plugin that comes built in with nose. 
+
+Back to our example, here is the shortened output after running nose::
+
+    FEEEEEE
+
+    [Snipped output]
+
+    ----------------------------------------------------------------------
+    Ran 8 tests in 1.133s
+    FAILED (errors=7, failures=1)
+
+Of course all of our tests (6 unit tests and 1 doctest) failed. It's time to fix
+that. But first, let's run nose again *without* the doctests, since we will
+follow the unit tests to construct the solution. And we know that as long as our
+unit tests fail, the doctest will also likely fail. Once all unit tests pass, we
+can check our whole program against the high level doctest and see if we missed
+something or did it right. Here is the nose output for the unit tests::
+
+    $ nosetests
+    EEEEEEE
+    ======================================================================
+    ERROR: testIsSolution (eightqueens.test_checker.SolutionTest)
+    ----------------------------------------------------------------------
+    Traceback (most recent call last):
+      File "/path/to/eightqueens/test_checker.py", line 149, in testIsSolution
+        self.assert_(checker.is_solution(BOARD_WITH_SOLUTION))
+    AttributeError: 'module' object has no attribute 'is_solution'
+    
+    ======================================================================
+    ERROR: testColsOK (eightqueens.test_checker.PartialSolutionTest)
+    ----------------------------------------------------------------------
+    Traceback (most recent call last):
+      File "/path/to/eightqueens/test_checker.py", line 100, in testColsOK
+        self.assert_(checker._cols_ok(BOARD_WITH_SOLUTION))
+    AttributeError: 'module' object has no attribute '_cols_ok'
+    
+    ======================================================================
+    ERROR: testDiagonalsOK (eightqueens.test_checker.PartialSolutionTest)
+    ----------------------------------------------------------------------
+    Traceback (most recent call last):
+      File "/path/to/eightqueens/test_checker.py", line 104, in testDiagonalsOK
+        self.assert_(checker._diagonals_ok(BOARD_WITH_SOLUTION))
+    AttributeError: 'module' object has no attribute '_diagonals_ok'
+    
+    ======================================================================
+    ERROR: testRowsOK (eightqueens.test_checker.PartialSolutionTest)
+    ----------------------------------------------------------------------
+    Traceback (most recent call last):
+      File "/path/to/eightqueens/test_checker.py", line 96, in testRowsOK
+        self.assert_(checker._rows_ok(BOARD_WITH_SOLUTION))
+    AttributeError: 'module' object has no attribute '_rows_ok'
+
+    ======================================================================
+    ERROR: testValidateContents (eightqueens.test_checker.ValidationTest)
+    ----------------------------------------------------------------------
+    Traceback (most recent call last):
+      File "/path/to/eightqueens/test_checker.py", line 81, in testValidateContents
+        self.assertFalse(checker._validate_contents(BOARD_FULL_OF_CRAP))
+    AttributeError: 'module' object has no attribute '_validate_contents'
+    
+    ======================================================================
+    ERROR: testValidateQueens (eightqueens.test_checker.ValidationTest)
+    ----------------------------------------------------------------------
+    Traceback (most recent call last):
+      File "/path/to/eightqueens/test_checker.py", line 88, in testValidateQueens
+        self.assertFalse(checker._validate_queens(BOARD_FULL_OF_QS))
+    AttributeError: 'module' object has no attribute '_validate_queens'
+    
+    ======================================================================
+    ERROR: testValidateShape (eightqueens.test_checker.ValidationTest)
+    ----------------------------------------------------------------------
+    Traceback (most recent call last):
+      File "/path/to/eightqueens/test_checker.py", line 65, in testValidateShape
+        assertNotValidShape([])
+      File "/path/to/eightqueens/test_checker.py", line 62, in assertNotValidShape
+        self.assertFalse(checker._validate_shape(board))
+    AttributeError: 'module' object has no attribute '_validate_shape'
+    
+    ----------------------------------------------------------------------
+    Ran 7 tests in 0.493s
+    
+    FAILED (errors=7)
+
+Let's start clearing the failures by coding the validation functions specified
+by the ``ValidationTest``. That is, the ``_validate_shape()``,
+``_validate_contents()`` and ``validate_queens()`` functions, in the
+``eightqueens.checker`` module::
+
+    def _validate_shape(board):
+        return (board and
+                len(board) == 8 and
+                all(len(row) == 8 for row in board))
+    
+    def _validate_contents(board):
+        for row in board:
+            for square in row:
+                if square not in ('Q', ' '):
+                    return False
+        return True
+    
+    def _count_queens(row):
+        n = 0
+        for square in row:
+            if square == 'Q':
+                n += 1
+        return n
+    
+    def _validate_queens(board):
+        n = 0
+        for row in board:
+            n += _count_queens(row)
+        return n == 8
+    
+And now run nose again::
+    
+    $ nosetests
+
+    EEEE...
+    ======================================================================
+    ERROR: testIsSolution (eightqueens.test_checker.SolutionTest)
+    ----------------------------------------------------------------------
+    Traceback (most recent call last):
+      File "/path/to/eightqueens/test_checker.py", line 149, in testIsSolution
+        self.assert_(checker.is_solution(BOARD_WITH_SOLUTION))
+    AttributeError: 'module' object has no attribute 'is_solution'
+
+    ======================================================================
+    ERROR: testColsOK (eightqueens.test_checker.PartialSolutionTest)
+    ----------------------------------------------------------------------
+    Traceback (most recent call last):
+      File "/path/to/eightqueens/test_checker.py", line 100, in testColsOK
+        self.assert_(checker._cols_ok(BOARD_WITH_SOLUTION))
+    AttributeError: 'module' object has no attribute '_cols_ok'
+    
+    ======================================================================
+    ERROR: testDiagonalsOK (eightqueens.test_checker.PartialSolutionTest)
+    ----------------------------------------------------------------------
+    Traceback (most recent call last):
+      File "/path/to/eightqueens/test_checker.py", line 104, in testDiagonalsOK
+        self.assert_(checker._diagonals_ok(BOARD_WITH_SOLUTION))
+    AttributeError: 'module' object has no attribute '_diagonals_ok'
+    
+    ======================================================================
+    ERROR: testRowsOK (eightqueens.test_checker.PartialSolutionTest)
+    ----------------------------------------------------------------------
+    Traceback (most recent call last):
+      File "/path/to/eightqueens/test_checker.py", line 96, in testRowsOK
+        self.assert_(checker._rows_ok(BOARD_WITH_SOLUTION))
+    AttributeError: 'module' object has no attribute '_rows_ok'
+    
+    ----------------------------------------------------------------------
+    Ran 7 tests in 0.534s
+    
+    FAILED (errors=4)
+
+We passed all the validation tests! Now we should implement the functions
+``_rows_ok()``, ``_cols_ok()`` and ``_diagonals_ok()`` to pass
+``PartialSolutionTest``::
+
+    def _scan_ok(board, coordinates):
+        queen_already_found = False
+        for i, j in coordinates:
+            if board[i][j] == 'Q':
+                if queen_already_found:
+                    return False
+                else:
+                    queen_already_found = True
+        return True
+            
+    
+    def _rows_ok(board):
+        for i in range(8):
+            if not _scan_ok(board, [(i, j) for j in range(8)]):
+                return False
+        return True
+    
+    def _cols_ok(board):
+        for j in range(8):
+            if not _scan_ok(board, [(i, j) for i in range(8)]):
+                return False
+        return True
+    
+    def _diagonals_ok(board):
+        for k in range(8):
+            # Diagonal: (0, k), (1, k + 1), ..., (7 - k, 7)...
+            if not _scan_ok(board, [(i, k + i) for i in range(8 - k)]):
+                return False
+            # Diagonal: (k, 0), (k + 1, 1), ..., (7, 7 - k)
+            if not _scan_ok(board, [(k + j, j) for j in range(8 - k)]):
+                return False
+    
+            # Diagonal: (0, k), (1, k - 1), ..., (k, 0)
+            if not _scan_ok(board, [(i, k - i) for i in range(k + 1)]):
+                return False        
+    
+            # Diagonal: (7, k), (6, k - 1), ..., (k, 7)
+            if not _scan_ok(board, [(7 - j, k + j) for j in range(8 - k)]):
+                return False
+        return True
+    
+Let's try nose again::
+
+    $ nosetests
+
+    ...E...
+    ======================================================================
+    ERROR: testIsSolution (eightqueens.test_checker.SolutionTest)
+    ----------------------------------------------------------------------
+    Traceback (most recent call last):
+      File "/path/to/eightqueens/test_checker.py", line 149, in testIsSolution
+        self.assert_(checker.is_solution(BOARD_WITH_SOLUTION))
+    AttributeError: 'module' object has no attribute 'is_solution'
+
+    ----------------------------------------------------------------------
+    Ran 7 tests in 0.938s
+    
+    FAILED (errors=1)
+
+Finally, we have to assemble the pieces together to pass the test for
+``is_solution()``::
+
+    def is_solution(board):
+        if not _validate_shape(board) or not _validate_contents(board):
+            raise ValueError("Malformed board")
+        if not _validate_queens(board):
+            raise ValueError("There must be exactly 8 queens in the board")
+        return _rows_ok(board) and _cols_ok(board) and _diagonals_ok(board)
+    
+And we can hope that all test pass now::
+
+    $ nosetests
+
+    .......
+    ----------------------------------------------------------------------
+    Ran 7 tests in 0.592s
+    
+    OK
+
+Indeed, they all pass. Moreover, we probably also pass the "problem statement",
+test, expressed in our doctest::
+
+    $ nosetests --with-doctest
+
+    ........
+    ----------------------------------------------------------------------
+    Ran 8 tests in 1.523s
+    
+    OK
+
+Objective accomplished! We have come up with a nicely documented and tested
+module, using the two testing tools shipped with the Python language, and Nose
+to run all our tests without manually building suites.
+
+Java Integration?
+-----------------
+
+You may be wondering how to integrate the testing frameworks of Python and
+Java. It is possible to write JUnit tests in Jython, but it's not really
+interesting, considering that you can test Java classes using unittest and
+doctest. The following is a perfectly valid doctest::
+
+    """
+    Tests for Java's Decimal format
+    
+    >>> from java.text import DecimalFormat
+    
+    A format for money:
+    
+    >>> dolarFormat = DecimalFormat("$ ###,###.##")
+    
+    The decimal part is only printed if needed:
+        
+    >>> dolarFormat.format(1000)    
+    u'$ 1.000'
+    
+    Rounding is used when there are more decimal numbers than those defined by the
+    format:
+    
+    >>> dolarFormat.format(123456.789)
+    u'$ 123.456,79'
+    
+    The format can be used as a parser:
+    
+    >>> dolarFormat.parse('$ 123')
+    123L
+    
+    The parser ignores the unparseable text after the number:
+    
+    >>> dolarFormat.parse("$ 123abcd")
+    123L
+    
+    However, if it can't parse a number, it throws a ParseException:
+    
+    >>> dolarFormat.parse("abcd")
+    Traceback (most recent call last):
+    ...
+    ParseException: java.text.ParseException: Unparseable number: "abcd"
+    """
+
+So you can use all what you learned on this chapter to test code written in
+Java. Personally, I find this a very powerful tool for Java development: easy,
+flexible and unceremonious testing using Jython and Python testing tools!
+
 
