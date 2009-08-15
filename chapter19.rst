@@ -277,8 +277,8 @@ to organize your tests.
 
 On the other hand, in practice you won't write custom scripts to run all your
 tests. Using test tools which do automatic test discovery will be a much
-convenient approach. We will look one of them very shortly. But first, I must
-show you other testing tool very popular in the Python world: doctests.
+convenient approach. We will look one of them shortly. But first, I must show
+you other testing tool very popular in the Python world: doctests.
 
 Doctests
 --------
@@ -410,8 +410,78 @@ Doctests are a very, very convenient way to do testing, since the interactive
 examples can be directly copy-pasted from the interactive shell, transforming
 the manual testing in documentation example and automated tests in one shot. 
 
-Of course, we have to follow some simple rules, like using the ``>>>`` prompt
-and leaving a blank line between sample output and the next paragraph. But if
-you think about it, is the same kind of sane rules which makes the documentation
-readable by persons.
+To take advantage of doctests we have to follow some simple rules, like using
+the ``>>>`` prompt and leaving a blank line between sample output and the next
+paragraph. But if you think about it, is the same kind of sane rules that makes
+the documentation readable by people.
+
+You don't really *need* to include doctests as part of the documentation of the
+feature they test. Nothing stops you to write the following code in, say, the
+``test_math_using_doctest.py`` module::
+
+    """
+    Doctests equivalent to test_math unittests seen in the previous section.
+    
+    >>> import math
+    
+    Tests for floor():
+    
+    >>> math.floor(1.01)
+    1
+    >>> math.floor(0.5)
+    0
+    >>> math.floor(-0.5)
+    -1
+    >>> math.floor(-1.1)
+    -2
+    
+    Tests for ceil():
+    
+    >>> math.ceil(1.01)
+    2
+    >>> math.ceil(0.5)
+    1
+    >>> math.ceil(-0.5)
+    0
+    >>> math.ceil(-1.1)
+    -1
+    
+    Test for division:
+    
+    >>> 1 / 0
+    Traceback (most recent call last):
+    ...
+    ZeroDivisionError: integer division or modulo by zero
+   
+    Test for floating point multiplication:
+ 
+    >>> (0.3 - 0.1 * 3) < 0.0000001
+    True
+    
+    """
+    if __name__ == "__main__":
+        import doctest
+        doctest.testmod()
+    
+By the way, as you can see on the last test in the previous example, in some
+cases doctests are not the most clean way to express a test. And note that, if
+that test fails you will *not* get useful information from the failure, as it
+will say that the output was ``False`` when ``True`` was expected, without the
+extra details ``assertAlmostEquals()`` would give you. The morale of the history
+is to realize that doctest is just another tool in the toolbox, which can fit
+very well in some cases and not fit well in others.
+
+.. warning::
+
+   A very common temptation that breaks the portability of your doctests across
+   Python implementations (e.g. Jython, CPython and IronPython) is the usage of
+   dictionary outputs in doctests. The trap here is that *the order of dict keys
+   is implementation-dependent*, so the test may pass when working on some
+   implementation and fail horribly on others. The workaround is to convert the
+   dict to a sequence of tuples and sort them, using ``sorted(mydict.items())``.
+
+   That's the big downfall of doctests: It always does a textual comparison of
+   the expression, converting the result to string. It isn't aware of the
+   objects structure.
+
 
