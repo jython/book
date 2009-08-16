@@ -105,6 +105,17 @@ Part IV:  Strategy and Technique
    chapter19.rst
    chapter20.rst
    
+Part V:  Appendicies and Attribution
+====================================
+
+.. toctree::
+   :maxdepth: 2
+   
+   appendixA.rst
+   appendixB.rst
+   appendixC.rst
+   attribution.rst
+   
 
 Indices and tables
 ==================
