@@ -5,6 +5,8 @@ Deployment of Jython applications varies from container to container.  However, 
 
 In the end, one of the most important things to remember is that we need to make jython available to our application.  There are different ways to do this, either by ensuring that the *jython.jar* file is included with the application server, or by packaging the JAR directly into each web application.  This chapter assumes that you are using the latter technique.  Placing the *jython.jar* directly into each web application is a good idea because it allows the web application to follow the Java paradigm of "deploy anywhere".  You do not need to worry whether you are deploying to Tomcat or Glassfish because the Jython runtime is embedded in your application.
 
+Lastly, this section will briefly cover some of the reasons why mobile deployment is not yet a vialble option for Jython.  While a couple of targets exist in the mobile world, namely Android and JavaFX, both environments are still very new and Jython has not yet been optimized to run on either.
+
 
 Application Servers
 ===================
@@ -372,17 +374,18 @@ When you are ready to deploy the application, you can choose to use the Google A
 Deploy Modjy to GAE
 -------------------
 
-We can easily deploy WSGI applications using Jython's modjy API as well.  To do so, you need to add an archive of the Jython *Lib* directory to your WEB-INF project directory.  According to the modjy website, you need to obtain the source for Jython, then zip the *Lib* directory and place it into another directory along with a file that will act as a pointer to the zip archive.  The modjy site names the directory *python-lib* and names the pointer file *all.pth*.  This pointer file can be named anything as long as the suffix is *.pth*.  Inside the pointer file you need to explicitly name the zip archive that you had created for the *Lib* directory contents.  Let's assume you named it lib.zip, in this case we will put the text "lib.zip" without the quotes into the *.pth* file.  Now if we add the modjy *demo_app.py* demonstration application to the project then our directory structure should look as follows:
+We can easily deploy WSGI applications using Jython's modjy API as well.  To do so, you need to add an archive of the Jython *Lib* directory to your WEB-INF project directory.  According to the modjy website, you need to obtain the source for Jython, then zip the *Lib* directory and place it into another directory along with a file that will act as a pointer to the zip archive.  The modjy site names the directory *python-lib* and names the pointer file *all.pth*.  This pointer file can be named anything as long as the suffix is *.pth*.  Inside the pointer file you need to explicitly name the zip archive that you had created for the *Lib* directory contents.  Let's assume you named it lib.zip, in this case we will put the text "lib.zip" without the quotes into the *.pth* file.  Now if we add the modjy *demo_app.py* demonstration application to the project then our directory structure should look as follows: ::
 
-modjy_app
-    demo_app.py
-    WEB-INF
-        lib
-            jython.jar
-            appengine-api-1.0-sdk-1.2.2.jar
-        python-lib
-            lib.zip
-            all.pth
+
+    modjy_app
+        demo_app.py
+        WEB-INF
+            lib
+                jython.jar
+                appengine-api-1.0-sdk-1.2.2.jar
+            python-lib
+                lib.zip
+                all.pth
    
 Now if we run the application using Tomcat it should run as expected.  Likewise, we can run it using the Google App Engine SDK web server and it should provide the expected results.
 
@@ -393,9 +396,50 @@ Summary
 
 The Google App Engine is certainly an important deployment target for Jython.  Google offers free hosting for smaller applications, and they also base account pricing on bandwidth.  No doubt that it is a good way to put up a small site, and possibly build on it later.  Most importantly, you can deploy Django, Pylons, and other applications via Jython to the App Engine by setting up your App Engine applications like the examples I had shown in this chapter.
 
+Java Store
+==========
+
+Another deployment target that is hot off the presses at the time of this book is the Java Store or Java Warehouse.  This is a new concept brought to market by Sun Microsystems in order to help Java software developers market their applications via a single shop that is available online via a web start application.  Similar to other application venues, The Java Store is a store front application where people can go to search for applications that have been submitted by developers.  The Java Warehouse is the repository of applications that are contained within the Java Store.  This looks to be a very promising target for Java and Jython developers alike.  It *should* be as easy as generating a JAR file that contains a Jython application and deploying it to the Java Store.  Unfortunately, since the program is still in alpha mode at this time I am unable to provide any specific details on distributing Jython applications via the Java Store.  However, there are future plans to make alternative VM language applications easily deployable to the Java Warehouse.  At this time, it is certainly possible to deploy a Jython application to the warehouse, but it can only deploy as a Java application.  As of the time of this writing, only Java and JavaFX applications are directly deployable to the Java Warehouse.  Please note that since this product is still in alpha mode, this book will not discuss such aspects of the program as memberships or fees that may be incurred for hosing your applications on the Java Store.
+
+The requirements for publishing an application to the warehouse are as follows:
+
+    * Your application packed in a single jar file
+    * Descriptive text to document your application
+    * Graphic image files used for icons and to give the consumer an idea of your application's look.
+
+In chapter 13, we took a look at packaging and distributing Jython GUI applications in a JAR file.  When a Jython application is packaged in a JAR file then it is certainly possible to use Java Web Start to host the application via the web.  On the other hand, if one wishes to make a Jython GUI application available for purchase or for free, the Java Store would be another way of doing so.  One likely way to deploy applications in a single JAR is to use the method discussed in chapter 13, but there are other solutions as well.  For instance, one could use the *One-Jar* product to create a single JAR file containing all of the necessary Jython code as well as other JAR files essential to the application.  In the following section, we will discuss deployment of a Jython application using One-JAR so that you can see some similariies and differences to using the Jython standalone JAR technique.
+
+Deploying a Single JAR
+----------------------
+
+In order to deploy an application to the Java Warehouse, it must be packaged as a single JAR file.  We've already discussed packaging Jython applications into a JAR file using the Jython standalone method in chapter 13.  In this section, you will learn how to make use of the One-JAR (http://one-jar.sourceforge.net/) product to distribute client-based Jython applications.  In order to get started, you will need to grab a copy of One-JAR.  There are a few options available on the download site, but for our purposes we will package an application using the source files for One-JAR.  Once downloaded, the source for the project should look as follows.  ::
+
+    src
+        com
+            simontuffs
+                onejar
+                    Boot.java
+                    Handler.java
+                    IProperties.java
+                    JarClassLoader.java
+
+This source code for the One-Jar project must reside within the JAR file that we will build.
+
 
 Mobile
 ======
 
+Mobile applications are the way of the future.  At this time, there are a couple of different options for developing mobile applications using Jython.  One way to develop mobile applications using Jython is to make use of the JavaFX API from Jython.  Since JavaFX is all Java behind the scenes, it would be fairly simple to make use of the JavaFX API using Jython code.  However, this technique is not really a production-quality result in my opinion for a couple of reasons.  First, the JavaFX scripting language makes GUI development quite easy.  While it is possible (see http://wiki.python.org/jython/JythonMonthly/Articles/December2007/2 for more details), the translation of JavaFX API using Jython would not be as easy as making use of the JavaFX script language.  The second reason this is not feasible at the time of this writing is that JavaFX is simply not available on all mobile devices at this time.  It is really just becomming available to the mobile world at this time and will take some time to become acclimated.
+
+Another way to develop mobile applications using Jython is to make use of the Android operating system which is available via Google.  Android is actively being used on mobile devices today, and it's use is continuing to grow.  Although in early stages, there is a project known as *Jythonroid* that is an implementation of Jython for the Android Dalvik Virtual Machine.  Unfortunately, it was not under active development at the time of this writing, although some potential does exist for getting the project on track.
+
+If you are interested in mobile development using Jython, please pay close attention to the two technologies discussed in this section.  They are the primary deployment targets for Jython in the mobile world.  As for the *Jythonroid* project, it is open source and availble to developers.  Interested parties may begin working on it again to make it functional and bring it up to date with the latest Android SDK.  
+
 Conclusion
 ==========
+
+Deploying Jython applications is very much like Java application deployment.  For those of you who are familiar with Java application servers, deploying a Jython application should be a piece of cake.  On the contrary, for those of you who are not familiar with Java application deployment this topic may take a bit of getting used to.  In the end, it is easy to deploy a Jython web or client application using just about any of the available Java application servers that are available today.
+
+Deploying Jython web applications is universally easy to do using the WAR file format.  As long as *jython.jar* is either in the application server classpath or packaged along with the web application, Jython servlets should function without issue.  We also learned that it is possible to deploy a JAR file containing a Jython GUI application via Java web start technology.  Using a JNLP deployment file is quite easy to do, the trick to deploying Jython via a JAR file is to set the file up correctly.  Once completed, an HTML page can be used to reference the JNLP and initiate the download of the JAR to the client machine.
+
+Lastly, this section discussed use of the Google App Engine for deploying Jython servlet applications.  While the Google App Engine environment is still relatively new at the time of this writing, it is an exceptional deployment target for any Python or Java application developer.  Using a few tricks with the object factory technique, it is possible to deploy Jython servlets and use them directly or via a JSP file on the App Engine.  Stay tuned for more deployment targets to become available for Jython in the coming months and years.  As cloud computing and mobile devices are becoming more popular, the number of deployment targets will continue to grow and Jython will be more useful with each one.
