@@ -5,7 +5,7 @@ Authors:  Josh Juneau
 	  Leo Soto
 	  Victor Ng
 
-Page Count Estimate:  419 - 473 
+Page Count Estimate:  341 - 392 
 
 Table of Contents
 
@@ -121,7 +121,7 @@ Part I:  Jython Basics:  Learning the Language
 
             Summary
 
-      Chapter 4:  Defining Functions and Using Built-Ins (Jim - 08/10/2009) (pages: 25-28)
+      Chapter 4:  Defining Functions and Using Built-Ins (Jim - 08/27/2009) (pages: 25-28)
 
             Function Syntax and Basics
 
@@ -223,7 +223,7 @@ Part I:  Jython Basics:  Learning the Language
 
 Part II: Using the Language
 
-      Chapter 8:  Scripting with Jython (Frank Wierzbicki - FD Complete) (pages:  20-23)
+      Chapter 8:  Scripting with Jython (Frank Wierzbicki - FD Complete) (pages: 4)
 
             Learning the Command Line
             
@@ -268,7 +268,7 @@ Part II: Using the Language
             Using Java within Jython Applications
 
 
-      Chapter 11:  Using Jython in an IDE  (Josh & Leo Soto - FD Complete) (pages: 25-28)
+      Chapter 11:  Using Jython in an IDE  (Josh & Leo Soto - FD Complete) (pages: 34)
 
             Eclipse
 
@@ -284,7 +284,7 @@ Part II: Using the Language
 
             WebSphere
 
-      Chapter 12:  Databases and Jython  (Josh & Jim - 08/2009) (pages: 20-23)
+      Chapter 12:  Databases and Jython  (Josh & Jim - 08/24/2009) (pages: 20-23)
 
 	    Making Use of the dbm Module
 
@@ -312,7 +312,7 @@ Part II: Using the Language
 
 Part III: Developing Applications with Jython
 
-      Chapter 13: Simple Web Applications  (Josh - FD Complete) (pages: 20-23)
+      Chapter 13: Simple Web Applications  (Josh - FD Complete) (pages: 14) (updated draft on 08/14)
 
             Servlets
 
@@ -322,7 +322,7 @@ Part III: Developing Applications with Jython
 
 	    Conclusion
 
-      Chapter 14: Web Applications with Django (Leo Soto, Victor Ng - 08/2009) (pages: 32-35)
+      Chapter 14: Web Applications with Django (Leo Soto, Victor Ng - FD Complete) (pages: 39)
 
             J2EE Deployment and Integration
 
@@ -340,7 +340,7 @@ Part III: Developing Applications with Jython
 
 	    Integrating with JMS
 
-      Chapter 15: Web Applications with Pylons  (Victor Ng - 08/2009) (pages: 23-25)
+      Chapter 15: Web Applications with Pylons  (Victor Ng - FD Complete) (pages: 16)
 
             A Guide for the Impatient
 
@@ -366,7 +366,7 @@ Part III: Developing Applications with Jython
 
 	    Conclusion
 
-      Chapter 16:  Web Services and SOA (Jim - 08/2009) (pages:  23-25)
+      **REMOVE** (Renamed remainder of chapters) Chapter 16:  Web Services and SOA (remove) (pages:  23-25)
 
             JAX-WS
 
@@ -374,40 +374,42 @@ Part III: Developing Applications with Jython
 
             JAXB and Legacy JAX-RPC Support
 
-      Chapter 17:  GUI Applications (Frank Wierzbicki - 08/2009) (pages: 23-25)
+      Chapter 16:  GUI Applications (Frank Wierzbicki - FD Complete) (pages: 9-10)
 
-            Writing Jython Swing
 
-            Using Jython with JavaFX
+      Chapter 17:  Deployment Targets (Josh - 08/20/2009) (pages: 16-17)
 
-      Chapter 18:  Deployment Targets (Josh & Jim - 08/2009) (pages: 25-28)
-
-            Application Servers (Josh)
+            Application Servers
 
                   Tomcat
 
                   Glassfish
 
-                  JBoss
-
 	    Google App Engine
 
-            Mobile (Jim)
+            Java Store
 
-                  Android
+            Mobile
 
-                  JavaFX
+            Conclusion
 
 Part IV:  Strategy and Technique
 
-      Chapter 19:  Testing and Continuous Integration (Leo Soto - 08/2009) (pages: 23-25)
+      Chapter 18:  Testing and Continuous Integration (Leo Soto - 08/17/2009) (pages: 23-25)
 
             Grinder
 
             Push-To-Test TestMaker
 
-      Chapter 20:  Concurrency and Parallelism (Jim - 08/2009) (pages: 18-20)
+      Chapter 19:  Concurrency and Parallelism (Jim - 08/17/2009) (pages: 18-20)
 
             High-Level Concurrency
 
             Greenlets 
+
+
+      Appendix A:  Progressive Code Example
+
+      Appendix B:  Jython Cookbook - A compilation of community submitted code examples
+
+      Appendix C:  Using Other Tools with Jython - setuptools, virtualenv, nailgun, and more
