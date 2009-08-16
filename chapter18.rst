@@ -5,6 +5,8 @@ Deployment of Jython applications varies from container to container.  However, 
 
 In the end, one of the most important things to remember is that we need to make jython available to our application.  There are different ways to do this, either by ensuring that the *jython.jar* file is included with the application server, or by packaging the JAR directly into each web application.  This chapter assumes that you are using the latter technique.  Placing the *jython.jar* directly into each web application is a good idea because it allows the web application to follow the Java paradigm of "deploy anywhere".  You do not need to worry whether you are deploying to Tomcat or Glassfish because the Jython runtime is embedded in your application.
 
+Another new, yet very attractive solution is to deploy to the new Java Store.  The Java Store is still in alpha mode at the time of this writing, but it will eventually afford developers of Java applications a place to deploy their apps and have them distributed via a nicely polished store front application.  The distribution center for the Java Store is known as the Java Warehouse.  In this chapter, we'll discuss a possible solution for packaging applications to deploy to the Java Warehouse. 
+
 Lastly, this section will briefly cover some of the reasons why mobile deployment is not yet a vialble option for Jython.  While a couple of targets exist in the mobile world, namely Android and JavaFX, both environments are still very new and Jython has not yet been optimized to run on either.
 
 
@@ -423,7 +425,168 @@ In order to deploy an application to the Java Warehouse, it must be packaged as 
                     IProperties.java
                     JarClassLoader.java
 
-This source code for the One-Jar project must reside within the JAR file that we will build.
+This source code for the One-Jar project must reside within the JAR file that we will build.  Next, we need to create separate source directories for both our Jython source and our Java source.  Likewise, we will create a separate source directory for the One-Jar source.  Lastly, we'll create a *lib* directory into which we will place all of the required JAR files for the application.  In order to run a Jython application, we'll need to package the Jython project source into a JAR file for our application.  We will not need to use the entire *jython.jar*, but rather only a standalone version of it.  The easiest way to obtain a standalone Jython JAR is to run the installer and choose the standalone option.  After this is done, simply add the resulting jython.jar to the lib directory of application.  In the end, the directory structure should resemble the following. ::
+
+    one-jar-jython-example
+        java
+        lib
+            jython.jar
+        LICENSE.txt
+        onejar
+            src
+                com
+                one-jar-license.txt
+                    simontuffs
+                        onejar
+                            Boot.java
+                            Handler.java
+                            IProperties.java
+                            JarClassLoader.java
+        src
+
+As you can see from the depiction of the file structure above, the *src* directory will contain our Jython source files.  The LICENSE.txt included in this example was written by Ryan McGuire (http://www.enigmacurry.com).  He has a detailed explanation of using One-Jar on his blog, and I've replicated some of his work in this example...including a version of the build.xml that we will put together in order to build the application.  Let's take a look at the build file that we will use to build the application JAR.  In this example I am using Apache Ant for the build system, but you could choose something different if you'd like.
+
+*build.xml* ::
+
+    <project name="JythonSwingApp" default="dist" basedir=".">
+      
+      <!-- #################################################
+           These two properties are the only ones you are 
+           likely to want to change for your own projects:     -->
+      <property name="jar.name" value="JythonSwingApp.jar" />
+      <property name="java-main-class" value="Main" />
+      <!-- ##################################################  -->
+    
+      <!-- Below here you dont' need to change for simple projects -->
+      <property name="src.dir" location="src"/> 
+      <property name="java.dir" location="java"/>
+      <property name="onejar.dir" location="onejar"/> 
+      <property name="java-build.dir" location="java-build"/>
+      <property name="build.dir" location="build"/>
+      <property name="lib.dir" location="lib"/>
+
+      <path id="classpath">
+        <fileset dir="${lib.dir}" includes="**/*.jar"/>
+      </path>
+    
+      <target name="clean">
+        <delete dir="${java-build.dir}"/>
+        <delete dir="${build.dir}"/>
+        <delete file="${jar.name}"/>
+      </target>
+    
+      <target name="dist" depends="clean">
+        <!-- prepare the build directory -->
+        <mkdir dir="${build.dir}/lib"/>
+        <mkdir dir="${build.dir}/main"/>
+        <!-- Build java code -->
+        <mkdir dir="${java-build.dir}"/>
+        <javac srcdir="${java.dir}" destdir="${java-build.dir}" classpathref="classpath"/>
+        <!-- Build main.jar -->
+        <jar destfile="${build.dir}/main/main.jar" basedir="${java-build.dir}">
+          <manifest>
+        	<attribute name="Main-Class" value="Main" />
+          </manifest>
+        </jar>
+        <delete file="${java-build.dir}"/>
+        <!-- Add the python source -->
+        <copy todir="${build.dir}">
+          <fileset dir="${src.dir}"/>
+        </copy>
+        <!-- Add the libs -->
+        <copy todir="${build.dir}/lib">
+          <fileset dir="${lib.dir}"/>
+        </copy>
+        <!-- Compile OneJar -->
+        <javac srcdir="${onejar.dir}" destdir="${build.dir}" classpathref="classpath"/>
+        <!-- Copy the OneJar license file -->
+        <copy file="${onejar.dir}/one-jar-license.txt" tofile="${build.dir}/one-jar-license.txt" />
+        <!-- Build the jar -->
+        <jar destfile="${jar.name}" basedir="${build.dir}">
+          <manifest>
+        	<attribute name="Main-Class" value="com.simontuffs.onejar.Boot" />
+        	<attribute name="Class-Path" value="lib/jython-full.jar" />
+          </manifest>
+        </jar>
+        <!-- clean up -->
+        <delete dir="${java-build.dir}" />
+        <delete dir="${build.dir}" />
+      </target>
+    
+    </project>
+
+
+Since this is a Jython application, we can use as much Java source as we'd like.  In this example, we will only use one Java source file *Main.java* to "drive" our application.  In this case, we'll use the *PythonInterpreter* inside of our *Main.java* to invoke our simple Jython Swing application.  Now let's take a look at the *Main.java* source.
+
+*Main.java* ::
+
+    import org.python.core.PyException;
+    import org.python.util.PythonInterpreter;
+
+    public class Main {
+        public static void main(String[] args) throws PyException{
+            PythonInterpreter intrp = new PythonInterpreter();
+            intrp.exec("import JythonSimpleSwing as jy");
+            intrp.exec("jy.JythonSimpleSwing().start()");
+        }
+    }
+
+Now that we've written the driver class, we'll place it into our *java* source directory.  As stated previously, we'll place our Jython code into the *src* directory.  In this example we are using the same simple Jython swing application that I wrote for chapter 13.
+
+*JythonSimpleSwing.py* ::
+
+    import sys
+    sys.packageManager.makeJavaPackage("javax.swing", "java.awt", None)
+    import javax.swing as swing
+    import java.awt as awt
+    
+    class JythonSimpleSwing(object):
+        def __init__(self):
+            self.frame=swing.JFrame(title="My Frame", size=(300,300))
+            self.frame.defaultCloseOperation=swing.JFrame.EXIT_ON_CLOSE;
+            self.frame.layout=awt.BorderLayout()
+            self.panel1=swing.JPanel(awt.BorderLayout())
+            self.panel2=swing.JPanel(awt.GridLayout(4,1))
+            self.panel2.preferredSize = awt.Dimension(10,100)
+            self.panel3=swing.JPanel(awt.BorderLayout())
+    
+            self.title=swing.JLabel("Text Rendering")
+            self.button1=swing.JButton("Print Text", actionPerformed=self.printMessage)
+            self.button2=swing.JButton("Clear Text", actionPerformed=self.clearMessage)
+            self.textField=swing.JTextField(30)
+            self.outputText=swing.JTextArea(4,15)
+            
+    
+            self.panel1.add(self.title)
+            self.panel2.add(self.textField)
+            self.panel2.add(self.button1)
+            self.panel2.add(self.button2)
+            self.panel3.add(self.outputText)
+    
+            self.frame.contentPane.add(self.panel1, awt.BorderLayout.PAGE_START)
+            self.frame.contentPane.add(self.panel2, awt.BorderLayout.CENTER)
+            self.frame.contentPane.add(self.panel3, awt.BorderLayout.PAGE_END)
+    
+        def start(self):
+            self.frame.visible=1
+    
+        def printMessage(self,event):
+            print "Print Text!"
+            self.text = self.textField.getText()
+            self.outputText.append(self.text)
+    
+        def clearMessage(self, event):
+            self.outputText.text = ""
+
+
+In order to import the swing and awt packages, we need to make use of the *sys.packagemanager.makeJavaPackage* utility.  For some reason the application would run fine stand alone without using this utility, but when placed into a JAR using this method we need to assist in loading the packages.    At this time, the application is ready build using Ant.  In order to run the build, simply traverse into the directory that contains *build.xml* and intiate the *ant* command.  The resulting JAR can be run using the following syntax:
+
+::
+
+    java -jar JythonSwingApp.jar
+
+
+In some situations, such as deploying via web start, this JAR file will also need to be signed.  There are many resources online that explain the signing of JAR files that topic will not be covered in this text.  The JAR is now ready to be deployed and used on other machines.  This method will be a good way to package an application for distribution via the Java Store.
 
 
 Mobile

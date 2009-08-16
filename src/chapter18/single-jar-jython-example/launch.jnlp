@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<jnlp codebase="file:/Java_Dev/JythonSimpleSwing/single-jar-jython-example/" href="launch.jnlp" spec="1.0+">
+    <information>
+        <title>JythonSwingApp</title>
+        <vendor>juneau</vendor>
+        <homepage href=""/>
+        <description>JythonSwingApp</description>
+        <description kind="short">JythonSwingApp</description>
+    </information>
+<security>
+<all-permissions/>
+</security>
+    <resources>
+<j2se version="1.5+"/>
+<jar eager="true" href="SwingExample.jar" main="false"/>
+
+</resources>
+    <application-desc main-class="com.simontuffs.onejar.Boot">
+    </application-desc>
+</jnlp>
