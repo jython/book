@@ -9,7 +9,6 @@ Another new, yet very attractive solution is to deploy to the new Java Store.  T
 
 Lastly, this section will briefly cover some of the reasons why mobile deployment is not yet a vialble option for Jython.  While a couple of targets exist in the mobile world, namely Android and JavaFX, both environments are still very new and Jython has not yet been optimized to run on either.
 
-
 Application Servers
 ===================
 
