@@ -10,8 +10,8 @@ extended or driven using Jython.
 Python Testing Tools
 ====================
 
-UnitTest (PyUnit)
------------------
+UnitTest
+--------
 
 First we will take a look at the most classic test tool available in Python:
 PyUnit. It follows the conventions of most "xUnit" incarnations: You subclass
@@ -822,7 +822,8 @@ some way, they are an executable design of the solution.
 So we have a mix of doctests and unit tests. How do we run all of them in one
 shot? Previously I showed you how to manually compose a test suite for unit
 tests belonging to different modules, so that may be an answer. And indeed,
-there is a way to add doctests to test suites. But, since we are working on a
+there is a way to add doctests to test suites:
+``doctest.DocTestSuite(module_with_doctests)``. But, since we are working on a
 more real testing example, we will use a real world solution to this problem (as
 you can imagine, people got tired of the tedious work and more automated
 solutions appeared).
@@ -1134,8 +1135,8 @@ Objective accomplished! We have come up with a nicely documented and tested
 module, using the two testing tools shipped with the Python language, and Nose
 to run all our tests without manually building suites.
 
-Java Integration?
------------------
+Integration with Java?
+----------------------
 
 You may be wondering how to integrate the testing frameworks of Python and
 Java. It is possible to write JUnit tests in Jython, but it's not really
@@ -1143,7 +1144,7 @@ interesting, considering that you can test Java classes using unittest and
 doctest. The following is a perfectly valid doctest::
 
     """
-    Tests for Java's Decimal format
+    Tests for Java's DecimalFormat
     
     >>> from java.text import DecimalFormat
     
@@ -1184,4 +1185,187 @@ So you can use all what you learned on this chapter to test code written in
 Java. Personally, I find this a very powerful tool for Java development: easy,
 flexible and unceremonious testing using Jython and Python testing tools!
 
+Continuous Integration
+======================
+
+Martin Fowler defines Continuous Integration as "a software development practice
+where members of a team integrate their work frequently [...]. Each integration
+is verified by an automated build (including test) to detect integration errors
+as quickly as possible". Some software development teams report to have used
+this practice as early as in the 1960, however it only became mainstream when
+advocated as part of the Extreme Programming practices. Nowadays, it is a widely
+applied practice, and in the Java world there is a wealth of tools to help with
+the technical challenge involved by it.
+
+Getting Hudson
+--------------
+
+One tool that currently has a lot of momentum, growing a important user base is
+Hudson. Among its prominent features are the ease of installation and
+configuration, and the ease to deploy it in a distributed, master/slaves
+environment for cross-platform testing. 
+
+But, in my opinion, Hudson's main strength is its highly modular, plugin-based
+architecture, which has resulted in the creation of plugins to support most of
+the version control, build and reporting tools, and many languages. One of them
+is the Jython plugin, which allows you to use the Python language to drive your
+builds.
+
+You can find a more details about the Hudson project on its homepage at
+https://hudson.dev.java.net/. I will go to the point and show how to test Jython
+applications using it.
+
+Grab the latest version of Hudson from
+http://hudson-ci.org/latest/hudson.war. Running it is a matter of doing::
+
+ $ java -jar hudson.war
+
+After a few seconds, you will see some logging output on the console, and Hudson
+will be up and running. If you visit http://localhost:8080/ you will get a
+welcome page inviting you to start using Hudson creating new jobs. 
+.. warning::
+
+   Be careful: The default mode of operation of Hudson fully trusts its users,
+   letting them to execute any command they want on the server, with the
+   privileges of the user running Hudson. You can set stricter access control
+   policies on the "Configure System" section of the "Manage Hudson" page.
+
+Installing the Jython Plugin
+-----------------------------
+
+Before creating jobs, we will install the Jython plugin. Click on the "Manage
+Hudson" link on the left side menu. Then click "Manage Plugins". Now go to the
+"Available" tab. You will see a very long list of plugins (I told you this was
+the greatest Hudson strength!). Find the "Jython Plugin", click on the checkbox
+at its left, as shown on the figure :ref:`fig-hudson-selectingjythonplugin` then
+scroll to the end of the page and click the "Install" button.
+
+
+.. _fig-hudson-selectingjythonplugin:
+
+.. figure:: images/chapter19-hudson-selectingjythonplugin.png
+ 
+   Selecting the Jython Plugin.
+
+You will see a bar showing the progress of the download and installation
+progress, and after little while you will be presented with an screen like shown
+on the figure :ref:`fig-hudson-jythonplugininstalled` notifying you that the
+process finished. Press the "Restart" button, wait a little bit and you will see
+the welcome screen again. Congratulations, you now have a Jython-powered Hudson!
+
+.. _fig-hudson-jythonplugininstalled:
+
+.. figure:: images/chapter19-hudson-jythonplugininstalled.png
+
+   Jython Plugin Successfully Installed
+
+Creating a Hudson Job for a Jython Project
+------------------------------------------
+
+Let's follow now the suggestion of the welcome screen and click the "create new
+job" link. A job roughly corresponds to the instructions needed by Hudson to
+build a project. It includes:
+
+ * The location from where the source code of the project should be obtained,
+   and how often.
+ * How to start the build process for the project
+ * How to collect information after the build process has finished
+
+After clicking the "create new job" link (equivalent to the "New Job" entry on
+the left side menu) you will be asked for a name and type for the Job. We will
+use the eightqueens project built on the previous section, so name the project
+"eightqueens", select the "Build a free-style software project" option and press
+the "OK" button.
+
+In the next screen, we need to setup an option on the "Source Code Management"
+section. You may want to experiment with your own repositories here (by default
+only CVS and Subversion are supported, but there are plugins for all the other
+VCSs in use out there). For our example, I've hosted the code on a Subversion
+repository at http://kenai.com/svn/jythonbook~eightqueens/. So select
+"Subversion" and enter
+http://kenai.com/svn/jythonbook~eightqueens/trunk/eightqueens/ as the
+"Repository URL".
+
+.. note::
+
+    Using the public repository will be enough to get a feeling of Hudson and
+    its support of Jython.  However, I encourage you to create your own
+    repository so you can play freely with continuous integration, for example
+    committing bad code to see how failures are handled.
+
+In the "Build Triggers" section we have to specify when automated builds will
+happen. We will poll the repository so that a new build will be started after
+any change. Select "Poll SCM" and enter "@hourly" on the "Schedule" box (If you
+want to know all the options for the schedule, click the help icon at the right
+of the box).
+
+In the "Build" section we must tell Hudson how to build our project. By default
+Hudson supports Shell scripts (on Unix-like systems, or Windows systems with
+Cygwin installed), Batch files (on Windows systems) and Ant scripts as build
+steps. For projects in which you mix Java and Python code and drive the build
+process with an ant file, the default Ant build step will suffice. In our case,
+we wrote our app in pure Python code, so we will use the Jython plugin which
+adds the "Execute Jython script" build step.
+
+So click on "Add Build Step" and then select "Execute Jython script". We will
+use our knowledge of test suites gained on the `UnitTest`_ section, the
+following script will be enough to run our tests::
+   
+    import os, sys, unittest, doctest
+    from eightqueens import checker, test_checker
+    
+    loader = unittest.TestLoader()
+    suite = unittest.TestSuite([loader.loadTestsFromModule(test_checker),
+                                doctest.DocTestSuite(checker)])
+    result = unittest.TextTestRunner().run(suite)
+    print result
+    if not result.wasSuccessful():
+       sys.exit(1)
+           
+
+The figure :ref:`fig-hudson-jobconfig` shows how the page looks so far for the
+"Source Code Management", "Build Triggers" and "Build" sections.
+
+.. _fig-hudson-jobconfig:
+
+.. figure:: images/chapter19-hudson-jobconfig.png
+
+   Hudson Job Configuration
+
+The next section, titled "Post-build Actions" let you specify action to carry
+once the build has finished, ranging from collecting results from reports
+generated by static-analysis tools or test runners to send emails notifying
+someone of build breakage. We will left these options blank by now. Click the
+"Save" button at the bottom of the page.
+
+At this point Hudson will show the job's main page. But it won't contain
+anything useful, since Hudson is waiting for the hourly trigger to poll the
+repository and kick the build. But we don't need to wait if we don't want to:
+just click the "Build Now" link on the left-side menu. Shortly, a new entry will
+be shown on the "Build History" box (also on the left side, below the menu), as
+shown in the figure :ref:`fig-hudson-buildhistory`.
+
+.. XXX: Actually, the current Jython plugin doesn't work exactly as described
+.. here, because it doesn't ship the standard library. But I expect the issues
+.. found will be fixed soon
+
+.. _fig-hudson-buildhistory:
+
+.. figure:: images/chapter19-hudson-buildhistory.png
+
+   The First Build of our First Job.
+
+If you click on the link that just appeared there you will be directed to the
+page for the build we just made. If you click on the "Console Output" link on
+the left side menu you will see what's shown in the figure
+:ref:`fig-hudson-buildresult`.
+
+.. _fig-hudson-buildresult:
+
+.. figure:: images/chapter19-hudson-buildresult.png
+
+   Console Output for the Build
+
+As you would expect, it shows that our eight tests (remember that we had seven
+unit tests and the module doctest) all passed.
 

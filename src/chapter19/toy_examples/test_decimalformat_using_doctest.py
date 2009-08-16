@@ -1,5 +1,5 @@
 """
-Tests for Java's Decimal format
+Tests for Java's DecimalFormat
 
 >>> from java.text import DecimalFormat
 
