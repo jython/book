@@ -37,7 +37,7 @@ the copyright holder.
 
 In no way are any of the following rights affected by the license:
 
- - Your fair desling or fair use rights
+ - Your fair dealing or fair use rights
  - The author's moral rights
  - Rights other persons may have either in the work itself or in how
    the work is used, such as publicity or privacy rights
@@ -104,6 +104,17 @@ Part IV:  Strategy and Technique
    
    chapter19.rst
    chapter20.rst
+   
+Part V:  Appendicies and Attribution
+====================================
+
+.. toctree::
+   :maxdepth: 2
+   
+   appendixA.rst
+   appendixB.rst
+   appendixC.rst
+   attribution.rst
    
 
 Indices and tables

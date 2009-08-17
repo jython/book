@@ -1,0 +1,66 @@
+<project name="JythonSwingApp" default="dist" basedir=".">
+  
+  <!-- #################################################
+       These two properties are the only ones you are 
+       likely to want to change for your own projects:     -->
+  <property name="jar.name" value="JythonSwingApp.jar" />
+  <property name="java-main-class" value="Main" />
+  <!-- ##################################################  -->
+
+  <!-- Below here you dont' need to change for simple projects -->
+  <property name="src.dir" location="src"/> 
+  <property name="java.dir" location="java"/>
+  <property name="onejar.dir" location="onejar"/>
+  <property name="java-build.dir" location="java-build"/>
+  <property name="build.dir" location="build"/>
+  <property name="lib.dir" location="lib"/>
+
+  <path id="classpath">
+    <fileset dir="${lib.dir}" includes="**/*.jar"/>
+  </path>
+
+  <target name="clean">
+    <delete dir="${java-build.dir}"/>
+    <delete dir="${build.dir}"/>
+    <delete file="${jar.name}"/>
+  </target>
+
+  <target name="dist" depends="clean">
+    <!-- prepare the build directory -->
+    <mkdir dir="${build.dir}/lib"/>
+    <mkdir dir="${build.dir}/main"/>
+    <!-- Build java code -->
+    <mkdir dir="${java-build.dir}"/>
+    <javac srcdir="${java.dir}" destdir="${java-build.dir}" classpathref="classpath"/>
+    <!-- Build main.jar -->
+    <jar destfile="${build.dir}/main/main.jar" basedir="${java-build.dir}">
+      <manifest>
+	<attribute name="Main-Class" value="Main" />
+      </manifest>
+    </jar>
+    <delete file="${java-build.dir}"/>
+    <!-- Add the python source -->
+    <copy todir="${build.dir}">
+      <fileset dir="${src.dir}"/>
+    </copy>
+    <!-- Add the libs -->
+    <copy todir="${build.dir}/lib">
+      <fileset dir="${lib.dir}"/>
+    </copy>
+    <!-- Compile OneJar -->
+    <javac srcdir="${onejar.dir}" destdir="${build.dir}" classpathref="classpath"/>
+    <!-- Copy the OneJar license file -->
+    <copy file="${onejar.dir}/one-jar-license.txt" tofile="${build.dir}/one-jar-license.txt" />
+    <!-- Build the jar -->
+    <jar destfile="${jar.name}" basedir="${build.dir}">
+      <manifest>
+	<attribute name="Main-Class" value="com.simontuffs.onejar.Boot" />
+	<attribute name="Class-Path" value="lib/jython-full.jar" />
+      </manifest>
+    </jar>
+    <!-- clean up -->
+    <delete dir="${java-build.dir}" />
+    <delete dir="${build.dir}" />
+  </target>
+
+</project>
