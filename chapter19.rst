@@ -419,7 +419,7 @@ convince you that it is indeed testing our code, run it with the ``-v`` option::
 
 Doctests are a very, very convenient way to do testing, since the interactive
 examples can be directly copy-pasted from the interactive shell, transforming
-the manual testing in documentation example and automated tests in one shot. 
+the manual testing in documentation examples and automated tests in one shot.
 
 You don't really *need* to include doctests as part of the documentation of the
 feature they test. Nothing stops you to write the following code in, say, the
@@ -483,7 +483,7 @@ can fit very well in some cases and not fit well in others.
    Speaking of doctests gotchas: The use of dictionary outputs in doctests is a
    very common error that breaks the portability of your doctests across Python
    implementations (e.g. Jython, CPython and IronPython) . The trap here is that
-   *the order of dict keys is implementation-dependent*, so the test may pass
+   the **order of dict keys is implementation-dependent**, so the test may pass
    when working on some implementation and fail horribly on others. The
    workaround is to convert the dict to a sequence of tuples and sort them,
    using ``sorted(mydict.items())``.
@@ -494,13 +494,13 @@ can fit very well in some cases and not fit well in others.
 
 To take advantage of doctests we have to follow some simple rules, like using
 the ``>>>`` prompt and leaving a blank line between sample output and the next
-paragraph. But if you think about it, is the same kind of sane rules that makes
-the documentation readable by people.
+paragraph. But if you think about it, it's the same kind of sane rules that
+makes the documentation readable by people.
 
 The only common rule not shown by the examples shown in this section is the way
 to write expressions which are written in more than one line. As you may expect,
 you have to follow the same convention used by the interactive interpreter:
-start the continuation lines with an ellipsis: ``...``. For example::
+start the continuation lines with an ellipsis ("..."). For example::
 
     """    
     Addition is commutative:
@@ -833,7 +833,7 @@ Nose
 
 Nose is a tool for test discovery and execution. By default, nose tries to run
 tests on any module whose name starts with "test". You can override that, of
-course. In our case, the example code of the previous section followed the
+course. In our case, the example code of the previous section follows the
 convention (the test module is named ``eightqueens.test_checker``).
 
 .. XXX: I'm duplicating setuptools instructions here, from Chapter 14. We need
@@ -1197,8 +1197,8 @@ advocated as part of the Extreme Programming practices. Nowadays, it is a widely
 applied practice, and in the Java world there is a wealth of tools to help with
 the technical challenge involved by it.
 
-Getting Hudson
---------------
+Hudson
+------
 
 One tool that currently has a lot of momentum, growing a important user base is
 Hudson. Among its prominent features are the ease of installation and
@@ -1214,6 +1214,9 @@ builds.
 You can find a more details about the Hudson project on its homepage at
 https://hudson.dev.java.net/. I will go to the point and show how to test Jython
 applications using it.
+
+Getting Hudson
+--------------
 
 Grab the latest version of Hudson from
 http://hudson-ci.org/latest/hudson.war. You can deploy it to any servlet
@@ -1282,7 +1285,7 @@ the "OK" button.
 In the next screen, we need to setup an option on the "Source Code Management"
 section. You may want to experiment with your own repositories here (by default
 only CVS and Subversion are supported, but there are plugins for all the other
-VCSs in use out there). For our example, I've hosted the code on a Subversion
+VCSs used out there). For our example, I've hosted the code on a Subversion
 repository at http://kenai.com/svn/jythonbook~eightqueens/. So select
 "Subversion" and enter
 http://kenai.com/svn/jythonbook~eightqueens/trunk/eightqueens/ as the
@@ -1302,8 +1305,7 @@ want to know all the options for the schedule, click the help icon at the right
 of the box).
 
 In the "Build" section we must tell Hudson how to build our project. By default
-Hudson supports Shell scripts (on Unix-like systems, or Windows systems with
-Cygwin installed), Batch files (on Windows systems) and Ant scripts as build
+Hudson supports Shell scripts, Windows Batch files and Ant scripts as build
 steps. For projects in which you mix Java and Python code and drive the build
 process with an ant file, the default Ant build step will suffice. In our case,
 we wrote our app in pure Python code, so we will use the Jython plugin which
