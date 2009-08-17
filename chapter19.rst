@@ -14,10 +14,10 @@ UnitTest
 --------
 
 First we will take a look at the most classic test tool available in Python:
-PyUnit. It follows the conventions of most "xUnit" incarnations: You subclass
-from ``TestCase`` class, then optionally override the methods ``setup()`` and
-``tearDown()`` which are executed around the test methods, which are all the
-methods you define with a name starting with "test". And you can use the
+Unittest. It follows the conventions of most "xUnit" incarnations (like JUnit):
+You subclass from ``TestCase`` class, write test methods (which must have a name
+starting by "test" and optionally override the methods ``setup()`` and
+``tearDown()`` which are executed around the test methods,. And you can use the
 multiple ``assert*()`` methods provided by ``TestCase``. Here is an very simple
 test case for the some functions of the built-in math module::
 
@@ -341,9 +341,9 @@ docstring. Here is a simple example::
 
 Note that, if we weren't talking about testing, we may have thought that the
 docstring of ``is_even()`` is just normal documentation, in which the convention
-of using the interpreter prompt to mark examples and output was adopted (also
-note also that irrelevant stack trace has been striped of in the exception
-example). After all, in many cases we use examples as part of the
+of using the interpreter prompt to mark example expressions and their outputs
+was adopted (also note also that irrelevant stack trace has been striped of in
+the exception example). After all, in many cases we use examples as part of the
 documentation. Take a look at Java's ``SimpleDateFormat`` documentation located
 in http://java.sun.com/javase/6/docs/api/java/text/SimpleDateFormat.html and you
 will spot fragments like:
@@ -1216,7 +1216,9 @@ https://hudson.dev.java.net/. I will go to the point and show how to test Jython
 applications using it.
 
 Grab the latest version of Hudson from
-http://hudson-ci.org/latest/hudson.war. Running it is a matter of doing::
+http://hudson-ci.org/latest/hudson.war. You can deploy it to any servlet
+container like Tomcat or Glassfish. But one of the cool features of Hudson is
+that you can test it by simply running::
 
  $ java -jar hudson.war
 
@@ -1368,4 +1370,135 @@ the left side menu you will see what's shown in the figure
 
 As you would expect, it shows that our eight tests (remember that we had seven
 unit tests and the module doctest) all passed.
+
+Using Nose on Hudson
+--------------------
+
+.. XXX This section is subject to heavy change. I don't like the workaround too
+.. much.
+
+You may be wondering why we crafted a custom build script instead of using nose,
+since *I* stated that using nose was much better than manually creating suites.
+
+The problem is that the Jython runtime provided by the Jython Hudson plugin
+comes without any extra library, so we can't assume the existence of nose. One
+option would be to include nose with the source tree on the repository, but it
+is not convenient. 
+
+One way to overcome the problem is to script the installation of nose on the
+build script. Go back to the Job (also called "Project" by the Hudson user
+interface), select "Configure" on the left side menu, go the the "Build" section
+of the configuration and change the Jython script for our job to::
+
+    # Setup the environment
+    import os, sys, site, urllib2, tempfile
+    print "Base dir", os.getcwdu()
+    site_dir = os.path.join(os.getcwd(), 'site-packages')
+    if not os.path.exists(site_dir): os.mkdir(site_dir)
+    site.addsitedir(site_dir)
+    sys.executable = ''
+    os.environ['PYTHONPATH'] = ':'.join(sys.path)
+        
+    # Get ez_setup:
+    ez_setup_path = os.path.join(site_dir, 'ez_setup.py')
+    if not os.path.exists(ez_setup_path):
+        f = file(ez_setup_path, 'w')
+        f.write(urllib2.urlopen('http://peak.telecommunity.com/dist/ez_setup.py').read())
+        f.close()
+    
+    # Install nose if not present
+    try:
+        import nose
+    except ImportError:
+        import ez_setup
+        ez_setup.main(['--install-dir', site_dir, 'nose'])
+        for mod in sys.modules.keys():
+            if mod.startswith('nose'):
+                del sys.modules[mod]
+        for path in sys.path:
+            if path.startswith(site_dir):
+                sys.path.remove(site_dir)
+        site.addsitedir(site_dir)
+        import nose
+    
+    # Run Tests!
+    nose.run(argv=['nosetests', '-v', '--with-doctest', '--with-xunit'])
+    
+The first half of the script is plumbing to download setuptools (ez_setup) and
+set an environment in which it will work. Then, we check for the availability of
+nose, and if it's not present we install it using setuptools.
+
+The interesting part if the last line::
+
+    nose.run(argv=['nosetests', '-v', '--with-doctest', '--with-xunit'])
+
+Here we are invoking nose from python code, but using the command line
+syntax. Note the usage of the ``--with-xunit`` option. It generates
+JUnit-compatible XML reports for our tests, which can be read by Hudson to
+generate very useful test reports. By default, nose will generate a file called
+``nosetests.xml`` on the current directory.
+
+To let Hudson know where the report can be found scroll to the "Post Build
+Actions" section in the configuration, check the "Publish JUnit test result
+reports" and enter "nosetests.xml" on the "Test Report XMLs" input box. Press
+"Save". If Hudson points you that nosetests.xml "doesn't match anything", don't
+worry and just press "Save" again. Of course it doesn't match anything *yet*
+since we haven't run the build again.
+
+Trigger the build again, and after the build is finished, click on the link for
+it (on the "Build History" box or going to the job page and following the "Last
+build [...]" permalink). The figure :ref:`fig-hudson-consolewithnose` shows what
+you see if you look at the "Console Output" and the figure
+:ref:`fig-hudson-testresults` what you see on the "Test Results" page.
+
+.. _fig-hudson-consolewithnose:
+
+.. figure:: images/chapter19-hudson-consolewithnose.png
+
+   Nose's Output on Hudson
+
+.. _fig-hudson-testresults:
+
+.. figure:: images/chapter19-hudson-testresults.png
+   
+   Hudson's Test Reports
+
+Navigation on your test results is a very powerful feature of Hudson. But it
+shines when you have failures or tons of tests, which is not the case on this
+example. But I wanted to show it in action, so I fabricated some failures on the
+code to show you some screenshots. Look at figure
+:ref:`fig-hudson-testresultswithfailures` and figure
+:ref:`fig-hudson-testresultsgraph` to get an idea of what you get from Hudson.
+
+.. _fig-hudson-testresultswithfailures:
+
+.. figure:: images/chapter19-hudson-testresultswithfailures.png
+
+   Test Report Showing Failures
+
+.. _fig-hudson-testresultsgraph: 
+
+.. figure:: images/chapter19-hudson-testresultsgraph.png
+
+   Graph of Test Results Over Time
+
+We had to use a slightly more complicated script to use Nose and Hudson
+together, but it has the advantage that it will probably work untouched for a
+long time, unlike the original script manually built the suite, which would have
+to be modified each time a new test module is created.
+
+Conclusion
+----------
+
+Testing is a fertile ground for Jython usage, since you can exploit the
+flexibility of Python to write concise tests for Java APIs which also tend to be
+more readable than the ones written with JUnit. Doctests, in particular don't
+have a parallel on the Java world and can be a powerful way to introduce the
+practice of automated testing on people who want it to be simple and easy.
+
+Integration with continuous integration tools, and Hudson in particular let's
+you get the maximum from your tests, avoiding test breakages to go unnoticed and
+representing a live history of your project health and evolution.
+
+
 
