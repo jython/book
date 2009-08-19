@@ -1,8 +1,85 @@
-Chapter 12- Databases and Jython: Using JDBC in Jython
-++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Chapter 12- Databases and Jython: Object Relational Mapping and Using JDBC
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
+
+Finally we will look at zxJDBC package, which is a standard part of
+Jython since version 2.1 and complies with the Python 2.0 DBI
+standard. zxJDBC can be an appropriate choice for simple one-off
+scripts where database portabibility is not a concern. In addition,
+it's (generally) necessary to use zxJDBC when writing a new dialect
+for SQLAlchemy or Django. [But not strictly true: you can use pg8000,
+a pure Python DBI driver, and of course write your own DBI
+drivers. But please don't do that.] So knowing how zxJDBC works can
+useful when working with these packages. However, it's too low level
+for us to recommend for more general usage. Use SQLAlchemy or Django
+if at all possible.
+
+Finally, JDBC itself is also directly accessible, like any other Java
+package from Jython. Simply use the java.sql package. In practice this
+should be rarely necessary. [XXX But perhaps something about how we
+can still look at the underlying JDBC connection and result sets, if
+necessary?  and if so, how?] [XXX there was also an article on doing
+this on IBM developer works if I'm not mistaken]
+
 
 zxJDBC – Using Python’s DB API via JDBC
 =======================================
+
+Introduction to zxJDBC
+----------------------
+
+The zxJDBC package provides an easy-to-use Python wrapper around
+JDBC. zxJDBC bridges two standards:
+
+ * JDBC is the standard platform for database access in Java.
+ * DBI is the standard database API for Python apps.
+
+zxJDBC, part of Jython, provides a DBI 2.0 standard compliant
+interface to JDBC. Over 200 drivers are available for JDBC [XXX
+http://developers.sun.com/product/jdbc/drivers], and they all work
+with zxJDBC. High performance drivers are available for all major
+relational databases, including DB2, Derby, MySQL, Oracle, PostgreSQL,
+SQLite, SQLServer, and Sybase. And drivers are also available for
+non-relational and specialized databases too.
+
+However, unlike JDBC, zxJDBC when used in the simplest way possible,
+blocks SQL injection attacks, minimizes overhead, and avoids resource
+exhaustion. In addition, zxJDBC defaults to using a transactional
+model (when available), instead of autocommit.
+
+First we will look at connections and cursors, which are the key
+resources in working with zxJDBC, just like any other DBI
+package. Then we will look at what you can do them with them, in terms
+of typical queries and data manipulating transactions.
+
+
+Getting Started
+---------------
+
+drivers and such
+
+Connections
+-----------
+
+
+
+Cursors
+-------
+
+
+Resource Management
+-------------------
+
+Creating and Executing Queries
+------------------------------
+
+Retrieving Data
+---------------
+
+Iteration
+---------
+
 
 Object Relational Mapping
 =========================
