@@ -3,7 +3,8 @@ Chapter 12- Databases and Jython: Object Relational Mapping and Using JDBC
 
 
 
-Finally we will look at zxJDBC package, which is a standard part of
+
+First, we will look at zxJDBC package, which is a standard part of
 Jython since version 2.1 and complies with the Python 2.0 DBI
 standard. zxJDBC can be an appropriate choice for simple one-off
 scripts where database portabibility is not a concern. In addition,
@@ -57,28 +58,472 @@ of typical queries and data manipulating transactions.
 Getting Started
 ---------------
 
-drivers and such
+The first step in developing an application that utilizes a database back-end is to determine what database or databases the application will use.  In the case of using zxJDBC or another JDBC implementation, the determination of what database the application will make use of is critical to the overall development process.  Many application developers will choose to use an object relational mapper for this very reason.  When an application is coded with a JDBC implementation whereas SQL code is hand-coded, the specified database of choice will cause different dialects of SQL to be used.  One of the benefits of object relation mapping (ORM) technology is that the SQL is transparent to the developer.  The ORM technology takes care of the different dialects behind the scenes.  This is one of the reasons why ORM technology may be slower at implementing support for many different databases.  Take SQLAlchemy or Django for instance, each of these technologies must have a different dialect coded for each database.  Using an ORM can make an application more portable over many different databases.  However, as stated in the preface using zxJDBC would be a fine choice if your application is only going to target one or two databases.
+
+While using JDBC for Java, one has to deal with the task of finding and registering a driver for the database.  Most of the major databases make their JDBC drivers readily available for use.  Others may make you register prior to download of the driver, or in some cases purchase it.  Since zxJDBC is an alternative implementation of JDBC, one must use a JDBC driver in order to use the API.  Most JDBC drivers come in the format of a JAR file that can be installed to an application server container, and IDE. In order to make use of a particular database driver, it must reside within the CLASSPATH.  As mentioned previously, to find a given JDBC driver for a particular database, take a look a the Sun Microsystems JDBC Driver search page (XXX http://developers.sun.com/product/jdbc/drivers) as it contains a listing of different JDBC drivers for *most* of the databases available today.
+
+Note: examples in this section are for Jython 2.5.1 and later. Jython 2.5.1 introduced some simplifications for working with connections and cursors. In addition, we assume PostgreSQL for most examples, using the world sample database (also available for MySQL).  In order to follow along with the examples in the following sections, you should have a PostgreSQL database available with the *world* database example.  Please go to the PostgreSQL homepage at http://www.postgresql.org to download the database.  The world database sample is available with the source for this book.  It can be installed into a PostgreSQL database by opening psql and initiating the following command::
+
+    postgres=# \i <path to world sql>/world.sql
+
+
+As stated previously, once a driver has been obtained it must be placed into the classpath.  Below are a few examples for adding JDBC drivers to the CLASSPATH for a couple of the most popular databases. ::
+
+    # Oracle
+    
+        # Windows
+        set CLASSPATH=<PATH TO JDBC>\ojdbc14.jar;%CLASSPATH%
+        
+        # OS X
+        export CLASSPATH=<PATH TO JDBC>/ojdbc14.jar:$CLASSPATH
+    
+    # PostgreSQL
+    
+        # Windows
+        set CLASSPATH=<PATH TO JDBC>\postgresql-x.x.jdbc4.jar;%CLASSPATH%
+        
+        # OS X
+        export CLASSPATH<PATH TO JDBC>/postgresql-x.x.jdbc4.jar:$CLASSPATH
+
+
+After the appropriate JAR for the target database has been added to the CLASSPATH, development can commence.  It is important to note that zxJDBC (and all other JDBC implementations) use a similar procedure for working with the database.  One must perform the following tasks to use a JDBC implementation:
+
+* Create a connection
+
+* Create a query or statement
+
+* Obtain results of query or statement
+
+* If using a query, obtain results in a cursor and iterate over data to perform tasks
+
+* Close cursor
+
+* Close connection (If not using the with_statement syntax in versions of Jython prior to 2.5.1)
+
+Over the next few sections, we'll take a look at each of these steps and compare using JDBC and zxJDBC to perform each of them.  
+    
 
 Connections
 -----------
 
 
+A database connection is simply a resource object that manages access to the
+database system. Because database resources are generally expensive
+objects to allocate, and can be readily exhausted, it is important to
+close them as soon as you're finished using them.  There are two ways to create database connections:
+
+  * Direct creation. Standalone code, such as a script, will directly
+    create a connection.
+
+  * JNDI. Code managed by a container should use JNDI for connection
+    creation. Such containers include GlassFish, JBoss, Tomcat,
+    WebLogic, and WebSphere. Normally connections are pooled when run
+    in this context and are associated with a given security context.
+    
+Below is an example of the best way to create a database connection outside of a managed container using Jython 2.5.1.  It is important to note that prior to 2.5.1, the *with_statement* syntax was not available.  This is due to the underlying implementation of PyConnection in versions of Jython prior to 2.5.1.  As a rule, any object that can be used via the *with_statement* must implement certain functionality, including the *__exit__* method.  Please see the note below to find out how to implement this functionality in versions prior to 2.5.1. Another thing to notice is that in order to connect, we must use a JDBC url which conforms to the standards of a given database...in this case PostgreSQL.  ::
+
+    from __future__ import with_statement
+    from com.ziclix.python.sql import zxJDBC
+    
+    # for example
+    jdbc_url =  "jdbc:postgresql:test"
+    username = "postgres"
+    password = "jython25"
+    driver = "org.postgresql.Driver"
+    
+    with zxJDBC.connect(jdbc_url, username, password, driver) as conn:
+        do_something(conn)
+        # there is no need to close the cursor as the with statement takes care of this for us
+
+
+Walking through the steps, you can see that the *with_statement* and zxJDBC are imported as we will use them to obtain our connection.  The next step is to define a series of string values that will be used for the connection activity.  Note that these only need to be defined once if set up as globals.  Lastly, the connection is obtained and some work is done.  Now let's take a look at this same procedure coded in Java for comparison. ::
+
+    import java.sql.*;
+    import org.postgresql.Driver;
+    
+    ...
+    // In some method
+    Connection conn = null;
+    String jdbc_url = "jdbc:postgresql:test";
+    String username = "postgres";
+    String password = "jython25";
+    String driver = "org.postgresql.Driver";
+    try {
+        DriverManager.registerDriver(new org.postgresql.Driver());
+        conn = DriverManager.getConnection(jdbc_url,
+                                username, password);
+        // do something using statement and resultset
+        conn.close();
+    }
+    catch(Exception e) {
+        logWriter.error("getBeanConnection ERROR: ",e);
+        return conn;
+    }
+
+.. note::
+ 
+    In versions of Jython prior to 2.5.1, the *with_statement* syntax is not available.  For this reason, we must
+    work directly with the connection (ie. close it when finished).  Take a look at the following code for an example
+    of using zxJDBC connections without the with_statement functionality.
+    
+    from __future__ import with_statement
+    from com.ziclix.python.sql import zxJDBC
+    
+    # for example
+    jdbc_url =  "jdbc:postgresql:test"
+    username = "postgres"
+    password = "jython25"
+    driver = "org.postgresql.Driver"
+    
+    conn = zxJDBC.connect(jdbc_url, username, password, driver)
+    do_something(conn)
+    # Be sure to clean up by closing the connection (and cursor)
+    conn.close()
+    
+
+Inside a container, like an app server, you should use JDNI to allocate the
+resource. Generally the connection will be managed by a connection
+pool: ::
+
+    factory = "com.sun.jndi.fscontext.RefFSContextFactory"
+    db = zxJDBC.lookup('jdbc/postgresDS'),
+        INITIAL_CONTEXT_FACTORY=factory)
+
+The above example assumes that the datasource defined in the container is
+named "jdbc/postgresDS", and it uses the Sun FileSystem JNDI reference implementation.
+This lookup process does not require knowing the JDBC URL or the
+driver factory class. These aspects, as well as possibly the user name
+and password, are configured by the adminstrator of the container
+using tools specific to that container.  Most often by convention you will find
+that JNDI names typically resemble a *jdbc/NAME* format.
+
+In both cases the ``with`` statement ensures that the connection is
+immediately closed. The alternative is to use ``finally`` to perform the close.  Using the
+latter technique allows for more tightly controlled exception handling technique, but also
+adds a considerable amount of code.  As noted previously, the ``with`` statement is not available in
+versions of Jython prior to 2.5.1, so this is the recommended approach when using those versions::
+
+    try:
+        conn = zxJDBC.connect(jdbc_url, username, password, driver)
+        do_something(conn)
+    finally:
+        conn.close()
+
+
+.. sidebar::
+
+  Connection pools help ensure for more robust operation, by providing
+  for reuse of connections while ensuring the connections are in fact
+  valid. Often naive code will hold a connection for a very long time,
+  to avoid the overhead of creating a connection, and then go to the
+  trouble of managing reconnecting in the event of a network or server
+  failure. It's better to let that be managed by the connection pool
+  infrastructure instead of reinventing it.
+
+  All transactions, if supported, are done within the context of a
+  connection. We will be discussing transactions further in the
+  subsection on data modification, but this is the basic recipe:
+  
+  
+zxJDBC.lookup
+~~~~~~~~~~~~~
+
+In a managed container, you would use ``zxJDBC.lookup`` instead of
+``zxJDBC.connect``. If you have code that needs to run both inside and
+outside containers, we recommend you use a factory to abstact this. ::
+
+    
+
+Transaction isolation levels
+
+[XXX - see http://java.sun.com/docs/books/tutorial/jdbc/basics/transactions.html]
+
 
 Cursors
 -------
+
+Once you have a connection, you probably want to do something with
+it. Since you can do multiple things within a transaction - query one table, update another - you need one more resource, which is a
+cursor. A cursor in zxJDBC is a wrapper around the JDBC statement and resultSet objects that provides a very *Pythonic* syntax for working with the database.  The result, an easy to use and extremely flexible API.  Cursors are used to hold data that has been obtained via the database, and they can be used in a variety of fashions which we will discuss.  There are two types of cursors available for use, static and dynamic.  A static cursor is the default type, and it basically performs an iteration of an entire resultSet at once.  The latter dynamic cursor is known as a lazy cursor and it only iterates through the resultSet on an as-needed basis.  Here are some examples of creating each type of cursor. ::
+
+    # Assume that necessary imports have been performed
+    # and that a connection has been obtained and assigned
+    # to a variable 'conn'
+    
+    cursor = conn.cursor() # static cursor creation
+    
+    cursor = conn.cursor(1) # dynamic cursor creation with the boolean argument
+    
+
+Dynamic cursors tend to perform better due to memory constraints, however, in some cases they are not as convenient as working with a static cursor.  For example, if you'd like to query the database to find a row count it is very easy with a static cursor because all rows are obtained at once.  This is not possible with a dynamic cursor and one must perform two queries in order to acheive the same result. ::
+
+    # Using a static cursor to obtain rowcount
+    >>> cursor = conn.cursor()
+    >>> cursor.execute("select * from country")
+    >>> cursor.rowcount
+    239
+    
+    # Using a dynamic cursor to obtain rowcount
+    >>> cursor = conn.cursor(1)
+    >>> cursor.execute("select * from country")
+    >>> cursor.rowcount
+    0
+    
+    # Since rowcount does not work with dynamic, we must
+    # perform a separate count query to obtain information
+    >>> cursor.execute("select count(*) from country")
+    >>> cursor.fetchone()
+    (239L,)
+
+
+Creating a cursor using the with_statment syntax is easy, please take a look at the following example for use with Jython 2.5.1 and beyond. ::
+
+    with conn.cursor() as c:
+        do_some_work(c)
+
+Like connections, you need to ensure the resource is appropriately closed. Of course if you are using Jython from the shell, there's
+generally no need to worry about resource allocations. So you can just do this to follow the shorter examples we will look at:
+
+.. example::
+
+   >>> c = conn.cursor()
+   >>> # work with cursor
+
+Cursors represent a unit of work. The easiest way to work with a cursor is to use the execute method.  We can use the execute method to query a database or perform some data manipulation via inserts, updates, and deletes.  ::
+
+    >>> cursor.execute("select name from city where countrycode = 'USA'")
+    >>> cursor.fetchall()
+    [(u'New York',), (u'Los Angeles',), (u'Chicago',), (u'Houston',), (u'Philadelphia',), (u'Phoenix',), (u'San Diego',), (u'Dallas',), (u'San     Antonio',), (u'Detroit',), (u'San Jose',), (u'Indianapolis',), (u'San Francisco',), (u'Jacksonville',), (u'Columbus',), (u'Austin',), (u'Baltimore',), (u'Memphis',), (u'Milwaukee',), (u'Boston',), (u'Washington',), (u'Nashville-Davidson',), (u'El Paso',), (u'Seattle',), (u'Denver',), (u'Charlotte',), (u'Fort Worth',), (u'Portland',), (u'Oklahoma City',), (u'Tucson',), (u'New Orleans',), (u'Las Vegas',), (u'Cleveland',), (u'Long Beach',), (u'Albuquerque',), (u'Kansas City',), (u'Fresno',), (u'Virginia Beach',), (u'Atlanta',), (u'Sacramento',), (u'Oakland',), (u'Mesa',), (u'Tulsa',), (u'Omaha',), (u'Minneapolis',), (u'Honolulu',), (u'Miami',), (u'Colorado Springs',), (u'Saint Louis',), (u'Wichita',), (u'Santa Ana',), (u'Pittsburgh',), (u'Arlington',), (u'Cincinnati',), (u'Anaheim',), (u'Toledo',), (u'Tampa',), (u'Buffalo',), (u'Saint Paul',), (u'Corpus Christi',), (u'Aurora',), (u'Raleigh',), (u'Newark',), (u'Lexington-Fayette',), (u'Anchorage',), (u'Louisville',), (u'Riverside',), (u'Saint Petersburg',), (u'Bakersfield',), (u'Stockton',), (u'Birmingham',), (u'Jersey City',), (u'Norfolk',), (u'Baton Rouge',), (u'Hialeah',), (u'Lincoln',), (u'Greensboro',), (u'Plano',), (u'Rochester',), (u'Glendale',), (u'Akron',), (u'Garland',), (u'Madison',), (u'Fort Wayne',), (u'Fremont',), (u'Scottsdale',), (u'Montgomery',), (u'Shreveport',), (u'Augusta-Richmond County',), (u'Lubbock',), (u'Chesapeake',), (u'Mobile',), (u'Des Moines',), (u'Grand Rapids',), (u'Richmond',), (u'Yonkers',), (u'Spokane',), (u'Glendale',), (u'Tacoma',), (u'Irving',), (u'Huntington Beach',), (u'Modesto',), (u'Durham',), (u'Columbus',), (u'Orlando',), (u'Boise City',), (u'Winston-Salem',), (u'San Bernardino',), (u'Jackson',), (u'Little Rock',), (u'Salt Lake City',), (u'Reno',), (u'Newport News',), (u'Chandler',), (u'Laredo',), (u'Henderson',), (u'Arlington',), (u'Knoxville',), (u'Amarillo',), (u'Providence',), (u'Chula Vista',), (u'Worcester',), (u'Oxnard',), (u'Dayton',), (u'Garden Grove',), (u'Oceanside',), (u'Tempe',), (u'Huntsville',), (u'Ontario',), (u'Chattanooga',), (u'Fort Lauderdale',), (u'Springfield',), (u'Springfield',), (u'Santa Clarita',), (u'Salinas',), (u'Tallahassee',), (u'Rockford',), (u'Pomona',), (u'Metairie',), (u'Paterson',), (u'Overland Park',), (u'Santa Rosa',), (u'Syracuse',), (u'Kansas City',), (u'Hampton',), (u'Lakewood',), (u'Vancouver',), (u'Irvine',), (u'Aurora',), (u'Moreno Valley',), (u'Pasadena',), (u'Hayward',), (u'Brownsville',), (u'Bridgeport',), (u'Hollywood',), (u'Warren',), (u'Torrance',), (u'Eugene',), (u'Pembroke Pines',), (u'Salem',), (u'Pasadena',), (u'Escondido',), (u'Sunnyvale',), (u'Savannah',), (u'Fontana',), (u'Orange',), (u'Naperville',), (u'Alexandria',), (u'Rancho Cucamonga',), (u'Grand Prairie',), (u'East Los Angeles',), (u'Fullerton',), (u'Corona',), (u'Flint',), (u'Paradise',), (u'Mesquite',), (u'Sterling Heights',), (u'Sioux Falls',), (u'New Haven',), (u'Topeka',), (u'Concord',), (u'Evansville',), (u'Hartford',), (u'Fayetteville',), (u'Cedar Rapids',), (u'Elizabeth',), (u'Lansing',), (u'Lancaster',), (u'Fort Collins',), (u'Coral Springs',), (u'Stamford',), (u'Thousand Oaks',), (u'Vallejo',), (u'Palmdale',), (u'Columbia',), (u'El Monte',), (u'Abilene',), (u'North Las Vegas',), (u'Ann Arbor',), (u'Beaumont',), (u'Waco',), (u'Macon',), (u'Independence',), (u'Peoria',), (u'Inglewood',), (u'Springfield',), (u'Simi Valley',), (u'Lafayette',), (u'Gilbert',), (u'Carrollton',), (u'Bellevue',), (u'West Valley City',), (u'Clarksville',), (u'Costa Mesa',), (u'Peoria',), (u'South Bend',), (u'Downey',), (u'Waterbury',), (u'Manchester',), (u'Allentown',), (u'McAllen',), (u'Joliet',), (u'Lowell',), (u'Provo',), (u'West Covina',), (u'Wichita Falls',), (u'Erie',), (u'Daly City',), (u'Citrus Heights',), (u'Norwalk',), (u'Gary',), (u'Berkeley',), (u'Santa Clara',), (u'Green Bay',), (u'Cape Coral',), (u'Arvada',), (u'Pueblo',), (u'Sandy',), (u'Athens-Clarke County',), (u'Cambridge',), (u'Westminster',), (u'San Buenaventura',), (u'Portsmouth',), (u'Livonia',), (u'Burbank',), (u'Clearwater',), (u'Midland',), (u'Davenport',), (u'Mission Viejo',), (u'Miami Beach',), (u'Sunrise Manor',), (u'New Bedford',), (u'El Cajon',), (u'Norman',), (u'Richmond',), (u'Albany',), (u'Brockton',), (u'Roanoke',), (u'Billings',), (u'Compton',), (u'Gainesville',), (u'Fairfield',), (u'Arden-Arcade',), (u'San Mateo',), (u'Visalia',), (u'Boulder',), (u'Cary',), (u'Santa Monica',), (u'Fall River',), (u'Kenosha',), (u'Elgin',), (u'Odessa',), (u'Carson',), (u'Charleston',)]
+
+As you can see, queries are easy to work with using cursors.  In the example above, we used the *fetchall()* method to retrieve all of the results of the query.  However, there are other options available for cases where all results are not desired.
+
+
+If the statement is a database query - uses the select statement - then it will return a result set. The best way to work with that result set is to iterate over it::
+
+   XXX code
+
+Binding variables
+
+XXX cursors also support prepare
+
+
+The unit of work is a cursor. Let's now look at how to create and then use cursors.
+
+
+Create a cursor with the cursor method on the connection:
+
+
+(zxJDBC maps a cursor to a JDBC ResultSet.)
 
 
 Resource Management
 -------------------
 
+You should always close connections. This is not only good practice
+but absolutely essential in a managed container so as to avoid
+exhausting the corresponding connection pool, which needs the
+connections returned as soon as they are no longer in use. The
+``with`` statement makes it easy:
+
+.. example::
+
+from __future__ import with_statement
+from itertools import islice
+from com.ziclix.python.sql import zxJDBC
+
+# externalize
+jdbc_url =  "jdbc:oracle:thin:@host:port:sid" [XXX generalize]
+username = "world"
+password = "world"
+driver = "oracle.jdbc.driver.OracleDriver"
+
+with zxJDBC.connect(jdbc_url, username, password, driver) as conn:
+    with conn.cursor() as c:
+        c.execute("select * from emp")
+        for row in islice(c, 20):
+            print row # let's redo this w/ namedtuple momentarily...
+
+
+
+(Jython 2.5.0 requires using contextlib.closing; here's how that looks)
+
+The older alternative is available. It's more verbose, and similar to
+the Java code that would normally have to be written to ensure that
+the resource is closed. Note that for backwards compatibility, certain
+defaults have changed.
+
+.. example:
+
 Creating and Executing Queries
 ------------------------------
+
+Here's how to write a query using zxJDBC::
+
+  XXX code
+
+Usually you will want to use binding variables in query statements::
+
+  XXX code
+
+Note that the qmark is always ``?`` in zxJDBC::
+
+>>> XXX
+
+What else?
+
+.. sidebar::
+
+   Ideally, never construct a query statement directly from user data. SQL
+   injection attacks employ such construction as their attack vector.
+   Even when not malicious, user data will often contain characters,
+   such as quotation marks, that can cause the query to fail if not
+   properly escaped. In all cases, it's important to scrub and
+   then escape the user data before it's used in the query.
+
+   XXX is there an escape or quoting function that can be used here? 
+
+
+   One other consideration is that such queries will generally consume
+   more resources unless the database statement cache is able to match
+   it (if at all). 
+
+   But there are two important exceptions to our recommendation:
+
+   * SQL statement requirements. Bind variables cannot be used
+     everywhere. However, specifics will depend on the database.
+
+   * Ad hoc or unrepresentative queries. In databases like Oracle, the
+     statement cache will cache the execution plan, without taking in
+     account lopsided distributions of values that are indexed - but
+     are known to the database if presented literally. In those cases,
+     a more efficient execution plan will result if the value is put
+     in the statement directly.
+
+   However, even in these exceptional cases, it's imperative that any
+   user data is fully scrubbed. A good solution is to use some sort of
+   mapping table, either an internal dictionary or driven from the
+   database itself. In certain cases, a carefully constructed regular
+   expression may also work. Be careful.
+
+Statement Templates
+
+.. example::
+
+   # include example from paper
+
+
+In the past, building one-off SQL query template engines was common in
+Python. It might still be popular, but rarely necessary - it's much
+better to use tools like SQLAlchemy or, if it's specifically for
+object-relational usage, Django. We will discuss both later.
+
+due to unescaped usage.
 
 Retrieving Data
 ---------------
 
 Iteration
 ---------
+
+.. example::
+
+   # exporting data as a CSV file
+
+Older code often used `fetchall`. In addition, so-called static
+cursors were used by default. This practice is not
+recommended. Iteration will generally perform much better, and it does
+not produce fragile code when used with large data sets.
+
+
+Metadata about the Query
+------------------------
+
+c.description
+
+Compare with cx_Oracle or pgsql - it would be nice if the datatype
+that was provided (the constructor), instead of the numeric type -
+make it so
+
+name, type, display_size, internal_size, precision, scale, null_ok).
+
+Also make certain isNullable is a boolean
+
+
+
+Named Tuples
+------------
+
+
+Data Modification Language
+--------------------------
+
+
+Bulk Inserts, Updates, and Merges
+---------------------------------
+(what is best practice here)
+
+
+=======================
+ Data Type Integration
+=======================
+
+Unicode
+Numbers
+Dates and Times
+XML
+BLOBs
+
+Reference Cursors
+-----------------
+
+Databases like Oracle support reference cursors [XXX we may only
+support Oracle, check zxJDBC source - of course we can also use
+customization to support]. Such reference cursors can be created a
+number of ways, but perhaps most easily with cursor expressions:
+
+
+what about input/output variables?
+
+DDL
+---
+
+
+Extensions
+----------
+
+Metadata, lots of metadata!
+See PyExtendedCursor
+(so how do I make one of these from jython source?)
+
+
+Scrollable cursors
+------------------
+
+Cursors can support a more complex interaction than simple iteration,
+through scrolling, and this is exposed by zxJDBC. For web
+applications, this functionality is not at all useful. In others, it
+is rarely seen. One possible use case is for modestly-scaled
+applications with a Swing GUI.
+
+[XXX describe more]
+
+Customization
+-------------
+
+
+preExecute/postExecute
+getRowId
+
+
+And even more; see http://www.jython.org/archive/21/docs/zxjdbc.html which documents the range of this quite extensively.
+
+
+History
+-------
+
+zxJDBC was contributed by Brian Zimmer, one-time lead committer for
+Jython.
+
 
 
 Object Relational Mapping
