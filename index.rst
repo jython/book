@@ -15,7 +15,7 @@ Python for the Java Platform
     Leo Soto,
     Frank Wierzbicki
 
-:Version: 0.7 of 08/17/2009
+:Version: 0.75 of 009/01/2009
 
 This book is presented in open source and licensed through Creative Commons 3.0.
 You are free to copy, distribute, transmit, and/or adapt the work.  This license
@@ -94,7 +94,6 @@ Part III: Developing Applications with Jython
    chapter15.rst
    chapter16.rst
    chapter17.rst
-   chapter18.rst
 
 Part IV:  Strategy and Technique
 ================================
@@ -102,8 +101,8 @@ Part IV:  Strategy and Technique
 .. toctree::
    :maxdepth: 2
    
+   chapter18.rst
    chapter19.rst
-   chapter20.rst
    
 Part V:  Appendicies and Attribution
 ====================================

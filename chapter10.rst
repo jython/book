@@ -1,4 +1,4 @@
-CHAPTER 10: Jython and Java Integration
+Chapter 10: Jython and Java Integration
 +++++++++++++++++++++++++++++++++++++++
 
 Java integration is the heart of Jython application development.  Most Jython developers are either Python developers that are looking to make use of the vast library that the JVM has to offer, or Java developers that would like to utilize the Python language semantics without migrating to a  completely different platform.  The fact is that most Jython developers are using it so that they can take advantage of the vast libraries available to the Java world, and in order to do so there needs to be a certain amount of Java integration in the application.  Whether you plan to use some of the existing Java libraries in your application, or your interested in mixing some great Python code into your Java application, this chapter is geared to help with the integration.

@@ -1,607 +1,1506 @@
-Chapter 18: Deployment Targets
-++++++++++++++++++++++++++++++
+Chapter 18:  Testing and Continuous Integration
++++++++++++++++++++++++++++++++++++++++++++++++
 
-Deployment of Jython applications varies from container to container.  However, they are all very similar and usually allow deployment of WAR file or exploded directory web applications.  Deploying to "the cloud" is a different scenario all together.  Some cloud environments have typical Java application servers available for hosting, while others such as the Google App Engine, and moble run a bit differently.  In this chapter, we'll discuss how to deploy web based Jython applications to a few of the more widely used Java application servers.  We will also cover deployment of Jython web applicaitons to the Google App Engine and mobile devices.  While many of the deployment scenarios are quite similar, this chapter will walk through some of the differences from container to container.
+Nowadays, automated testing is a fundamental activity in software
+development. In this chapter you will see a survey of the tools available for
+Jython is this field, from common tools used in the Python world to aid with
+unit testing to more complex tools available in the Java world which can be
+extended or driven using Jython.
 
-In the end, one of the most important things to remember is that we need to make jython available to our application.  There are different ways to do this, either by ensuring that the *jython.jar* file is included with the application server, or by packaging the JAR directly into each web application.  This chapter assumes that you are using the latter technique.  Placing the *jython.jar* directly into each web application is a good idea because it allows the web application to follow the Java paradigm of "deploy anywhere".  You do not need to worry whether you are deploying to Tomcat or Glassfish because the Jython runtime is embedded in your application.
+Python Testing Tools
+====================
 
-Another new, yet very attractive solution is to deploy to the new Java Store.  The Java Store is still in alpha mode at the time of this writing, but it will eventually afford developers of Java applications a place to deploy their apps and have them distributed via a nicely polished store front application.  The distribution center for the Java Store is known as the Java Warehouse.  In this chapter, we'll discuss a possible solution for packaging applications to deploy to the Java Warehouse. 
+UnitTest
+--------
 
-Lastly, this section will briefly cover some of the reasons why mobile deployment is not yet a vialble option for Jython.  While a couple of targets exist in the mobile world, namely Android and JavaFX, both environments are still very new and Jython has not yet been optimized to run on either.
+First we will take a look at the most classic test tool available in Python:
+Unittest. It follows the conventions of most "xUnit" incarnations (like JUnit):
+You subclass from ``TestCase`` class, write test methods (which must have a name
+starting by "test" and optionally override the methods ``setup()`` and
+``tearDown()`` which are executed around the test methods,. And you can use the
+multiple ``assert*()`` methods provided by ``TestCase``. Here is an very simple
+test case for the some functions of the built-in math module::
 
-Application Servers
-===================
+    import math
+    import unittest
+    
+    class TestMath(unittest.TestCase):
+        def testFloor(self):
+            self.assertEqual(1, math.floor(1.01))
+            self.assertEqual(0, math.floor(0.5))
+            self.assertEqual(-1, math.floor(-0.5))
+            self.assertEqual(-2, math.floor(-1.1))
+    
+        def testCeil(self):
+            self.assertEqual(2, math.ceil(1.01))
+            self.assertEqual(1, math.ceil(0.5))
+            self.assertEqual(0, math.ceil(-0.5))
+            self.assertEqual(-1, math.ceil(-1.1))
+    
+There are many other assertion methods besides ``assertEqual()``, of
+course. Here is a list with the rest of the available assertion methods:
 
-As with any Java web application, the standard web archive (WAR) files are universal throughout the Java application servers available today.  This is good because it makes things a bit easier when it comes to the "write once run everywhere" philosophy that has been brought forth with the Java name.  The great part of using Jython for deployment to application servers is just that, we can harness the technologies of the JVM to make our lives easier and deploy a Jython web application to any application server in the WAR format with very little tweaking.
+* ``assertNotEqual(a, b)``: The opposite of ``assertEqual()``
 
-If you have not yet used Django or Pylons on Jython, then you may not be aware that the resulting application to be deployed is in the WAR format.  This is great because it leaves no assumption as to how the application should be deployed.  All WAR files are deployed in the same manner according to each application server.  This section will discuss how to deploy a WAR file on each of the three most widely used Java application servers.  Now, all application servers are not covered in this section mainly due to the number of servers available today.  Such a document would take more than one section of a book no doubt.  However, you should be able to follow similar deployment instructions as those discussed here for any of the application servers available today for deploying Jython web applications in the WAR file format.
+* ``assertAlmostEqual(a, b)``: Only used for numeric comparison. It adds a sort
+  of tolerance for insignificant differences, by subtracting its first two
+  arguments after rounding them to the seventh decimal place, and later
+  comparing the result to zero. You can specify a different number of decimal
+  places in the third argument. This is useful for comparison of floating point
+  numbers.
 
-Tomcat
+* ``assertNotAlmostEqual(a, b)``: The opposite of ``assertAlmostEqual()``
+
+* ``assert_(x)``: Accepts a boolean argument expecting it to be ``True``. You can
+  use it to write other checks like "greater than", or to check boolean
+  functions/attributes (The trailing underscore is needed because ``assert`` is
+  a keyword).
+
+* ``assertFalse(x)``. The opposite of ``assert_()``.
+
+* ``assertRaises(exception, callable)``. Used to assert that an exception passed
+  as the first argument is thrown when invoking the callable specified as the
+  second argument. The rest of arguments passed to assertRaises is passed on to
+  the callable.
+
+As an example, let's extend our test of mathematical functions using some of
+these other assertion functions::
+
+    import math
+    import unittest
+    import operator
+    
+    class TestMath(unittest.TestCase):
+            
+        # ...
+    
+        def testMultiplication(self):
+            self.assertAlmostEqual(0.3, 0.1 * 3)
+    
+        def testDivision(self):
+            self.assertRaises(ZeroDivisionError, operator.div, 1, 0)
+            # The same assertion using a different idiom:
+            self.assertRaises(ZeroDivisionError, lambda: 1 / 0)
+    
+Now, you may be wondering how to run this test case. The simple answer is to add
+the following to the file in which we defined it::
+
+    if __name__ == '__main__':
+        unittest.main()
+
+Finally, just run the module. Say, if you wrote all this code on a file named
+``test_math.py``, then run::
+
+    $ jython test_math.py
+
+And you will see this output::
+
+    ....
+    ----------------------------------------------------------------------
+    Ran 4 tests in 0.005s
+    
+    OK
+
+Each dot about the dash line represent a successfully ran test. Let see what
+happens if we add a test that fails. Change the invocation
+``assertAlmostEqual()`` method in ``testMultiplication()`` to use
+``assertEqual()`` instead. If you run the module again, you will see the
+following output::
+
+    ...F
+    ======================================================================
+    FAIL: testMultiplication (__main__.TestMath)
+    ----------------------------------------------------------------------
+    Traceback (most recent call last):
+      File "test_math.py", line 22, in testMultiplication
+        self.assertEqual(0.3, 0.1 * 3)
+    AssertionError: 0.3 != 0.30000000000000004
+    
+    ----------------------------------------------------------------------
+    Ran 4 tests in 0.030s
+
+    FAILED (failures=1)
+
+As you can see, the last dot is now an "F", and an explanation of the failure is
+printed, pointing out that ``0.3`` and ``0.30000000000000004`` are not
+equal. The last line also shows the grand total of 1 failure.
+
+By the way, now you can imagine why using ``assertEquals(x, y)`` is better than
+``assert_(x == y)``: if the test fails, ``assertEquals()`` provides helpful
+information, which ``assert_()`` can't possibly provide by itself. To see this
+in action, let's change ``testMultiplication()`` to use ``assert_()``::
+
+    class TestMath(unittest.TestCase):
+        
+        #...
+
+        def testMultiplication(self):
+            self.assert_(0.3 == 0.1 * 3)
+
+If you run the test again, the output will be::
+
+    ...F
+    ======================================================================
+    FAIL: testMultiplication (__main__.TestMath)
+    ----------------------------------------------------------------------
+    Traceback (most recent call last):
+      File "test_math.py", line 24, in testMultiplication
+        self.assert_(0.3 == 0.1 * 3)
+    AssertionError
+    
+    ----------------------------------------------------------------------
+    Ran 4 tests in 0.054s
+    
+    FAILED (failures=1)
+
+Now all what we have is the traceback and the "AssertionError" message. No extra
+information is provided to help us diagnostic the failure, as it was the case
+when we use ``assertEqual()``. That's why all the specialized ``assert*()``
+methods are so helpful. Actually, with the exception of ``assertRaises()`` all
+assertion methods accept an extra parameter meant to be the debugging message
+which will be shown in case the test fails. That lets you write helper methods
+like::
+
+    class SomeTestCase(unittest.TestCase):
+        def assertGreaterThan(a, b):
+	    self.assert_(a > b, '%d isn't greater than %d')
+
+	def testSomething(self):
+	    self.assertGreaterThan(10, 4)
+
+As your application gets bigger, the number of test cases will grow
+too. Eventually, you may not want to keep all the tests on one python module,
+for maintainability reasons.
+
+Let's create a new module, named ``test_lists.py`` with the following test
+code::
+
+    import unittest
+    
+    class TestLists(unittest.TestCase):
+        def setUp(self):
+            self.list = ['foo', 'bar', 'baz']
+    
+        def testLen(self):
+            self.assertEqual(3, len(self.list))
+    
+        def testContains(self):
+            self.assert_('foo' in self.list)
+            self.assert_('bar' in self.list)
+            self.assert_('baz' in self.list)
+    
+        def testSort(self):        
+            self.assertNotEqual(['bar', 'baz', 'foo'], self.list)
+            self.list.sort()
+            self.assertEqual(['bar', 'baz', 'foo'], self.list)
+                
+.. note:: 
+
+   In the previous code you can see an example on a ``setUp()`` method, which
+   allows us to avoid repeating the same initialization code on each ``test*()``
+   method.
+
+And, restoring our math tests to a good state, the ``test_math.py`` will contain
+the following::
+ 
+    import math
+    import unittest
+    import operator
+    
+    class TestMath(unittest.TestCase):
+        def testFloor(self):
+            self.assertEqual(1, math.floor(1.01))
+            self.assertEqual(0, math.floor(0.5))
+            self.assertEqual(-1, math.floor(-0.5))
+            self.assertEqual(-2, math.floor(-1.1))
+    
+        def testCeil(self):
+            self.assertEqual(2, math.ceil(1.01))
+            self.assertEqual(1, math.ceil(0.5))
+            self.assertEqual(0, math.ceil(-0.5))
+            self.assertEqual(-1, math.ceil(-1.1))
+    
+        def testDivision(self):
+            self.assertRaises(ZeroDivisionError, operator.div, 1, 0)
+            # The same assertion using a different idiom:
+            self.assertRaises(ZeroDivisionError, lambda: 1 / 0)
+
+        def testMultiplication(self):
+            self.assertAlmostEqual(0.3, 0.1 * 3)
+
+Now, how do we run, in one pass, tests defined in different modules? One option
+is to manually build a *test suite*. A test suite is a simply collection of test
+cases (and/or other test suites) which, when ran, will run all the test cases
+(and/or test suites) contained by it. Note that a new test case instance is
+built for each test method, so suites have already been build under the hood
+every time you have run a test module. Our work, then, is to "paste" the suites
+together.
+
+Let's build suites using the interactive interpreter! 
+
+First, import the involved modules:
+
+    >>> import unittest, test_math, test_lists
+
+Then, we will obtain the test suites for each one of our test modules (which
+were implicitly created when running them using the ``unittest.main()``
+shortcut), using the ``unittest.TestLoader`` class::
+
+    >>> loader = unittest.TestLoader()
+    >>> math_suite = loader.loadTestsFromModule(test_math)
+    >>> lists_suite = loader.loadTestsFromModule(test_lists)
+
+Now we build a new suite which combine these suites::
+
+    >>> global_suite = unittest.TestSuite([math_suite, lists_suite])
+
+And finally, we run the suite::
+
+    >>> unittest.TextTestRunner().run(global_suite)
+    .......
+    ----------------------------------------------------------------------
+    Ran 7 tests in 0.010s
+    
+    OK
+    <unittest._TextTestResult run=7 errors=0 failures=0>
+    
+Or, if you feel like wanting a more verbose output::
+
+    >>> unittest.TextTestRunner(verbosity=2).run(global_suite)              
+    testCeil (test_math.TestMath) ... ok
+    testDivision (test_math.TestMath) ... ok
+    testFloor (test_math.TestMath) ... ok
+    testMultiplication (test_math.TestMath) ... ok
+    testContains (test_lists.TestLists) ... ok
+    testLen (test_lists.TestLists) ... ok
+    testSort (test_lists.TestLists) ... ok
+    
+    ----------------------------------------------------------------------
+    Ran 7 tests in 0.020s
+    
+    OK
+    <unittest._TextTestResult run=7 errors=0 failures=0>
+
+Using this low level knowledge about loaders, suites and runner you can easily
+write a script to run the tests of any project. Obviously, the details of the
+script will vary from project to project depending the way in which you decide
+to organize your tests. 
+
+On the other hand, typically you won't write custom scripts to run all your
+tests. Using test tools which do automatic test discovery will be a much
+convenient approach. We will look one of them shortly. But first, I must show
+you other testing tool very popular in the Python world: doctests.
+
+Doctests
+--------
+
+Doctests are a very ingenious combination of, well, documentation and tests. A
+doctest is, in essence, no more than a snapshot of a interactive interpreter
+session, mixed with paragraphs of documentation, typically inside of a
+docstring. Here is a simple example::
+
+    def is_even(number):
+        """
+        Checks if an integer number is even. 
+        
+        >>> is_even(0)
+        True
+        
+        >>> is_even(2)
+        True
+        
+        >>> is_even(3)
+        False
+    
+        It works with very long numbers:
+        
+        >>> is_even(100000000000000000000000000000)
+        True
+        
+        And also with negatives:
+        
+        >>> is_even(-1000000000000000000000000000001)
+        False
+        
+        But not with floats:
+        
+        >>> is_even(4.1)
+        Traceback (most recent call last):
+        ...
+        ValueError: 4.1 isn't an integer
+        
+        However, a value of type float as long as it value is an integer:
+        
+        >>> is_even(4.0)
+        True
+        """
+        remainder = number % 2
+        if 0 < remainder < 1:
+            raise ValueError("%f isn't an integer" % number)
+        return remainder == 0
+
+Note that, if we weren't talking about testing, we may have thought that the
+docstring of ``is_even()`` is just normal documentation, in which the convention
+of using the interpreter prompt to mark example expressions and their outputs
+was adopted (also note also that irrelevant stack trace has been striped of in
+the exception example). After all, in many cases we use examples as part of the
+documentation. Take a look at Java's ``SimpleDateFormat`` documentation located
+in http://java.sun.com/javase/6/docs/api/java/text/SimpleDateFormat.html and you
+will spot fragments like:
+
+* "...using a pattern of MM/dd/yy and a SimpleDateFormat instance created on
+  Jan 1, 1997, the string 01/11/12 would be interpreted as Jan 11, 2012..."
+
+* "...01/02/3 or 01/02/003 are parsed, using the same pattern, as Jan 2, 3 AD..."
+
+* "..."01/02/-3" is parsed as Jan 2, 4 BC..."
+
+The magic of doctests if that it encourages the inclusion of these examples by
+doubling them as tests. Let's save our example code as ``even.py`` and add the
+following snippet at the end::
+
+    if __name__ == "__main__":
+        import doctest
+        doctest.testmod()
+    
+Then, run it::
+
+    $ jython even.py
+
+And well, doctests are a bit shy and don't show any output on success. But to
+convince you that it is indeed testing our code, run it with the ``-v`` option::
+
+    $ jython even.py -v
+
+    Trying:
+        is_even(0)
+    Expecting:
+        True
+    ok
+    Trying:
+        is_even(2)
+    Expecting:
+        True
+    ok
+    Trying:
+        is_even(3)
+    Expecting:
+        False
+    ok
+    Trying:
+        is_even(100000000000000000000000000000)
+    Expecting:
+        True
+    ok
+    Trying:
+        is_even(-1000000000000000000000000000001)
+    Expecting:
+        False
+    ok
+    Trying:
+        is_even(4.1)
+    Expecting:
+        Traceback (most recent call last):
+        ...
+        ValueError: 4.1 isn't an integer
+    ok
+    Trying:
+        is_even(4.0)
+    Expecting:
+        True
+    ok
+    1 items had no tests:
+        __main__
+    1 items passed all tests:
+       7 tests in __main__.is_even
+    7 tests in 2 items.
+    7 passed and 0 failed.
+    Test passed.
+
+Doctests are a very, very convenient way to do testing, since the interactive
+examples can be directly copy-pasted from the interactive shell, transforming
+the manual testing in documentation examples and automated tests in one shot.
+
+You don't really *need* to include doctests as part of the documentation of the
+feature they test. Nothing stops you to write the following code in, say, the
+``test_math_using_doctest.py`` module::
+
+    """
+    Doctests equivalent to test_math unittests seen in the previous section.
+    
+    >>> import math
+    
+    Tests for floor():
+    
+    >>> math.floor(1.01)
+    1
+    >>> math.floor(0.5)
+    0
+    >>> math.floor(-0.5)
+    -1
+    >>> math.floor(-1.1)
+    -2
+    
+    Tests for ceil():
+    
+    >>> math.ceil(1.01)
+    2
+    >>> math.ceil(0.5)
+    1
+    >>> math.ceil(-0.5)
+    0
+    >>> math.ceil(-1.1)
+    -1
+    
+    Test for division:
+    
+    >>> 1 / 0
+    Traceback (most recent call last):
+    ...
+    ZeroDivisionError: integer division or modulo by zero
+   
+    Test for floating point multiplication:
+ 
+    >>> (0.3 - 0.1 * 3) < 0.0000001
+    True
+    
+    """
+    if __name__ == "__main__":
+        import doctest
+        doctest.testmod()
+    
+
+One thing to note on the last test in the previous example, is that in some
+cases doctests are not the most clean way to express a test. Also note that if
+that test fails you will *not* get useful information from the failure. It will
+tell you that the output was ``False`` when ``True`` was expected, without the
+extra details that ``assertAlmostEquals()`` would give you. The morale of the
+history is to realize that doctest is just another tool in the toolbox, which
+can fit very well in some cases and not fit well in others.
+
+.. warning::
+
+   Speaking of doctests gotchas: The use of dictionary outputs in doctests is a
+   very common error that breaks the portability of your doctests across Python
+   implementations (e.g. Jython, CPython and IronPython) . The trap here is that
+   the **order of dict keys is implementation-dependent**, so the test may pass
+   when working on some implementation and fail horribly on others. The
+   workaround is to convert the dict to a sequence of tuples and sort them,
+   using ``sorted(mydict.items())``.
+
+   That shows the big downfall of doctests: It always does a textual comparison
+   of the expression, converting the result to string. It isn't aware of the
+   objects structure.
+
+To take advantage of doctests we have to follow some simple rules, like using
+the ``>>>`` prompt and leaving a blank line between sample output and the next
+paragraph. But if you think about it, it's the same kind of sane rules that
+makes the documentation readable by people.
+
+The only common rule not shown by the examples shown in this section is the way
+to write expressions which are written in more than one line. As you may expect,
+you have to follow the same convention used by the interactive interpreter:
+start the continuation lines with an ellipsis ("..."). For example::
+
+    """    
+    Addition is commutative:
+
+    >>> ((1 + 2) ==
+    ...  (2 + 1))
+    True
+    """
+
+A Complete Example
+------------------
+
+Having seen the two test frameworks used in the Python world, let's see them
+applied to a more meaningful program. We will write code to check for solutions
+of the eight-queens chess puzzle. The idea of the puzzle is to place eight
+queens in a chessboard, with no queen attacking each other. Queens can attack
+any piece placed in the same row, column or diagonals. The figure
+:ref:`fig-eightqueens` shows one of the solutions of the puzzle.
+
+.. _fig-eightqueens:
+
+.. figure:: images/chapter19-eightqueens.png
+
+   Eight queens solution
+
+I like to use doctests to check the contract of the program with the outside,
+and unittest for what we could see as the internal tests. I do that because
+external interfaces tend to be clearly documented, and automated testing of the
+examples in the documentation is always a great thing. On the other hand,
+unittests shine on pointing us to the very specific source of a bug, or at the
+very least on providing more useful debugging information than doctests. 
+
+.. note::
+
+   In practice, both type of tests have strengths and weakness, and you may find
+   some cases in which you will prefer the readability and simplicity of
+   doctests and only use them on your project. Or you will favor the
+   granularity and isolation of unittests and only use them on your project. As
+   many things in life, it's a trade-off.
+
+We'll develop this program in a test-driven development fashion. Test will be
+written first, as a sort of specification for our program, and code will be
+written later to fulfill the tests requirements.
+
+Let's start by specifying the public interface of our puzzle checker, which will
+live on the ``eightqueen`` package. This is the start of the main module,
+``eightqueen.checker``::
+
+    """
+    eightqueen.checker: Validates solutions for the eight queens puzzle.
+    
+    Provides the function is_solution(board) to determine if a board represents a
+    valid solution of the puzzle.
+    
+    The chess board is represented by list of 8 strings, each string of length
+    8. Positions occupied by a Queen are marked by the character 'Q', and empty
+    spaces are represented by an space character.
+    
+    Here is a valid board:
+    
+    >>> board = ['Q       ',
+    ...          ' Q      ',
+    ...          '  Q     ',
+    ...          '   Q    ',
+    ...          '    Q   ',
+    ...          '     Q  ',
+    ...          '      Q ',
+    ...          '       Q']
+    
+    Naturally, it is not a correct solution:
+    
+    >>> is_solution(board)
+    False
+    
+    Here is a correct solution:
+    
+    >>> is_solution(['Q       ',
+    ...              '    Q   ',
+    ...              '       Q',
+    ...              '     Q  ',
+    ...              '  Q     ',
+    ...              '      Q ',
+    ...              ' Q      ',
+    ...              '   Q    '])
+    True
+    
+    Malformed boards are rejected and a ValueError is thrown:
+    
+    >>> is_solution([])
+    Traceback (most recent call last):
+    ...
+    ValueError: Malformed board
+    
+    Only 8 x 8 boards are supported.
+    
+    >>> is_solution(['Q   ',
+    ...              ' Q  ',
+    ...              '  Q ',
+    ...              '   Q'])
+    Traceback (most recent call last):
+    ...
+    ValueError: Malformed board
+    
+    And they must only contains Qs and spaces:
+    
+    >>> is_solution(['X       ',
+    ...              '    X   ',
+    ...              '       X',
+    ...              '     X  ',
+    ...              '  X     ',
+    ...              '      X ',
+    ...              ' X      ',
+    ...              '   X    '])
+    Traceback (most recent call last):
+    ...
+    ValueError: Malformed board
+    
+    And the total number of Qs must be eight:
+    
+    >>> is_solution(['QQQQQQQQ',
+    ...              'Q       ',
+    ...              '        ',
+    ...              '        ',
+    ...              '        ',
+    ...              '        ',
+    ...              '        ',
+    ...              '        '])
+    Traceback (most recent call last):
+    ...
+    ValueError: There must be exactly 8 queens in the board
+    
+    >>> is_solution(['QQQQQQQ ',
+    ...              '        ',
+    ...              '        ',
+    ...              '        ',
+    ...              '        ',
+    ...              '        ',
+    ...              '        ',
+    ...              '        '])
+    Traceback (most recent call last):
+    ...
+    ValueError: There must be exactly 8 queens in the board
+                 
+    """
+    
+That's a good start: we know what we have to build. The doctests play the role
+of a more precise problem statement. Actually, it's an executable problem
+statement which can be used to verify our solution to the problem.
+
+Now we will specify the "internal" interface which shows how we can solve the
+problem of writing the solution checker. It's a common practice to write the
+unit tests on a separate module. So here is the code for
+``eightqueens.test_checker``::
+
+    import unittest
+    from eightqueens import checker
+    
+    BOARD_TOO_SMALL = ['Q' * 3 for i in range(3)]
+    BOARD_TOO_BIG = ['Q' * 10 for i in range(10)]
+    BOARD_WITH_TOO_MANY_COLS = ['Q' * 9 for i in range(8)]
+    BOARD_WITH_TOO_MANY_ROWS = ['Q' * 8 for i in range(9)]
+    BOARD_FULL_OF_QS = ['Q' * 8 for i in range(8)]
+    BOARD_FULL_OF_CRAP = [chr(65 + i) * 8 for i in range(8)]
+    BOARD_EMPTY = [' ' * 8 for i in range(8)]
+    
+    BOARD_WITH_QS_IN_THE_SAME_ROW = ['Q   Q   ',
+                                     '        ',
+                                     '       Q',
+                                     '     Q  ',
+                                     '  Q     ',
+                                     '      Q ',
+                                     ' Q      ',
+                                     '   Q    ']
+    BOARD_WITH_WRONG_SOLUTION = BOARD_WITH_QS_IN_THE_SAME_ROW
+    
+    BOARD_WITH_QS_IN_THE_SAME_COL = ['Q       ',
+                                     '    Q   ',
+                                     '       Q',
+                                     'Q       ',
+                                     '  Q     ',
+                                     '      Q ',
+                                     ' Q      ',
+                                     '   Q    ']
+    
+    BOARD_WITH_QS_IN_THE_SAME_DIAG_1 = ['        ',
+                                        '        ',
+                                        '        ',
+                                        '        ',
+                                        '        ',
+                                        '        ',
+                                        'Q       ',
+                                        ' Q      ']
+    
+    BOARD_WITH_QS_IN_THE_SAME_DIAG_2 = ['        ',
+                                        '   Q    ',
+                                        '        ',
+                                        '     Q  ',
+                                        '        ',
+                                        '        ',
+                                        '        ',
+                                        '        ']
+    
+    BOARD_WITH_QS_IN_THE_SAME_DIAG_3 = ['        ',
+                                        '      Q ',
+                                        '        ',
+                                        '        ',
+                                        '        ',
+                                        '  Q     ',
+                                        '        ',
+                                        '        ']
+    
+    
+    BOARD_WITH_QS_IN_THE_SAME_DIAG_4 = ['        ',
+                                        '    Q   ',
+                                        '        ',
+                                        '        ',
+                                        '        ',
+                                        'Q       ',
+                                        '        ',
+                                        '        ']
+    
+    
+    BOARD_WITH_QS_IN_THE_SAME_DIAG_5 = ['       Q',
+                                        '      Q ',
+                                        '     Q  ',
+                                        '    Q   ',
+                                        '   Q    ',
+                                        '  Q     ',
+                                        ' Q      ',
+                                        'Q       ']
+    
+    
+    
+    BOARD_WITH_SOLUTION = ['Q       ',
+                           '    Q   ',
+                           '       Q',
+                           '     Q  ',
+                           '  Q     ',
+                           '      Q ',
+                           ' Q      ',
+                           '   Q    ']
+    
+    
+    class ValidationTest(unittest.TestCase):
+        def testValidateShape(self):
+            def assertNotValidShape(board):
+                self.assertFalse(checker._validate_shape(board))
+    
+            # Some invalid shapes:
+            assertNotValidShape([])
+            assertNotValidShape(BOARD_TOO_SMALL)
+            assertNotValidShape(BOARD_TOO_BIG)
+            assertNotValidShape(BOARD_WITH_TOO_MANY_COLS)
+            assertNotValidShape(BOARD_WITH_TOO_MANY_ROWS)
+            
+            def assertValidShape(board):
+                self.assert_(checker._validate_shape(board))
+    
+            assertValidShape(BOARD_WITH_SOLUTION)
+            # Shape validation doesn't care about board contents:
+            assertValidShape(BOARD_FULL_OF_QS)        
+            assertValidShape(BOARD_FULL_OF_CRAP)
+    
+        def testValidateContents(self):
+            # Valid content => only 'Q' and ' ' in the board
+            self.assertFalse(checker._validate_contents(BOARD_FULL_OF_CRAP))
+            self.assert_(checker._validate_contents(BOARD_WITH_SOLUTION))
+            # Content validation doesn't care about the number of queens:
+            self.assert_(checker._validate_contents(BOARD_FULL_OF_QS))
+    
+    
+        def testValidateQueens(self):
+            self.assertFalse(checker._validate_queens(BOARD_FULL_OF_QS))
+            self.assertFalse(checker._validate_queens(BOARD_EMPTY))
+            self.assert_(checker._validate_queens(BOARD_WITH_SOLUTION))
+            self.assert_(checker._validate_queens(BOARD_WITH_WRONG_SOLUTION))
+            
+    
+    class PartialSolutionTest(unittest.TestCase):
+        def testRowsOK(self):
+            self.assert_(checker._rows_ok(BOARD_WITH_SOLUTION))
+            self.assertFalse(checker._rows_ok(BOARD_WITH_QS_IN_THE_SAME_ROW))
+    
+        def testColsOK(self):
+            self.assert_(checker._cols_ok(BOARD_WITH_SOLUTION))
+            self.assertFalse(checker._cols_ok(BOARD_WITH_QS_IN_THE_SAME_COL))
+    
+        def testDiagonalsOK(self):
+            self.assert_(checker._diagonals_ok(BOARD_WITH_SOLUTION))
+            self.assertFalse(
+                checker._diagonals_ok(BOARD_WITH_QS_IN_THE_SAME_DIAG_1))
+            self.assertFalse(
+                checker._diagonals_ok(BOARD_WITH_QS_IN_THE_SAME_DIAG_2))
+            self.assertFalse(
+                checker._diagonals_ok(BOARD_WITH_QS_IN_THE_SAME_DIAG_3))
+            self.assertFalse(
+                checker._diagonals_ok(BOARD_WITH_QS_IN_THE_SAME_DIAG_4))
+            self.assertFalse(
+                checker._diagonals_ok(BOARD_WITH_QS_IN_THE_SAME_DIAG_5))
+    
+    class SolutionTest(unittest.TestCase):
+        def testIsSolution(self):
+            self.assert_(checker.is_solution(BOARD_WITH_SOLUTION))
+    
+            self.assertFalse(checker.is_solution(BOARD_WITH_QS_IN_THE_SAME_COL))
+            self.assertFalse(checker.is_solution(BOARD_WITH_QS_IN_THE_SAME_ROW))
+            self.assertFalse(checker.is_solution(BOARD_WITH_QS_IN_THE_SAME_DIAG_5))
+    
+            self.assertRaises(ValueError, checker.is_solution, BOARD_TOO_SMALL)
+            self.assertRaises(ValueError, checker.is_solution, BOARD_FULL_OF_CRAP)
+            self.assertRaises(ValueError, checker.is_solution, BOARD_EMPTY)
+            
+        
+These unit tests propose a way to solve the problem, decomposing it in two big
+tasks (input validation and the actual verification of solutions) and each task
+is decomposed on a smaller portion meant to be implemented by a function. In
+some way, they are an executable design of the solution.
+
+So we have a mix of doctests and unit tests. How do we run all of them in one
+shot? Previously I showed you how to manually compose a test suite for unit
+tests belonging to different modules, so that may be an answer. And indeed,
+there is a way to add doctests to test suites:
+``doctest.DocTestSuite(module_with_doctests)``. But, since we are working on a
+more real testing example, we will use a real world solution to this problem (as
+you can imagine, people got tired of the tedious work and more automated
+solutions appeared).
+
+Nose
+----
+
+Nose is a tool for test discovery and execution. By default, nose tries to run
+tests on any module whose name starts with "test". You can override that, of
+course. In our case, the example code of the previous section follows the
+convention (the test module is named ``eightqueens.test_checker``).
+
+.. XXX: I'm duplicating setuptools instructions here, from Chapter 14. We need
+..      to rethink in which part of the book we want to introduce setuptools
+
+An easy way to install nose is via setuptools. First, download ez_setup.py from
+http://peak.telecommunity.com/dist/ez_setup.py. Then, go to the directory where
+you left the downloaded file and execute::
+
+    $ jython ez_setup.py
+
+You will see the following output::
+
+    Downloading http://pypi.python.org/packages/2.5/s/setuptools/setuptools-0.6c9-py2.5.egg
+    Processing setuptools-0.6c9-py2.5.egg
+    Copying setuptools-0.6c9-py2.5.egg to /home/lsoto/jython2.5.0/Lib/site-packages
+    Adding setuptools 0.6c9 to easy-install.pth file
+    Installing easy_install script to /home/lsoto/jython2.5.0/bin
+    Installing easy_install-2.5 script to /home/lsoto/jython2.5.0/bin
+    
+    Installed /home/lsoto/jython2.5.0/Lib/site-packages/setuptools-0.6c9-py2.5.egg
+    Processing dependencies for setuptools==0.6c9
+    Finished processing dependencies for setuptools==0.6c9
+
+(Naturally, the filesystem paths will change, but it will be essentially the
+same)
+
+After this, you have setuptools installed, and the ``easy_install`` command
+available. Armed with this we proceed to install nose::
+
+    $ easy_install nose
+  
+.. note::
+
+   I'm assuming that the ``bin`` directory of the Jython installation is on your
+   ``PATH``. If it's not, you will have to explicitly type that path preceding
+   each command like ``jython`` or ``easy_install`` with that path (i.e., you
+   will need to type something like ``/path/to/jython/bin/easy_install`` instead
+   of just ``easy_install``)
+
+Once nose is installed, an executable named ``nosetests`` will appear on the
+``bin/`` directory of your Jython installation. Let's try it, locating ourselves
+on the parent directory of ``eightqueens`` and running::
+
+    $ nosetests --with-doctest
+
+By default nose do *not* run doctests, so we have to explicitly enable the
+doctest plugin that comes built in with nose. 
+
+Back to our example, here is the shortened output after running nose::
+
+    FEEEEEE
+
+    [Snipped output]
+
+    ----------------------------------------------------------------------
+    Ran 8 tests in 1.133s
+    FAILED (errors=7, failures=1)
+
+Of course all of our tests (6 unit tests and 1 doctest) failed. It's time to fix
+that. But first, let's run nose again *without* the doctests, since we will
+follow the unit tests to construct the solution. And we know that as long as our
+unit tests fail, the doctest will also likely fail. Once all unit tests pass, we
+can check our whole program against the high level doctest and see if we missed
+something or did it right. Here is the nose output for the unit tests::
+
+    $ nosetests
+    EEEEEEE
+    ======================================================================
+    ERROR: testIsSolution (eightqueens.test_checker.SolutionTest)
+    ----------------------------------------------------------------------
+    Traceback (most recent call last):
+      File "/path/to/eightqueens/test_checker.py", line 149, in testIsSolution
+        self.assert_(checker.is_solution(BOARD_WITH_SOLUTION))
+    AttributeError: 'module' object has no attribute 'is_solution'
+    
+    ======================================================================
+    ERROR: testColsOK (eightqueens.test_checker.PartialSolutionTest)
+    ----------------------------------------------------------------------
+    Traceback (most recent call last):
+      File "/path/to/eightqueens/test_checker.py", line 100, in testColsOK
+        self.assert_(checker._cols_ok(BOARD_WITH_SOLUTION))
+    AttributeError: 'module' object has no attribute '_cols_ok'
+    
+    ======================================================================
+    ERROR: testDiagonalsOK (eightqueens.test_checker.PartialSolutionTest)
+    ----------------------------------------------------------------------
+    Traceback (most recent call last):
+      File "/path/to/eightqueens/test_checker.py", line 104, in testDiagonalsOK
+        self.assert_(checker._diagonals_ok(BOARD_WITH_SOLUTION))
+    AttributeError: 'module' object has no attribute '_diagonals_ok'
+    
+    ======================================================================
+    ERROR: testRowsOK (eightqueens.test_checker.PartialSolutionTest)
+    ----------------------------------------------------------------------
+    Traceback (most recent call last):
+      File "/path/to/eightqueens/test_checker.py", line 96, in testRowsOK
+        self.assert_(checker._rows_ok(BOARD_WITH_SOLUTION))
+    AttributeError: 'module' object has no attribute '_rows_ok'
+
+    ======================================================================
+    ERROR: testValidateContents (eightqueens.test_checker.ValidationTest)
+    ----------------------------------------------------------------------
+    Traceback (most recent call last):
+      File "/path/to/eightqueens/test_checker.py", line 81, in testValidateContents
+        self.assertFalse(checker._validate_contents(BOARD_FULL_OF_CRAP))
+    AttributeError: 'module' object has no attribute '_validate_contents'
+    
+    ======================================================================
+    ERROR: testValidateQueens (eightqueens.test_checker.ValidationTest)
+    ----------------------------------------------------------------------
+    Traceback (most recent call last):
+      File "/path/to/eightqueens/test_checker.py", line 88, in testValidateQueens
+        self.assertFalse(checker._validate_queens(BOARD_FULL_OF_QS))
+    AttributeError: 'module' object has no attribute '_validate_queens'
+    
+    ======================================================================
+    ERROR: testValidateShape (eightqueens.test_checker.ValidationTest)
+    ----------------------------------------------------------------------
+    Traceback (most recent call last):
+      File "/path/to/eightqueens/test_checker.py", line 65, in testValidateShape
+        assertNotValidShape([])
+      File "/path/to/eightqueens/test_checker.py", line 62, in assertNotValidShape
+        self.assertFalse(checker._validate_shape(board))
+    AttributeError: 'module' object has no attribute '_validate_shape'
+    
+    ----------------------------------------------------------------------
+    Ran 7 tests in 0.493s
+    
+    FAILED (errors=7)
+
+Let's start clearing the failures by coding the validation functions specified
+by the ``ValidationTest``. That is, the ``_validate_shape()``,
+``_validate_contents()`` and ``validate_queens()`` functions, in the
+``eightqueens.checker`` module::
+
+    def _validate_shape(board):
+        return (board and
+                len(board) == 8 and
+                all(len(row) == 8 for row in board))
+    
+    def _validate_contents(board):
+        for row in board:
+            for square in row:
+                if square not in ('Q', ' '):
+                    return False
+        return True
+    
+    def _count_queens(row):
+        n = 0
+        for square in row:
+            if square == 'Q':
+                n += 1
+        return n
+    
+    def _validate_queens(board):
+        n = 0
+        for row in board:
+            n += _count_queens(row)
+        return n == 8
+    
+And now run nose again::
+    
+    $ nosetests
+
+    EEEE...
+    ======================================================================
+    ERROR: testIsSolution (eightqueens.test_checker.SolutionTest)
+    ----------------------------------------------------------------------
+    Traceback (most recent call last):
+      File "/path/to/eightqueens/test_checker.py", line 149, in testIsSolution
+        self.assert_(checker.is_solution(BOARD_WITH_SOLUTION))
+    AttributeError: 'module' object has no attribute 'is_solution'
+
+    ======================================================================
+    ERROR: testColsOK (eightqueens.test_checker.PartialSolutionTest)
+    ----------------------------------------------------------------------
+    Traceback (most recent call last):
+      File "/path/to/eightqueens/test_checker.py", line 100, in testColsOK
+        self.assert_(checker._cols_ok(BOARD_WITH_SOLUTION))
+    AttributeError: 'module' object has no attribute '_cols_ok'
+    
+    ======================================================================
+    ERROR: testDiagonalsOK (eightqueens.test_checker.PartialSolutionTest)
+    ----------------------------------------------------------------------
+    Traceback (most recent call last):
+      File "/path/to/eightqueens/test_checker.py", line 104, in testDiagonalsOK
+        self.assert_(checker._diagonals_ok(BOARD_WITH_SOLUTION))
+    AttributeError: 'module' object has no attribute '_diagonals_ok'
+    
+    ======================================================================
+    ERROR: testRowsOK (eightqueens.test_checker.PartialSolutionTest)
+    ----------------------------------------------------------------------
+    Traceback (most recent call last):
+      File "/path/to/eightqueens/test_checker.py", line 96, in testRowsOK
+        self.assert_(checker._rows_ok(BOARD_WITH_SOLUTION))
+    AttributeError: 'module' object has no attribute '_rows_ok'
+    
+    ----------------------------------------------------------------------
+    Ran 7 tests in 0.534s
+    
+    FAILED (errors=4)
+
+We passed all the validation tests! Now we should implement the functions
+``_rows_ok()``, ``_cols_ok()`` and ``_diagonals_ok()`` to pass
+``PartialSolutionTest``::
+
+    def _scan_ok(board, coordinates):
+        queen_already_found = False
+        for i, j in coordinates:
+            if board[i][j] == 'Q':
+                if queen_already_found:
+                    return False
+                else:
+                    queen_already_found = True
+        return True
+            
+    
+    def _rows_ok(board):
+        for i in range(8):
+            if not _scan_ok(board, [(i, j) for j in range(8)]):
+                return False
+        return True
+    
+    def _cols_ok(board):
+        for j in range(8):
+            if not _scan_ok(board, [(i, j) for i in range(8)]):
+                return False
+        return True
+    
+    def _diagonals_ok(board):
+        for k in range(8):
+            # Diagonal: (0, k), (1, k + 1), ..., (7 - k, 7)...
+            if not _scan_ok(board, [(i, k + i) for i in range(8 - k)]):
+                return False
+            # Diagonal: (k, 0), (k + 1, 1), ..., (7, 7 - k)
+            if not _scan_ok(board, [(k + j, j) for j in range(8 - k)]):
+                return False
+    
+            # Diagonal: (0, k), (1, k - 1), ..., (k, 0)
+            if not _scan_ok(board, [(i, k - i) for i in range(k + 1)]):
+                return False        
+    
+            # Diagonal: (7, k), (6, k - 1), ..., (k, 7)
+            if not _scan_ok(board, [(7 - j, k + j) for j in range(8 - k)]):
+                return False
+        return True
+    
+Let's try nose again::
+
+    $ nosetests
+
+    ...E...
+    ======================================================================
+    ERROR: testIsSolution (eightqueens.test_checker.SolutionTest)
+    ----------------------------------------------------------------------
+    Traceback (most recent call last):
+      File "/path/to/eightqueens/test_checker.py", line 149, in testIsSolution
+        self.assert_(checker.is_solution(BOARD_WITH_SOLUTION))
+    AttributeError: 'module' object has no attribute 'is_solution'
+
+    ----------------------------------------------------------------------
+    Ran 7 tests in 0.938s
+    
+    FAILED (errors=1)
+
+Finally, we have to assemble the pieces together to pass the test for
+``is_solution()``::
+
+    def is_solution(board):
+        if not _validate_shape(board) or not _validate_contents(board):
+            raise ValueError("Malformed board")
+        if not _validate_queens(board):
+            raise ValueError("There must be exactly 8 queens in the board")
+        return _rows_ok(board) and _cols_ok(board) and _diagonals_ok(board)
+    
+And we can hope that all test pass now::
+
+    $ nosetests
+
+    .......
+    ----------------------------------------------------------------------
+    Ran 7 tests in 0.592s
+    
+    OK
+
+Indeed, they all pass. Moreover, we probably also pass the "problem statement",
+test, expressed in our doctest::
+
+    $ nosetests --with-doctest
+
+    ........
+    ----------------------------------------------------------------------
+    Ran 8 tests in 1.523s
+    
+    OK
+
+Objective accomplished! We have come up with a nicely documented and tested
+module, using the two testing tools shipped with the Python language, and Nose
+to run all our tests without manually building suites.
+
+Integration with Java?
+----------------------
+
+You may be wondering how to integrate the testing frameworks of Python and
+Java. It is possible to write JUnit tests in Jython, but it's not really
+interesting, considering that you can test Java classes using unittest and
+doctest. The following is a perfectly valid doctest::
+
+    """
+    Tests for Java's DecimalFormat
+    
+    >>> from java.text import DecimalFormat
+    
+    A format for money:
+    
+    >>> dolarFormat = DecimalFormat("$ ###,###.##")
+    
+    The decimal part is only printed if needed:
+        
+    >>> dolarFormat.format(1000)    
+    u'$ 1.000'
+    
+    Rounding is used when there are more decimal numbers than those defined by the
+    format:
+    
+    >>> dolarFormat.format(123456.789)
+    u'$ 123.456,79'
+    
+    The format can be used as a parser:
+    
+    >>> dolarFormat.parse('$ 123')
+    123L
+    
+    The parser ignores the unparseable text after the number:
+    
+    >>> dolarFormat.parse("$ 123abcd")
+    123L
+    
+    However, if it can't parse a number, it throws a ParseException:
+    
+    >>> dolarFormat.parse("abcd")
+    Traceback (most recent call last):
+    ...
+    ParseException: java.text.ParseException: Unparseable number: "abcd"
+    """
+
+So you can use all what you learned on this chapter to test code written in
+Java. Personally, I find this a very powerful tool for Java development: easy,
+flexible and unceremonious testing using Jython and Python testing tools!
+
+Continuous Integration
+======================
+
+Martin Fowler defines Continuous Integration as "a software development practice
+where members of a team integrate their work frequently [...]. Each integration
+is verified by an automated build (including test) to detect integration errors
+as quickly as possible". Some software development teams report to have used
+this practice as early as in the 1960, however it only became mainstream when
+advocated as part of the Extreme Programming practices. Nowadays, it is a widely
+applied practice, and in the Java world there is a wealth of tools to help with
+the technical challenge involved by it.
+
+Hudson
 ------
 
-Arguably the most widely used of all Java application servers, Tomcat offers easy management and a small footprint compared to some of the other options available.  Tomcat will plug into most IDEs that are in-use today, so you can manage the web container from within your development environment.  This makes it handy to deploy and undeploy applications on-the-fly.  For the purposes of this section, I've used Netbeans 6.7, so there may be some references to it.
-
-To get started, download the Apache Tomcat server from the site at http://tomcat.apache.org/.  Tomcat is constantly evolving, so I'll note that when writing this book the deployment procedures were targeted for the 6.0.20 release.  Once you have downloaded the server and placed it into a location on your hard drive, you may have to change permissions.  I had to use the *chmod +x* command on the entire apache-tomcat-6.0.20 directory before I was able to run the server.  You will also need to configure an administrative account by going into the */conf/tomcat-users.xml* file and adding one.  Be sure to grant the administrative account the "manager" role.  This should look something like the following once completed.
-::
-
-    *tomcat-users.xml*
-    <tomcat-users>
-       <user username="admin" password="myadminpassword" roles="manager"/>
-    </tomcat-users>
-
-After this has been done you can add the installation to an IDE environment of your choice if you'd like.  For instance, if you wish to add to Netbeans 6.7 you will need to go to the "Services" tab in the navigator, right-click on servers, choose "Tomcat 6.x" option, and then fill in the appropriate information pertaining to your environment.  Once complete, you will be able to start, stop, and manage the Tomcat installation from the IDE.
-
-Deploying Web Start
--------------------
-
-Deploying a web-start application is as easy as copying the necessary files to a location on the web server that is accessible via the web.  In the case of Tomcat, you will need to copy the contents of your web start application to a single directory contained within the "<tomcat-root>/webapps/ROOT" directory.  For instance, if you have a web-start application entitled *JythonWebStart*, then you would package the JAR file along with the JNLP and HTML file for the application into a directory entitled *JythonWebStart* and then place that directory into the "<tomcat-root>/webapps/ROOT" directory.
-
-Once the application has been copied the appropriate locations, you should be able to access it via the web if Tomcat is started.  The URL should look something like the following: *http://your-server:8080/JythonWebStart/launch.jnlp*.  Of course, you will need to user your server name and the port that you are using along with the appropriate JNLP name for your application.
-
-Deploying a WAR or Exploded Directory Application
--------------------------------------------------
-
-To deploy a web application to Tomcat, you have two options.  You can either use a WAR file including all content for your entire web application, or you can deploy an exploded directory application which is basically copy-and-paste for your entire web application directory structure into the "<tomcat-root>/webapps/ROOT" directory.  Either way will work the same, and we will discuss each technique in this section.
-
-For manual deployment of a web application, you can copy either your exploded directory web application or your WAR file into the "<tomat-root>/webapps" directory.  By default, Tomcat is setup to "autodeploy" applications.  This means that you can have Tomcat started when you copy your WAR or exploded directory into the "webapps" location.  Once you've done this then you should see some feedback from the Tomcat server if you have a terminal open (or from within the IDE).  After a few seconds the application should be deployed successfully and available via the URL.  The bonus to deploying exploded directory applications is that you can take any file within the application and change it at will.  Once you are done with the changes, that file will be redeployed when you save it...this really saves on development time!
-
-If you do not wish to have autodeploy enabled (perhaps in a production environment), then you can deploy applications on startup of the server.  This process is basically the same as "autodeploy" except any new applications that are copied into the "webapps" directory are not deployed until the server is restarted.  Lastly, you can always make use of the Tomcat manager to deploy web applications as well.  To do this, open your web browser to the index of Tomcat, usually http://localhost:8080/index.html, and then click on the "Manager" link in the left-hand menu.  You will need to authenticate at that point using your administrator password, but once you are in the console deployment is quite easy.  In an effort to avoid redundancy, I will once again redirect you to the Tomcat documentation for more information on deploying a web application via the Tomcat manager console.
-
-Glassfish
----------
-
-At the time of this writing, the Glassfish V2 application server was mainstream and widely used.  The Glassfish V3 server was still in preview mode but showed a lot of potential for Jython application deployment.  In this section, we will cover WAR and web-start deployment to Glassfish V2 since it is the most widely used version.  We will also discuss deployment for Django on Glassfish V3 since this version has added support for Django (and more Python web frameworks soon).  Glassfish is very similar to Tomcat in terms of deployment, but there are a couple of minor differences which will be covered in this section.
-
-To start out, you will need to download a glassfish distribution from the site at https://glassfish.dev.java.net/.  Again, I recommend downloading V2 since it is the most widely used at the time of this writing.  Installation is quite easy, but a little more involved than that of Tomcat.  The installation of Glassfish will not be covered in this text as it varies depending upon which version you are using.  There are detailed instructions for each version located on the Glassfish website, so I will redirect you there for more information.
-
-Once you have Glassfish installed, you can utilize the server via the command-line or terminal, or you can use an IDE just like Tomcat.  To register a Glassfish V2 or V3 installation with Netbeans 6.7, just go to the "Services" tab in the Netbeans navigator and right-click on "Servers" and then add the version you are planning to register.  Once the "Add Server Instance" window appears, simply fill in the information depending upon your environment.
-
-There is an administrative user named "admin" that is set up by default with a Glassfish installation.  In order to change the default password, it is best to startup Glassfish and log into the administrative console.  The default administrative console port is 4848.  
-
-Deploying Web Start
-~~~~~~~~~~~~~~~~~~~
-
-Deploying a web start application is basically the same as any other web server, you simply make the web start JAR, JNLP, and HTML file accessible via the web.  On Glassfish, you need to traverse into your "domain" directory and you will find a "docroot" inside.  The path should be similar to "<glassfish-install-loc>/domains/domain1/docroot".  Anything placed within the docroot area is visible to the web, so of course this is where you will place any web-start application directories.  Again, a typical web start application will consist of your application JAR file, a JNLP file, and an HTML page used to open the JNLP.  All of these files should typically be placed inside a directory appropriately named per your application, and then you can copy this directory into docroot.
-
-WAR File and Exploded Directory Deployment
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Again, there are a variety of ways to deploy an application using Glassfish.  Let's assume that you are using V2, you have the option to "hot deploy" or use the Glassfish Admin Console to deploy your application.  Glassfish will work with either an exploded directory or WAR file deployment scenario.  By default, the Glassfish "autodeploy" aption is turned on, so it is quite easy to either copy your WAR or exploded directory application into the autodeploy location to deploy.  If the application server is started, it will automatically start your application (if it runs without issues).  The autodeploy directory for Glassfish V2 resides in the location "<glassfish-install-loc>/domains/domain1/autodeploy".
-
-Glassfish v3 Django Deployment
-------------------------------
-
-The Glassifish V3 server has some capabilities built into it to help facilitate the process of deploying a Django application.  In the future, there will also be support for other Jython web frameworks such as Pylons.
-
-
-Other Java Application Servers
-------------------------------
-
-If you have read through the information contained in the previous sections, then you have a fairly good idea of what it is like to deploy a Jython web application to a Java application server.  There is no difference between deploying Jython web applications and Java web applications for the most part.  You must be sure that you include *jython.jar* as mentioned in the introduction, but for the most part deployment is the same.  However, I have run into cases with some application servers such as JBoss where it wasn't so cut-and-dry to run a Jython application.  For instance, I have tried to deploy a Jython servlet application on JBoss application server 5.1.0 GA and had lots of issues.  For one, I had to manually add *servlet-api.jar* to the application because I was unable to compile the application in Netbeans without doing so...this was not the case with Tomcat or Glassfish.  Similarly, I had issues trying to deploy a Jython web application to JBoss as there were several errors that had incurred when the container was scanning *jython.jar* for some reason.
-
-All in all, with a bit of tweaking and perhaps an additional XML configuration file in the application, Jython web applications will deploy to *most* Java application servers.  The bonus to deploying your application on a Java application server is that you are in complete control of the environment.  For instance, you could embed the *jython.jar* file into the application server lib directory so that it was loaded at startup and available for all applications running in the environment.  Likewise, you are in control of other necessary components such as database connection pools and soforth.  If you deploy to another service that lives in "the cloud", you have very little control over the environment.  In the next section, we'll study one such environment by Google which is known as the Google App Engine.  While this "cloud" service is an entirely different environment than your basic Java web application server, it contains some nice features that allow one to test applications prior to deployment in the cloud.
-
-Google App Engine
-=================
-
-The new kid on the block, at least for the time of this writing, is the Google App Engine.  Fresh to the likes of the Java platform, the Google App Engine can be used for deploying applications written in just about any language that runs on the JVM, Jython included.  The App Engine went live in April of 2008, allowing Python developers to begin using it's services to host Python applications and libraries.  In the spring of 2009, the App Engine added support for the Java platform.  Along with support of the Java language, most other languages that run on the JVM will also deploy and run on the Google App Engine, including Jython.  It has been mentioned that more programming languages will be supported at some point in the future, but at the time of this writing Python and Java were the only supported languages.
-
-The App Engine actually runs a slightly slimmed-down version of the standard Java library.  You must download and develop using the Google App Engine SDK for Java in order to ensure that your application will run in the environment.  You can download the SDK by visiting this link: http://code.google.com/appengine/downloads.html along with viewing the extensive documentation available on the Google App Engine site.  The SDK comes complete with a development web server that can be used for testing your code before deploying, and several demo applications ranging from easy JSP programs to sophisticated demos that use Google authentication.  No doubt about it, Google has done a good job at creating an easy learning environment for the App Engine so that developers can get up and running quickly.
-
-In this section you will learn how to get started using the Google App Engine SDK, and how to deploy some Jython web applications.  You will learn how to deploy a Jython servlet application as well as a WSGI application utilizing modjy.  Once you've learned how to develop and use a Jython Google App Engine program using the development environment, you will learn a few specifics about deploying to the cloud.  If you have not done so already, be sure to visit the link mentioned in the previous paragraph and download the SDK so that you can follow along in the sections to come.
-
-Please note that the Google App Engine is a very large topic.  Entire books could be written on the subject of developing Jython applications to run on the App Engine.  With that said, I will cover the basics to get up and running with developing Jython applications for the App Engine.  Once you've read through this section I suggest to go to the Google App Engine documentation for further details.
-
-Starting with an SDK Demo
--------------------------
-
-We will start by running the demo application known as "guestbook" that comes with the Google App Engine SDK.  This is a very simple Java application that allows one to sign in using an email address and post messages to the screen.  In order to start the SDK web server and run the "guestbook" application, open up a terminal and traverse into the directory where you expanded the Google App Engine .zip file and run the following command: ::
-    
-    <app-engine-base-directory>/bin/dev_appserver.sh demos/guestbook/war
-    
-
-Of course, if you are running on windows there is a corresponding .bat script for you to run that will start the web server.  Once you've issued the preceeding command it will only take a second or two before the web server starts.  You can then open a browser and traverse to *http://localhost:8080* to invoke the "guestbook" application.  This is a basic JSP-based Java web application, but we can deloy a Jython application and use it in the same manner as we will see in a few moments.  You can stop the web server by pressing "CTRL+C".
-
-Deploying to the Cloud
-----------------------
-
-Prior to deploying your application to the cloud, you must of course set up an account with the Google App Engine.  If you have another account with Google such as GMail, then you can easily activate your App Engine account using that same username.  To do so, go to the Google App Engine link: http://code.google.com/appengine/ and click "Sign Up".  Enter your existing account information or create a new account to get started.
-
-After your account has been activated you will need to create an application by clicking on the "Create Application" button.  You have a total of 10 available application slots to use if you are making use of the free App Engine account.  Once you've created an application then you are ready to begin deploying to the cloud.  In this section of the book, we create an application known as *jythongae*.  This is the name of the application that you must create on the App Engine.  You must also ensure that this name is supplied within the *appengine-web.xml* file.
-
-Working with a Project
-----------------------
-
-The Google App Engine provides project templates to get you started deveoping using the correct directory structure.  Eclipse has a plugin that makes it easy to generate Google App Engine projects and deploy them to the App Engine.  If interested in making use of the plugin, please visit http://code.google.com/appengine/docs/java/tools/eclipse.html to read more information and download the plugin.  Similarly, Netbeans has an App Engine plugin that is available on the Kenai site appropriately named *nbappengine* (http://kenai.com/projects/nbappengine).  In this text we will cover the use of Netbeans 6.7 to develop a simple Jython servlet application to deploy on the App Engine.  You can either download and use the template available with one of these IDE plugins, or simply create a new Netbeans project and make use of the template provided with the App Engine SDK (<app-engine-base-directory/demos/new_project_template) to create your project directory structure.  For the purposes of this tutorial, we will make use of the *nbappengine* plugin.  If you are using Eclipse you will find a section following this tutorial that provides some Eclipse plugin specifics.
-
-In order to install the *nbappengine* plugin, you add the 'App Engine' update center to the Netbeans plugin center by choosing the *Settings* tab and adding the update center using http://deadlock.netbeans.org/hudson/job/nbappengine/lastSuccessfulBuild/artifact/build/updates/updates.xml.gz as the URL.  Once you've added the new update center you can select the *Available Plugins* tab and add all of the plugins in the "Google App Engine" category then choose *Install*.  After doing so, you can add the "App Engine" as a server in your Netbeans environment using the "Services" tab.  To add the server, point to the base directory of your Google App Engine SDK.  Once you have added the App Engine server to Netbeans then it will become an available deployment option for your web applications.
-
-Create a new Java web project and name it *JythonGAE*.  For the deployment server, choose "Google App Engine", and you will notice that when your web application is created an additional file will be created within the *WEB-INF* directory named *appengine-web.xml*.  This is the Google App Engine configuration file for the JythonGAE application.  Any of the .py files that we wish to use in our application must be mapped in this file so that they will *not* be treated as static files by the Google App Engine.  By default, Google App Engine treats all files outside of the WEB-INF directory as static unless they are JSP files.  Our application is going to make use of three Jython servlets, namely *NewJythonServlet.py*, *AddNumbers.py* and *AddToPage.py*.  In our appengine-web.xml file we can exclude all .py files from being treated as static by adding the suffix to the exclusion list as follows.
-
-*appengine-web.xml* ::
-
-    <?xml version="1.0" encoding="UTF-8"?>
-    <appengine-web-app xmlns="http://appengine.google.com/ns/1.0">
-        <application>jythongae</application>
-        <version>1</version>
-        <static-files>
-            <exclude path="/**.py"/>
-        </static-files>
-        <resource-files/>
-        <ssl-enabled>false</ssl-enabled>
-        <sessions-enabled>true</sessions-enabled>
-    </appengine-web-app>
-
-At this point we will need to create a couple of additional directories within our WEB-INF project directory.  We should create a *lib* directory and place *jython.jar* and *appengine-api-1.0-sdk-1.2.2.jar* into the directory.  Note that the App Engine JAR may be named differently according to the version that you are using.  We should now have a directory structure that resembles the following:
-
-::
-
-    JythonGAE
-        WEB-INF
-            lib
-                jython.jar
-                appengine-api-1.0-sdk-1.2.2.jar
-            appengine-web.xml
-            web.xml
-        src
-        web
-
-
-Now that we have the applicaton structure set up, it is time to begin building the actual logic.  In a traditional Jython servlet application we need to ensure that the *PyServlet* class is initialized at startup and that all files ending in *.py* are passed to it.  As we've seen in chapter 13, this is done in the *web.xml* deployment descriptor.  However, I have found that this alone does not work when deploying to the cloud.  I found some inconsistencies while deploying against the Google App Engine development server and deploying to the cloud.  For this reason, I will show you the way that I was able to get the application to function as expected in both the production and development Google App Engine environments.  In chapter 12, the object factory pattern for coercing Jython classes into Java was discussed.  If this same pattern is applied to Jython servlet applications then we can use the factories to coerce our Jython servlet into Java bytecode at runtime.  We then map the resulting coerced class to a servlet mapping in the application's web.xml deployment descriptor.  We can also deploy our Jython applets and make use of *PyServlet* mapping to the *.py* extension in the *web.xml*.  I will comment in the source where the code for the two implementations differs.
-
-Object Factories with App Engine
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-In order to use object factories to coerce our code, we must use an object factory along with a Java interface, and once again we will use the PlyJy project to make this happen.  Please note that if you choose to not use the object factory pattern and instead use PyServlet you can safely skip forward to the next subsection.  The first step is to add *PlyJy.jar* to the *lib* directory that we created previously to ensure it is bundled with our application.  There is a Java servlet contained within the PlyJy project named *JythonServletFacade*, and what this Java servlet does is essentially use the *JythonObjectFactory* class to coerce a named Jython servlet and then invoke it's resulting *doGet* and *doPost* methods.  There is also a simple Java interface named *JythonServletInterface* in the project, and it must be implemented by our Jython servlet in order for the coercion to work as expected.  Below you will see these two pieces of code that are contained in the PlyJy project.
-
-*JythonServletFacade.java* ::
-    
-    public class JythonServletFacade extends HttpServlet {
-        
-        private JythonObjectFactory factory = null;
-        
-        String pyServletName = null;
-        
-        @Override
-        protected void doGet(HttpServletRequest request, HttpServletResponse response)
-        throws ServletException, IOException {
-            factory = factory.getInstance();
-            pyServletName = getInitParameter("PyServletName");
-            JythonServletInterface jythonServlet = (JythonServletInterface) factory.createObject(JythonServletInterface.class, pyServletName);
-            jythonServlet.doGet(request, response);
-        }
-        ...
-        @Override
-        protected void doPost(HttpServletRequest request, HttpServletResponse response)
-        throws ServletException, IOException {
-            factory = factory.getInstance();
-            pyServletName = getInitParameter("PyServletName");
-            JythonServletInterface jythonServlet = (JythonServletInterface) factory.createObject(JythonServletInterface.class, pyServletName);
-            jythonServlet.doPost(request, response);
-        }
-        ...
-    }
-
-*JythonServletInterface.java* ::
-
-    public interface JythonServletInterface {
-        public void doGet(HttpServletRequest request, HttpServletResponse response);
-        public void doPost(HttpServletRequest request, HttpServletResponse response);
-    }
-    
-Using PyServlet Mapping
-~~~~~~~~~~~~~~~~~~~~~~~
-
-When we use the PyServlet mapping implementation, there is no need to coerce objects using factories.  You simply set up a servlet mapping within *web.xml* and use your Jython servlets directly with the .py extension in the URL.  However, I've seen issues while using PyServlet on the App Engine in that this implementation will deploy to the development App Engine server environment, but when deployed to the cloud you will receive an error when trying to invoke the servlet.  It is because of these inconsistencies that I chose to implement the object factory solution for Jython servlet to App Engine deployment.
-
-Example Jython Servlet Application for App Engine
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-The next piece of the puzzle is the code for our application.  In this example, we'll make use of a simple servlet that displays some text as well as the same example that was used in chapter 13 with JSP and Jython.  The code below sets up three Jython servlets.  The first servlet simply displays some output, the next two perform some mathematical logic, and then there is a JSP to display the results for the mathematical servlets.
-
-*NewJythonServlet.py* ::
-
-    from javax.servlet.http import HttpServlet
-    from org.plyjy.interfaces import JythonServletInterface
-    
-    class NewJythonServlet (JythonServletInterface, HttpServlet):
-            def doGet(self,request,response):
-                    self.doPost (request,response)
-    
-            def doPost(self,request,response):
-                    toClient = response.getWriter()
-                    response.setContentType ("text/html")
-                    toClient.println ("<html><head><title>Jython Servlet Test Using Object Factory</title>" +
-                                                      "<body><h1>Jython Servlet Test for GAE</h1></body></html>")
-    
-            def getServletInfo(self):
-                return "Short Description"
-
-
-*AddNumbers.py* ::
-
-    import javax
-    class add_numbers(javax.servlet.http.HttpServlet):
-        def doGet(self, request, response):
-            self.doPost(request, response)
-        def doPost(self, request, response):
-            x = request.getParameter("x")
-            y = request.getParameter("y")
-            if not x or not y:
-                sum = "<font color='red'>You must place numbers in each value box</font>"
-            else:
-                try:
-                    sum = int(x) + int(y)
-                except ValueError, e:
-                    sum = "<font color='red'>You must place numbers only in each value box</font>"
-            request.setAttribute("sum", sum)
-            dispatcher = request.getRequestDispatcher("testJython.jsp")
-            dispatcher.forward(request, response)
-            
-
-
-*AddToPage.py* ::
-
-    import java, javax, sys
-        
-    class add_to_page(javax.servlet.http.HttpServlet):
-        def doGet(self, request, response):
-            self.doPost(request, response)
-            
-        def doPost(self, request, response):
-            addtext = request.getParameter("p")
-            if not addtext:
-                addtext = ""
-                
-            request.setAttribute("page_text", addtext)
-            dispatcher = request.getRequestDispatcher("testJython.jsp")
-            dispatcher.forward(request, response)
-
-
-
-*testjython.jsp* - Note that this implementation differs if you plan to make use of the object factory technique.  Instead of using *add_to_page.py* and *add_numbers.py* as your actions, you would utilize the servlet instead, namely */add_to_page* and */add_numbers* ::
-
-    <html>
-        <head>
-            <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-            <title>Jython JSP Test</title>
-        </head>
-        <body>
-            <form method="GET" action="add_to_page.py">
-                <input type="text" name="p">
-                <input type="submit">
-            </form>
-            <% Object page_text = request.getAttribute("page_text");
-               Object sum = request.getAttribute("sum");
-               if(page_text == null){
-                   page_text = "";
-               }
-               if(sum == null){
-                   sum = "";
-               }
-            %>
-            <br/>
-                <p><%= page_text %></p>
-            <br/>
-            <form method="GET" action="add_numbers.py">
-                <input type="text" name="x">
-                +
-                <input type="text" name="y">
-                =
-                <%= sum %>
-                <br/>
-                <input type="submit" title="Add Numbers">
-            </form>
-           
-        </body>
-    </html>
-
-As mentioned previously, it is important that all of the Jython servlets reside within your classpath somewhere.  If using Netbeans, you can either place the servlets into the source root of your project (not inside a package), or you can place them in the web folder that contains your JSP files.  If doing the latter, I have found that you may have to tweak your CLASSPATH a bit by adding the web folder to your list of libraries from within the project properties.  Next, we need to ensure that the deployment descriptor includes the necessary servlet definitions and mappings for the application.  Now, if you are using the object factory implementation and the *JythonServletFacade* servlet, you would have noticed that there is a variable named *PyServletName* which the JythonObjectFactory is using as the name of our Jython servlet.  Well, within the *web.xml* we must pass an *<init-param>* using *PyServletName* as the *<param-name>* and the name of our Jython servlet as the *<param-value>*.  This will basically pass the name of the Jython servlet to the *JythonServletFacade* servlet so that it can be used by the object factory.
-
-*web.xml* ::
-
-    <web-app>
-        <display-name>Jython Google App Engine</display-name>
-        
-        <!-- Used for the PyServlet Implementation -->
-        <servlet>
-            <servlet-name>PyServlet</servlet-name>
-            <servlet-class>org.python.util.PyServlet</servlet-class>
-        </servlet>
-        
-        <!-- The next three servlets are used for the object factory implementation only.
-             They can be excluded in the PyServlet implementation -->
-        <servlet>
-            <servlet-name>NewJythonServlet</servlet-name>
-            <servlet-class>org.plyjy.servlets.JythonServletFacade</servlet-class>
-            <init-param>
-                <param-name>PyServletName</param-name>
-                <param-value>NewJythonServlet</param-value>
-            </init-param>
-        </servlet>
-        <servlet>
-            <servlet-name>AddNumbers</servlet-name>
-            <servlet-class>org.plyjy.servlets.JythonServletFacade</servlet-class>
-            <init-param>
-                <param-name>PyServletName</param-name>
-                <param-value>AddNumbers</param-value>
-            </init-param>
-        </servlet>
-        <servlet>
-            <servlet-name>AddToPage</servlet-name>
-            <servlet-class>org.plyjy.servlets.JythonServletFacade</servlet-class>
-            <init-param>
-                <param-name>PyServletName</param-name>
-                <param-value>AddToPage</param-value>
-            </init-param>
-        </servlet>
-        
-        <!-- The following mapping should be used for the PyServlet implementation -->
-        <servlet-mapping>
-            <servlet-name>PyServlet</servlet-name>
-            <url-pattern>*.py</url-pattern>
-        </servlet-mapping>
-        
-        <!-- The following three mappings are used in the object factory implementation -->
-        
-        <servlet-mapping>
-            <servlet-name>NewJythonServlet</servlet-name>
-            <url-pattern>/NewJythonServlet</url-pattern>
-        </servlet-mapping>
-        <servlet-mapping>
-            <servlet-name>AddNumbers</servlet-name>
-            <url-pattern>/AddNumbers</url-pattern>
-        </servlet-mapping>
-        <servlet-mapping>
-            <servlet-name>AddToPage</servlet-name>
-            <url-pattern>/AddToPage</url-pattern>
-        </servlet-mapping>
-    </web-app>
-    
-
-Note that when using the PyServlet implementation you should exclude those portions in the *web.xml* above that are used for the object factory implementation.  The PyServlet mapping can be contained within the *web.xml* in both implementations without issue.  That's it, now you can deploy the application to your Google App Engine development environment and it should run without any issues.  You can also choose to deploy to anoter web server to test for compatability if you wish.  You can deploy directly to the cloud by right-clicking the application and choosing the "Deploy to App Engine" option.
-
-Using Eclipse
--------------
-
-If you wish to use the Eclipse IDE for development, you should definitely download the Google App Engine plugin using the link provided earlier in the chapter.  You should also use the PyDev plugin which is available at http://pydev.sourceforge.net/.  For the purposes of this section, I used Eclipse Galileo and started a new project named "JythonGAE" as a Google Web Application.  When creating the project, make sure you check the box for using Google App Engine and uncheck the Google Web Toolkit option.  You will find that Eclipse creates a directory structure for your application that is much the same as the project template that is included with the Google App Engine SDK.
-
-If you follow through the code example from the previous section, you can create the same code and set up the *web.xml* and *appengine-web.xml* the same way.  The key is to ensure that you create a *lib* directory within the *WEB-INF* and you place the files in the appropriate location.  You will need to ensure that your Jython servlets are contained in your CLASSPATH by either adding them to the source root for your project, or by going into the project properties and adding the *war* directory to your *Java Build Path*.  When doing so, make sure you do *not* include the *WEB-INF* directory or you will receive errors.
-
-When you are ready to deploy the application, you can choose to use the Google App Engine development environment or deploy to the cloud.  You can run the application by right-clicking on the project and choosing *Run As* option and then choose the Google Web Application option.  The first time you run the application you may need to set up the runtime.  If you are ready to deploy to the cloud, you can right-click on the project and choose the *Google* -> *Deploy to App Engine* option.  After entering your Google username and password then your application will be deployed.
-
-
-
-Deploy Modjy to GAE
--------------------
-
-We can easily deploy WSGI applications using Jython's modjy API as well.  To do so, you need to add an archive of the Jython *Lib* directory to your WEB-INF project directory.  According to the modjy website, you need to obtain the source for Jython, then zip the *Lib* directory and place it into another directory along with a file that will act as a pointer to the zip archive.  The modjy site names the directory *python-lib* and names the pointer file *all.pth*.  This pointer file can be named anything as long as the suffix is *.pth*.  Inside the pointer file you need to explicitly name the zip archive that you had created for the *Lib* directory contents.  Let's assume you named it lib.zip, in this case we will put the text "lib.zip" without the quotes into the *.pth* file.  Now if we add the modjy *demo_app.py* demonstration application to the project then our directory structure should look as follows: ::
-
-
-    modjy_app
-        demo_app.py
-        WEB-INF
-            lib
-                jython.jar
-                appengine-api-1.0-sdk-1.2.2.jar
-            python-lib
-                lib.zip
-                all.pth
+One tool that currently has a lot of momentum, growing a important user base is
+Hudson. Among its prominent features are the ease of installation and
+configuration, and the ease to deploy it in a distributed, master/slaves
+environment for cross-platform testing. 
+
+But, in my opinion, Hudson's main strength is its highly modular, plugin-based
+architecture, which has resulted in the creation of plugins to support most of
+the version control, build and reporting tools, and many languages. One of them
+is the Jython plugin, which allows you to use the Python language to drive your
+builds.
+
+You can find a more details about the Hudson project on its homepage at
+https://hudson.dev.java.net/. I will go to the point and show how to test Jython
+applications using it.
+
+Getting Hudson
+--------------
+
+Grab the latest version of Hudson from
+http://hudson-ci.org/latest/hudson.war. You can deploy it to any servlet
+container like Tomcat or Glassfish. But one of the cool features of Hudson is
+that you can test it by simply running::
+
+ $ java -jar hudson.war
+
+After a few seconds, you will see some logging output on the console, and Hudson
+will be up and running. If you visit http://localhost:8080/ you will get a
+welcome page inviting you to start using Hudson creating new jobs. 
+.. warning::
+
+   Be careful: The default mode of operation of Hudson fully trusts its users,
+   letting them to execute any command they want on the server, with the
+   privileges of the user running Hudson. You can set stricter access control
+   policies on the "Configure System" section of the "Manage Hudson" page.
+
+Installing the Jython Plugin
+-----------------------------
+
+Before creating jobs, we will install the Jython plugin. Click on the "Manage
+Hudson" link on the left side menu. Then click "Manage Plugins". Now go to the
+"Available" tab. You will see a very long list of plugins (I told you this was
+the greatest Hudson strength!). Find the "Jython Plugin", click on the checkbox
+at its left, as shown on the figure :ref:`fig-hudson-selectingjythonplugin` then
+scroll to the end of the page and click the "Install" button.
+
+
+.. _fig-hudson-selectingjythonplugin:
+
+.. figure:: images/chapter19-hudson-selectingjythonplugin.png
+ 
+   Selecting the Jython Plugin.
+
+You will see a bar showing the progress of the download and installation
+progress, and after little while you will be presented with an screen like shown
+on the figure :ref:`fig-hudson-jythonplugininstalled` notifying you that the
+process finished. Press the "Restart" button, wait a little bit and you will see
+the welcome screen again. Congratulations, you now have a Jython-powered Hudson!
+
+.. _fig-hudson-jythonplugininstalled:
+
+.. figure:: images/chapter19-hudson-jythonplugininstalled.png
+
+   Jython Plugin Successfully Installed
+
+Creating a Hudson Job for a Jython Project
+------------------------------------------
+
+Let's follow now the suggestion of the welcome screen and click the "create new
+job" link. A job roughly corresponds to the instructions needed by Hudson to
+build a project. It includes:
+
+ * The location from where the source code of the project should be obtained,
+   and how often.
+ * How to start the build process for the project
+ * How to collect information after the build process has finished
+
+After clicking the "create new job" link (equivalent to the "New Job" entry on
+the left side menu) you will be asked for a name and type for the Job. We will
+use the eightqueens project built on the previous section, so name the project
+"eightqueens", select the "Build a free-style software project" option and press
+the "OK" button.
+
+In the next screen, we need to setup an option on the "Source Code Management"
+section. You may want to experiment with your own repositories here (by default
+only CVS and Subversion are supported, but there are plugins for all the other
+VCSs used out there). For our example, I've hosted the code on a Subversion
+repository at http://kenai.com/svn/jythonbook~eightqueens/. So select
+"Subversion" and enter
+http://kenai.com/svn/jythonbook~eightqueens/trunk/eightqueens/ as the
+"Repository URL".
+
+.. note::
+
+    Using the public repository will be enough to get a feeling of Hudson and
+    its support of Jython.  However, I encourage you to create your own
+    repository so you can play freely with continuous integration, for example
+    committing bad code to see how failures are handled.
+
+In the "Build Triggers" section we have to specify when automated builds will
+happen. We will poll the repository so that a new build will be started after
+any change. Select "Poll SCM" and enter "@hourly" on the "Schedule" box (If you
+want to know all the options for the schedule, click the help icon at the right
+of the box).
+
+In the "Build" section we must tell Hudson how to build our project. By default
+Hudson supports Shell scripts, Windows Batch files and Ant scripts as build
+steps. For projects in which you mix Java and Python code and drive the build
+process with an ant file, the default Ant build step will suffice. In our case,
+we wrote our app in pure Python code, so we will use the Jython plugin which
+adds the "Execute Jython script" build step.
+
+So click on "Add Build Step" and then select "Execute Jython script". We will
+use our knowledge of test suites gained on the `UnitTest`_ section, the
+following script will be enough to run our tests::
    
-Now if we run the application using Tomcat it should run as expected.  Likewise, we can run it using the Google App Engine SDK web server and it should provide the expected results.
-
-
-
-Summary
--------
-
-The Google App Engine is certainly an important deployment target for Jython.  Google offers free hosting for smaller applications, and they also base account pricing on bandwidth.  No doubt that it is a good way to put up a small site, and possibly build on it later.  Most importantly, you can deploy Django, Pylons, and other applications via Jython to the App Engine by setting up your App Engine applications like the examples I had shown in this chapter.
-
-Java Store
-==========
-
-Another deployment target that is hot off the presses at the time of this book is the Java Store or Java Warehouse.  This is a new concept brought to market by Sun Microsystems in order to help Java software developers market their applications via a single shop that is available online via a web start application.  Similar to other application venues, The Java Store is a store front application where people can go to search for applications that have been submitted by developers.  The Java Warehouse is the repository of applications that are contained within the Java Store.  This looks to be a very promising target for Java and Jython developers alike.  It *should* be as easy as generating a JAR file that contains a Jython application and deploying it to the Java Store.  Unfortunately, since the program is still in alpha mode at this time I am unable to provide any specific details on distributing Jython applications via the Java Store.  However, there are future plans to make alternative VM language applications easily deployable to the Java Warehouse.  At this time, it is certainly possible to deploy a Jython application to the warehouse, but it can only deploy as a Java application.  As of the time of this writing, only Java and JavaFX applications are directly deployable to the Java Warehouse.  Please note that since this product is still in alpha mode, this book will not discuss such aspects of the program as memberships or fees that may be incurred for hosing your applications on the Java Store.
-
-The requirements for publishing an application to the warehouse are as follows:
-
-    * Your application packed in a single jar file
-    * Descriptive text to document your application
-    * Graphic image files used for icons and to give the consumer an idea of your application's look.
-
-In chapter 13, we took a look at packaging and distributing Jython GUI applications in a JAR file.  When a Jython application is packaged in a JAR file then it is certainly possible to use Java Web Start to host the application via the web.  On the other hand, if one wishes to make a Jython GUI application available for purchase or for free, the Java Store would be another way of doing so.  One likely way to deploy applications in a single JAR is to use the method discussed in chapter 13, but there are other solutions as well.  For instance, one could use the *One-Jar* product to create a single JAR file containing all of the necessary Jython code as well as other JAR files essential to the application.  In the following section, we will discuss deployment of a Jython application using One-JAR so that you can see some similariies and differences to using the Jython standalone JAR technique.
-
-Deploying a Single JAR
-----------------------
-
-In order to deploy an application to the Java Warehouse, it must be packaged as a single JAR file.  We've already discussed packaging Jython applications into a JAR file using the Jython standalone method in chapter 13.  In this section, you will learn how to make use of the One-JAR (http://one-jar.sourceforge.net/) product to distribute client-based Jython applications.  In order to get started, you will need to grab a copy of One-JAR.  There are a few options available on the download site, but for our purposes we will package an application using the source files for One-JAR.  Once downloaded, the source for the project should look as follows.  ::
-
-    src
-        com
-            simontuffs
-                onejar
-                    Boot.java
-                    Handler.java
-                    IProperties.java
-                    JarClassLoader.java
-
-This source code for the One-Jar project must reside within the JAR file that we will build.  Next, we need to create separate source directories for both our Jython source and our Java source.  Likewise, we will create a separate source directory for the One-Jar source.  Lastly, we'll create a *lib* directory into which we will place all of the required JAR files for the application.  In order to run a Jython application, we'll need to package the Jython project source into a JAR file for our application.  We will not need to use the entire *jython.jar*, but rather only a standalone version of it.  The easiest way to obtain a standalone Jython JAR is to run the installer and choose the standalone option.  After this is done, simply add the resulting jython.jar to the lib directory of application.  In the end, the directory structure should resemble the following. ::
-
-    one-jar-jython-example
-        java
-        lib
-            jython.jar
-        LICENSE.txt
-        onejar
-            src
-                com
-                one-jar-license.txt
-                    simontuffs
-                        onejar
-                            Boot.java
-                            Handler.java
-                            IProperties.java
-                            JarClassLoader.java
-        src
-
-As you can see from the depiction of the file structure above, the *src* directory will contain our Jython source files.  The LICENSE.txt included in this example was written by Ryan McGuire (http://www.enigmacurry.com).  He has a detailed explanation of using One-Jar on his blog, and I've replicated some of his work in this example...including a version of the build.xml that we will put together in order to build the application.  Let's take a look at the build file that we will use to build the application JAR.  In this example I am using Apache Ant for the build system, but you could choose something different if you'd like.
-
-*build.xml* ::
-
-    <project name="JythonSwingApp" default="dist" basedir=".">
-      
-      <!-- #################################################
-           These two properties are the only ones you are 
-           likely to want to change for your own projects:     -->
-      <property name="jar.name" value="JythonSwingApp.jar" />
-      <property name="java-main-class" value="Main" />
-      <!-- ##################################################  -->
+    import os, sys, unittest, doctest
+    from eightqueens import checker, test_checker
     
-      <!-- Below here you dont' need to change for simple projects -->
-      <property name="src.dir" location="src"/> 
-      <property name="java.dir" location="java"/>
-      <property name="onejar.dir" location="onejar"/> 
-      <property name="java-build.dir" location="java-build"/>
-      <property name="build.dir" location="build"/>
-      <property name="lib.dir" location="lib"/>
+    loader = unittest.TestLoader()
+    suite = unittest.TestSuite([loader.loadTestsFromModule(test_checker),
+                                doctest.DocTestSuite(checker)])
+    result = unittest.TextTestRunner().run(suite)
+    print result
+    if not result.wasSuccessful():
+       sys.exit(1)
+           
 
-      <path id="classpath">
-        <fileset dir="${lib.dir}" includes="**/*.jar"/>
-      </path>
+The figure :ref:`fig-hudson-jobconfig` shows how the page looks so far for the
+"Source Code Management", "Build Triggers" and "Build" sections.
+
+.. _fig-hudson-jobconfig:
+
+.. figure:: images/chapter19-hudson-jobconfig.png
+
+   Hudson Job Configuration
+
+The next section, titled "Post-build Actions" let you specify action to carry
+once the build has finished, ranging from collecting results from reports
+generated by static-analysis tools or test runners to send emails notifying
+someone of build breakage. We will left these options blank by now. Click the
+"Save" button at the bottom of the page.
+
+At this point Hudson will show the job's main page. But it won't contain
+anything useful, since Hudson is waiting for the hourly trigger to poll the
+repository and kick the build. But we don't need to wait if we don't want to:
+just click the "Build Now" link on the left-side menu. Shortly, a new entry will
+be shown on the "Build History" box (also on the left side, below the menu), as
+shown in the figure :ref:`fig-hudson-buildhistory`.
+
+.. XXX: Actually, the current Jython plugin doesn't work exactly as described
+.. here, because it doesn't ship the standard library. But I expect the issues
+.. found will be fixed soon
+
+.. _fig-hudson-buildhistory:
+
+.. figure:: images/chapter19-hudson-buildhistory.png
+
+   The First Build of our First Job.
+
+If you click on the link that just appeared there you will be directed to the
+page for the build we just made. If you click on the "Console Output" link on
+the left side menu you will see what's shown in the figure
+:ref:`fig-hudson-buildresult`.
+
+.. _fig-hudson-buildresult:
+
+.. figure:: images/chapter19-hudson-buildresult.png
+
+   Console Output for the Build
+
+As you would expect, it shows that our eight tests (remember that we had seven
+unit tests and the module doctest) all passed.
+
+Using Nose on Hudson
+--------------------
+
+.. XXX This section is subject to heavy change. I don't like the workaround too
+.. much.
+
+You may be wondering why we crafted a custom build script instead of using nose,
+since *I* stated that using nose was much better than manually creating suites.
+
+The problem is that the Jython runtime provided by the Jython Hudson plugin
+comes without any extra library, so we can't assume the existence of nose. One
+option would be to include nose with the source tree on the repository, but it
+is not convenient. 
+
+One way to overcome the problem is to script the installation of nose on the
+build script. Go back to the Job (also called "Project" by the Hudson user
+interface), select "Configure" on the left side menu, go the the "Build" section
+of the configuration and change the Jython script for our job to::
+
+    # Setup the environment
+    import os, sys, site, urllib2, tempfile
+    print "Base dir", os.getcwdu()
+    site_dir = os.path.join(os.getcwd(), 'site-packages')
+    if not os.path.exists(site_dir): os.mkdir(site_dir)
+    site.addsitedir(site_dir)
+    sys.executable = ''
+    os.environ['PYTHONPATH'] = ':'.join(sys.path)
+        
+    # Get ez_setup:
+    ez_setup_path = os.path.join(site_dir, 'ez_setup.py')
+    if not os.path.exists(ez_setup_path):
+        f = file(ez_setup_path, 'w')
+        f.write(urllib2.urlopen('http://peak.telecommunity.com/dist/ez_setup.py').read())
+        f.close()
     
-      <target name="clean">
-        <delete dir="${java-build.dir}"/>
-        <delete dir="${build.dir}"/>
-        <delete file="${jar.name}"/>
-      </target>
+    # Install nose if not present
+    try:
+        import nose
+    except ImportError:
+        import ez_setup
+        ez_setup.main(['--install-dir', site_dir, 'nose'])
+        for mod in sys.modules.keys():
+            if mod.startswith('nose'):
+                del sys.modules[mod]
+        for path in sys.path:
+            if path.startswith(site_dir):
+                sys.path.remove(site_dir)
+        site.addsitedir(site_dir)
+        import nose
     
-      <target name="dist" depends="clean">
-        <!-- prepare the build directory -->
-        <mkdir dir="${build.dir}/lib"/>
-        <mkdir dir="${build.dir}/main"/>
-        <!-- Build java code -->
-        <mkdir dir="${java-build.dir}"/>
-        <javac srcdir="${java.dir}" destdir="${java-build.dir}" classpathref="classpath"/>
-        <!-- Build main.jar -->
-        <jar destfile="${build.dir}/main/main.jar" basedir="${java-build.dir}">
-          <manifest>
-        	<attribute name="Main-Class" value="Main" />
-          </manifest>
-        </jar>
-        <delete file="${java-build.dir}"/>
-        <!-- Add the python source -->
-        <copy todir="${build.dir}">
-          <fileset dir="${src.dir}"/>
-        </copy>
-        <!-- Add the libs -->
-        <copy todir="${build.dir}/lib">
-          <fileset dir="${lib.dir}"/>
-        </copy>
-        <!-- Compile OneJar -->
-        <javac srcdir="${onejar.dir}" destdir="${build.dir}" classpathref="classpath"/>
-        <!-- Copy the OneJar license file -->
-        <copy file="${onejar.dir}/one-jar-license.txt" tofile="${build.dir}/one-jar-license.txt" />
-        <!-- Build the jar -->
-        <jar destfile="${jar.name}" basedir="${build.dir}">
-          <manifest>
-        	<attribute name="Main-Class" value="com.simontuffs.onejar.Boot" />
-        	<attribute name="Class-Path" value="lib/jython-full.jar" />
-          </manifest>
-        </jar>
-        <!-- clean up -->
-        <delete dir="${java-build.dir}" />
-        <delete dir="${build.dir}" />
-      </target>
+    # Run Tests!
+    nose.run(argv=['nosetests', '-v', '--with-doctest', '--with-xunit'])
     
-    </project>
+The first half of the script is plumbing to download setuptools (ez_setup) and
+set an environment in which it will work. Then, we check for the availability of
+nose, and if it's not present we install it using setuptools.
 
+The interesting part if the last line::
 
-Since this is a Jython application, we can use as much Java source as we'd like.  In this example, we will only use one Java source file *Main.java* to "drive" our application.  In this case, we'll use the *PythonInterpreter* inside of our *Main.java* to invoke our simple Jython Swing application.  Now let's take a look at the *Main.java* source.
+    nose.run(argv=['nosetests', '-v', '--with-doctest', '--with-xunit'])
 
-*Main.java* ::
+Here we are invoking nose from python code, but using the command line
+syntax. Note the usage of the ``--with-xunit`` option. It generates
+JUnit-compatible XML reports for our tests, which can be read by Hudson to
+generate very useful test reports. By default, nose will generate a file called
+``nosetests.xml`` on the current directory.
 
-    import org.python.core.PyException;
-    import org.python.util.PythonInterpreter;
+To let Hudson know where the report can be found scroll to the "Post Build
+Actions" section in the configuration, check the "Publish JUnit test result
+reports" and enter "nosetests.xml" on the "Test Report XMLs" input box. Press
+"Save". If Hudson points you that nosetests.xml "doesn't match anything", don't
+worry and just press "Save" again. Of course it doesn't match anything *yet*
+since we haven't run the build again.
 
-    public class Main {
-        public static void main(String[] args) throws PyException{
-            PythonInterpreter intrp = new PythonInterpreter();
-            intrp.exec("import JythonSimpleSwing as jy");
-            intrp.exec("jy.JythonSimpleSwing().start()");
-        }
-    }
+Trigger the build again, and after the build is finished, click on the link for
+it (on the "Build History" box or going to the job page and following the "Last
+build [...]" permalink). The figure :ref:`fig-hudson-consolewithnose` shows what
+you see if you look at the "Console Output" and the figure
+:ref:`fig-hudson-testresults` what you see on the "Test Results" page.
 
-Now that we've written the driver class, we'll place it into our *java* source directory.  As stated previously, we'll place our Jython code into the *src* directory.  In this example we are using the same simple Jython swing application that I wrote for chapter 13.
+.. _fig-hudson-consolewithnose:
 
-*JythonSimpleSwing.py* ::
+.. figure:: images/chapter19-hudson-consolewithnose.png
 
-    import sys
-    sys.packageManager.makeJavaPackage("javax.swing", "java.awt", None)
-    import javax.swing as swing
-    import java.awt as awt
-    
-    class JythonSimpleSwing(object):
-        def __init__(self):
-            self.frame=swing.JFrame(title="My Frame", size=(300,300))
-            self.frame.defaultCloseOperation=swing.JFrame.EXIT_ON_CLOSE;
-            self.frame.layout=awt.BorderLayout()
-            self.panel1=swing.JPanel(awt.BorderLayout())
-            self.panel2=swing.JPanel(awt.GridLayout(4,1))
-            self.panel2.preferredSize = awt.Dimension(10,100)
-            self.panel3=swing.JPanel(awt.BorderLayout())
-    
-            self.title=swing.JLabel("Text Rendering")
-            self.button1=swing.JButton("Print Text", actionPerformed=self.printMessage)
-            self.button2=swing.JButton("Clear Text", actionPerformed=self.clearMessage)
-            self.textField=swing.JTextField(30)
-            self.outputText=swing.JTextArea(4,15)
-            
-    
-            self.panel1.add(self.title)
-            self.panel2.add(self.textField)
-            self.panel2.add(self.button1)
-            self.panel2.add(self.button2)
-            self.panel3.add(self.outputText)
-    
-            self.frame.contentPane.add(self.panel1, awt.BorderLayout.PAGE_START)
-            self.frame.contentPane.add(self.panel2, awt.BorderLayout.CENTER)
-            self.frame.contentPane.add(self.panel3, awt.BorderLayout.PAGE_END)
-    
-        def start(self):
-            self.frame.visible=1
-    
-        def printMessage(self,event):
-            print "Print Text!"
-            self.text = self.textField.getText()
-            self.outputText.append(self.text)
-    
-        def clearMessage(self, event):
-            self.outputText.text = ""
+   Nose's Output on Hudson
 
+.. _fig-hudson-testresults:
 
-In order to import the swing and awt packages, we need to make use of the *sys.packagemanager.makeJavaPackage* utility.  For some reason the application would run fine stand alone without using this utility, but when placed into a JAR using this method we need to assist in loading the packages.    At this time, the application is ready build using Ant.  In order to run the build, simply traverse into the directory that contains *build.xml* and intiate the *ant* command.  The resulting JAR can be run using the following syntax:
+.. figure:: images/chapter19-hudson-testresults.png
+   
+   Hudson's Test Reports
 
-::
+Navigation on your test results is a very powerful feature of Hudson. But it
+shines when you have failures or tons of tests, which is not the case on this
+example. But I wanted to show it in action, so I fabricated some failures on the
+code to show you some screenshots. Look at figure
+:ref:`fig-hudson-testresultswithfailures` and figure
+:ref:`fig-hudson-testresultsgraph` to get an idea of what you get from Hudson.
 
-    java -jar JythonSwingApp.jar
+.. _fig-hudson-testresultswithfailures:
 
+.. figure:: images/chapter19-hudson-testresultswithfailures.png
 
-In some situations, such as deploying via web start, this JAR file will also need to be signed.  There are many resources online that explain the signing of JAR files that topic will not be covered in this text.  The JAR is now ready to be deployed and used on other machines.  This method will be a good way to package an application for distribution via the Java Store.
+   Test Report Showing Failures
 
+.. _fig-hudson-testresultsgraph: 
 
-Mobile
-======
+.. figure:: images/chapter19-hudson-testresultsgraph.png
 
-Mobile applications are the way of the future.  At this time, there are a couple of different options for developing mobile applications using Jython.  One way to develop mobile applications using Jython is to make use of the JavaFX API from Jython.  Since JavaFX is all Java behind the scenes, it would be fairly simple to make use of the JavaFX API using Jython code.  However, this technique is not really a production-quality result in my opinion for a couple of reasons.  First, the JavaFX scripting language makes GUI development quite easy.  While it is possible (see http://wiki.python.org/jython/JythonMonthly/Articles/December2007/2 for more details), the translation of JavaFX API using Jython would not be as easy as making use of the JavaFX script language.  The second reason this is not feasible at the time of this writing is that JavaFX is simply not available on all mobile devices at this time.  It is really just becomming available to the mobile world at this time and will take some time to become acclimated.
+   Graph of Test Results Over Time
 
-Another way to develop mobile applications using Jython is to make use of the Android operating system which is available via Google.  Android is actively being used on mobile devices today, and it's use is continuing to grow.  Although in early stages, there is a project known as *Jythonroid* that is an implementation of Jython for the Android Dalvik Virtual Machine.  Unfortunately, it was not under active development at the time of this writing, although some potential does exist for getting the project on track.
-
-If you are interested in mobile development using Jython, please pay close attention to the two technologies discussed in this section.  They are the primary deployment targets for Jython in the mobile world.  As for the *Jythonroid* project, it is open source and availble to developers.  Interested parties may begin working on it again to make it functional and bring it up to date with the latest Android SDK.  
+We had to use a slightly more complicated script to use Nose and Hudson
+together, but it has the advantage that it will probably work untouched for a
+long time, unlike the original script manually built the suite, which would have
+to be modified each time a new test module is created.
 
 Conclusion
-==========
+----------
 
-Deploying Jython applications is very much like Java application deployment.  For those of you who are familiar with Java application servers, deploying a Jython application should be a piece of cake.  On the contrary, for those of you who are not familiar with Java application deployment this topic may take a bit of getting used to.  In the end, it is easy to deploy a Jython web or client application using just about any of the available Java application servers that are available today.
+Testing is a fertile ground for Jython usage, since you can exploit the
+flexibility of Python to write concise tests for Java APIs which also tend to be
+more readable than the ones written with JUnit. Doctests, in particular don't
+have a parallel on the Java world and can be a powerful way to introduce the
+practice of automated testing on people who want it to be simple and easy.
 
-Deploying Jython web applications is universally easy to do using the WAR file format.  As long as *jython.jar* is either in the application server classpath or packaged along with the web application, Jython servlets should function without issue.  We also learned that it is possible to deploy a JAR file containing a Jython GUI application via Java web start technology.  Using a JNLP deployment file is quite easy to do, the trick to deploying Jython via a JAR file is to set the file up correctly.  Once completed, an HTML page can be used to reference the JNLP and initiate the download of the JAR to the client machine.
+Integration with continuous integration tools, and Hudson in particular let's
+you get the maximum from your tests, avoiding test breakages to go unnoticed and
+representing a live history of your project health and evolution.
 
-Lastly, this section discussed use of the Google App Engine for deploying Jython servlet applications.  While the Google App Engine environment is still relatively new at the time of this writing, it is an exceptional deployment target for any Python or Java application developer.  Using a few tricks with the object factory technique, it is possible to deploy Jython servlets and use them directly or via a JSP file on the App Engine.  Stay tuned for more deployment targets to become available for Jython in the coming months and years.  As cloud computing and mobile devices are becoming more popular, the number of deployment targets will continue to grow and Jython will be more useful with each one.
+
+
