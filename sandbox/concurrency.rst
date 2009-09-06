@@ -9,13 +9,21 @@
 
    fix section references to use standard RST/Sphinx
 
+   would it be possible to create custom references such that
+   threading.Lock -> http://docs.python.org/library/threading.html#lock-objects and java.util.concurrent.FutureTask -> http://java.sun.com/j2se/1.5.0/docs/api/java/util/concurrent/FutureTask.html ?
+
+   directly incorporate references to functions
+
+   Java 6 is generally preferrable for concurrent ops
+
+
    biblio:
     
      Cite *Java Concurrency in Practice* as a go-to guide.
 
      http://java.sun.com/j2se/1.5.0/docs/api/java/util/concurrent/package-summary.html
      -- I believe the JSR 166 group has some excellent docs somewhere
-     around there too, but internally it's well documentede too.
+     around there too, but internally it's well documented too.
 
      http://www.ibm.com/developerworks/library/j-jtp03304/ - Fixing
      the Java Memory Model
@@ -24,18 +32,32 @@
      safety discussion, including summary of the various issues
 
 
-    possible entries in the Cookbook: Hadoop (Happy), Scala actors, memcached
+    possible entries in the Cookbook: Hadoop (Happy), Scala actors,
+    memcached, Terracotta
 
 
 
 Concurrency
 ===========
 
+Often you won't need to work directly with concurrency, although it's important to understand its implications. Code run in a servlet context will be run by a thread allocated from a thread pool. However, even then, the For example, if your code is run as a servlet, then the app server will allocate a thread from a thread pool to run your code. If the code is thread confined, or more realistically, using shared objects like a connection pool that expose a thread safe interface, you may 
+
+And as we will see 
+
+through modjy or another wrapper, you will often not need to submit tasks to a thread pool or spawn threads because However, once you have shared, mutable state, you will need to ensure that your code is safely 
+
+working with that shgenerally not be creating tasks or spawning threads
+
+Servlets, run in an app container
+But this doesn't apply to you
+
 XXX intro - basics, threading, how you should use higher level primitives if possible
 
 Python memory model
-Then mention two more advanced areas - fork-join, Terracotta
+Then mention two more advanced areas - fork-join
 
+XXX Terracotta, Quartz and others will go in the cookbook
+Also JMS and its successors
 
 
 Portability Concerns
@@ -45,9 +67,11 @@ One issue that you will have to consider is to much to make your
 concurrent code dependent on the Java platform. Here are our
 recommendations:
 
-  * If you're are porting an existing Python code base that uses
+  * If you are porting an existing Python code base that uses
     concurrency, you can use the standard Python ``threading`` module,
-    and any code that relies on this.
+    and any code that relies on this. You can also interoperate since
+    Jython threads are always mapped to Java threads. We will actually
+    this this last.
 
   * Jython implements ``dict`` and ``set`` by using
     ``ConcurrentHashMap``; you can just use these collections for high
@@ -64,32 +88,76 @@ recommendations:
     and managing tasks against thread pools. So for example, avoid
     using ``threading.Timer``, because you can use timed execution
     services in its place. But still use ``threading.Condition`` and
-    ``threading.Lock``. In particular, ``Lock`` has been optimized to
+    ``threading.Lock``. In particular, they have been optimized to
     work in the context of a with-statement, as we will discuss.
 
 The Java platform is arguably the most robust environment for running
 concurrent code, so we do believe it makes sense for Python developers
 to use these facilities. In practice, this should not impact the
 portability so much - using tasks in particular tends to keep this
-isolated in your code.
+well isolated in your code. And such considerations as thread
+confinement and safe publication remain the same.
+
+XXX This chapter is structured to follow these recommendations.
 
 
 Concurrency Basics
 ------------------
 
-Threads
-~~~~~~~
+Threads vs Tasks
+~~~~~~~~~~~~~~~~
 
+A common practice is to add threading in a haphazard fashion:
+
+ * Threads are heterogeneous.
+
+ * Dependencies are managed through a variety of channels, instead of
+   being formally structured.
+
+And what happens when the work performed by a thread depends on each
+other? Perhaps you have one thread that updates from the database. And
+another that rebuilds an index. And so forth. You want to avoid a
+rats' nest of timers and threads synchronizing on each other.
+
+XXX a diagram here would be nice - in general we might want to use
+sequence diagrams here! MF tweeted on some nice tool for this a while
+back, let's see if applicable.
+
+This is a very bad habit, because it limits scalability.
+
+Instead use tasks, with explicit wait-on dependencies and time scheduling.
 
 XXX introduce simple test harness for running a number of threads - we
 will explain more about how it works in the section on :ref:``threading``.
+
+XXX shouldn't this be in the context of a thread pool instead?
+creating threads is a bad idea. Let's get people out of this
+habit. (Even if it's good for simple testing.)
+
+XXX can we make it so that a pure Python thread pool (to be described
+later) or one based on Java can be used exactly the same way -
+basically make it pluggable. Yes, that would be ideal. Especiall if we
+can show how to write a threaded style test harness too.
+
+XXX yes, I think this makes the most sense - it will significantly
+improve the quality of the presentation. And it can be simplified by
+simply requiring a callable, as well as any desired
+dependencies. Basically support a simple wrapper around futures seems
+to be the best idea. Then we can also get dependencies. And have timed
+submits too.
 
 
 Thread safety
 ~~~~~~~~~~~~~
 
-Without external locking, can code corrupt an object - like a list?
+Question addressed to : without external locking, can code corrupt an object - like a list?
+
 Closely related to atomic operations
+
+Move from a consistent state to another consistent state.
+
+Full ACID properties? Well certainly not durability here; nor
+composition together as we see in a transaction.
 
 
 Atomic Operations
@@ -153,7 +221,7 @@ Use synchronizaton carefully. This code will always deadlock::
 
   XXX code demonstrating locks take in different orders, using the with-statement
 
-XXX discuss lock ordering
+XXX discuss lock ordering and the problems presented by cycles in our acquistion.
 
 There are numerous workarounds. For example, you might use a timeout::
   
@@ -220,6 +288,9 @@ No global interpreter lock.
 
     >>> from __future__ import GIL
 
+
+XXX push threading module discussion to end of the chapter
+
 .. _threading:
 
 ``threading`` Module
@@ -250,14 +321,19 @@ A thread can also set to be a daemon thread before it is started::
 
 Daemon status is inherited by any child threads. Upon JVM shutdown,
 any daemon threads are simply terminated, without an opportunity to
-perform cleanup or orderly shutdown. Consequently daemon threads
-should just be used for housekeeping tasks, such as maintaining a
-cache.
+perform cleanup or orderly shutdown. Therefore it's important that
+daemon threads only be used for certain types of housekeeping tasks,
+such as maintaining a cache.
+
+Even better would be to avoid their use and write your code as
+cancellable tasks. This requires understanding thread cancellation and
+interruption.
 
 Thread Interruption
 ~~~~~~~~~~~~~~~~~~~
 
-XXX say something about good thead interruption is, compared to just using a while on a variable::
+Standard Python thread semantics do not directly support thread
+interruption. Instead you would code something like the following::
 
   class DoSomething(Runnable):
       def __init__(self):
@@ -267,6 +343,12 @@ XXX say something about good thead interruption is, compared to just using a whi
           while not self.cancelled:
               do_stuff()
 
+As you may recall, the instance variable ``cancelled`` is guaranteed
+to be volatile by the Python memory model. So setting ``cancelled`` to
+``True`` will reliably terminate this loop on its next
+iteration. However, this does assume ``do_stuff`` is not holding a
+lock or some other resource. (It certainly says nothing about being in
+an infinite loop or similar unresponsive state.)
 
 Thread interruption allows for more responsive cancellation. In
 particular, if a a thread is waiting on any synchronizers, like a
@@ -281,11 +363,16 @@ This is how it works::
 
   from java.lang import Thread as JThread # so as to not confuse with threading.Thread
   
-  while not JThread.currentThread().isInterrupted(): # or alternatively, JThread.isInterrupted(threading.Thread.currentThread())
+  while not JThread.currentThread().isInterrupted():
+  # or alternatively, JThread.isInterrupted(threading.Thread.currentThread())
       do_stuff()
 
-Interrupting an arbitrary Jython -- or Java -- thread is also
-easy. Simply do the following::
+The ``isInterrupted`` method helps ensure cancellation is responsive
+as possible, in the case that ``do_stuff`` is not actually waiting on
+a synchronizer. Think belts and suspenders.
+
+With this in place, interrupting an arbitrary Jython -- or Java --
+thread is also easy. Simply do the following::
 
   >>> JThread.interrupt(a_thread)
 
@@ -305,9 +392,10 @@ more efficient than using a ``finally`` block::
 
 .. sidebar:: Lock Elimination ("eliding")
 
-  The JVM elides locking if it can determine the pairing of lock and
-  unlock is done in the same unit of code. The key is to make this
-  unit small enough.
+  The JVM can often eliminate locking so long as the lock/unlock pair
+  occurs in the same unit of code, and this unit of code is
+  sufficiently small. Using the with-statement form helps make that
+  possible.
 
   XXX show this effect
 
@@ -336,45 +424,6 @@ XXX blocking vs non-blocking
 XXX Compare with using the Java versions - pretty much identical usage, except can choose other policies like prioritized, LIFO
 
 
-Thread Local Storage with ``threading.local``
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-You can create any number of instances of ``threading.local``, or even
-derive a class from it. You can freely pass references to this object,
-but each thread that uses that reference will see actually see a different
-instance, with different attributes::
- 
-  XXX code
-
-You can also derive from the ``threading.local`` class::
-
-  XXX code
-
-Interestingly, any attributes that are stored in slots are shared
-across threads::
-
-  XXX code
-
-Of course, you will need to safely publish as names any such
-objects. By creating these objects in a module -- the normal way --
-safe publication is guaranteed.
-
-One caveat of using thread local storage is that it tends to interacts
-poorly with thread pools. And in general, TLS is best used sparingly
-in order to solve problems where the use of global state is
-interfering with working with threads.
-
-Under the covers, ``threading.local`` is implemented using
-``java.lang.ThreadLocal``.
-
-Other Resources
-~~~~~~~~~~~~~~~
-
-Timers, semaphores.
-XXX look through some Python codebases, see if these are actually used in practice.
-
-
-
 .. _tasks:
 
 Higher-Level Java Concurency Services
@@ -385,9 +434,51 @@ Better yet, use higher-level services.
 Task model
 Executors
 ExecutorService and supporting factories in java.util.concurrent.executors
-Futures
-various types of queues
-Exchangers
+
+In particular, CompletionService executors offer very nice functionality:
+http://java.sun.com/j2se/1.5.0/docs/api/java/util/concurrent/ExecutorCompletionService.html
+
+Futures, in particular you will normally want to derive from FutureTask
+http://java.sun.com/j2se/1.5.0/docs/api/java/util/concurrent/FutureTask.html
+
+.. example::
+
+  XXX a nice example to show is probably some sort of spidering,
+  possibly in conjunction with BeautifulSoup (hopefully that works
+  with Jython) - yes that works just fine - retrieve data, analyze it,
+  then make some sort of decision
+
+  maybe some sort of opendata service, such as retrieving USGS
+  streamflow data
+
+  use a CompletionService, etc.
+
+  http://bret.appspot.com/entry/we-need-a-wikipedia-for-data - useful
+  links to potential data
+
+  actually let's just do something like blogs - going through
+  comments, finding other blogs -- pretty standard, but interesting
+  enough - or perhaps doing some analysis with NLP
+
+  not certain how much of this is captured by Atom client code
+
+  build an in-memory representation - or serialize to terracotta or
+  neo4j or whatever
+
+  or do the same w/ twitter
+
+Other things to look at:
+
+  * various types of queues
+
+  * Exchangers
+
+  * Barriers. A ``CyclicBarrier`` is useful for phased computations.
+
+
+
+Pure Python Thread Pool Option
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 An alternative is to use a pure Python thread pool, such as this
 `ActiveState Python Cookbook recipe (203871)
@@ -404,9 +495,11 @@ You will need to perform some analysis on what works best. For
 CPU-bound computations, the rule of thumb is the number of CPUs + 1,
 or more frequently in our experience, a small constant. I/O
 complicates the picture; refer to [JCIP], pp. 170-171, for more
-details on a possible sizing model. But in general, it's just best to
-vary the thread pool size to determine what works best for your
-problem, on a given machine setup.
+details on a possible sizing model. But in general, it's best to
+measure. Vary the thread pool size to experimentally determine what
+works best for your problem for a given machine setup, and balance
+that against other criteria. For example, it may not be acceptable to
+attempt to saturate the CPUs for your target!
 
 Regardless, the number of CPUs is a critical parameter. Determining
 the number of available CPUs is simple. On my laptop, here's what I
@@ -416,6 +509,7 @@ have::
   >>> Runtime.getRuntime().availableProcessors()
   2
 
+Maybe I should upgrade.
 
 Concurrency and Collection Types
 --------------------------------
@@ -464,6 +558,62 @@ Behavior of builtin data structures
   For thread confined code - 
 
 
+Thread Local Storage with ``threading.local``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can create any number of instances of ``threading.local``, or even
+derive a class from it. You can freely pass references to this object,
+but each thread that uses that reference will see actually see a
+different instance, with different attributes::
+ 
+  XXX code
+
+You can also derive from the ``threading.local`` class::
+
+  XXX code
+
+Interestingly, any attributes that are stored in slots are shared
+across threads::
+
+  XXX code
+
+Of course, you will need to safely publish as names any such
+objects. Safe publication is guaranteed by creating these objects in a
+module, then importing them.
+
+In general, we do not recommend the use of thread local storage. By
+its nature, it interacts poorly with thread pools because any work is
+strongly coupled to the thread. However, it might find use to solve
+problems where the use of global state is interfering with working
+with threads.
+
+``threading.local`` is implemented as a wrapper of
+``java.lang.ThreadLocal``.
+
+Other Resources
+~~~~~~~~~~~~~~~
+
+Python also implements a number of other synchronization constructs:
+
+XXX link to relevant docs
+
+  * ``Event``. For general signaling. Use futures instead.
+
+  * ``Semaphore`` and ``BoundedSemaphore``. For bounding resources,
+    such as a connection pool.
+
+  * ``Timer``. For executing on a regular basis, such as refreshing a
+    cache. Used timed execution services instead.
+
+These classes are more useful if you have an existing Python codebase
+that utilizes them, otherwise, we recommend the more robust Java
+variants.
+
+XXX look through some Python codebases, see if these are actually used
+in practice.
+
+
+
 Fork-Join
 ---------
 
@@ -473,13 +623,58 @@ Fork-Join
 
 Work Stealing and fork-join 
 map to 
+
 Recursive generators
+~~~~~~~~~~~~~~~~~~~~
+
+Recursive generators are simply generators that call themselves
+recursively. The general form goes something like this::
+
+  def gen(X):
+      if base_case(X):
+          yield some_extract(X)
+      else:
+          for x in gen(X):
+              yield some_other_extract(x)
+
+XXX example of doing a traversal of a tree
+
+Like recursion in general, recursive generators cannot always be
+applied because of stack size limits. However, if the depth of the
+exploration is known to be bounded in advance, it can provide for a
+simpler solution than one where the recursion has been eliminated.
+
+A standard representation of a graph in Python is a dictionary
+structured as follows:
+
+  * Key are nodes
+
+  * Values are sequences (list/tuple) representing the adjacency
+    list. Or this could be a set if unordered.
+
+XXX show the correspondence between a simple graph and this representation
+
+
+Note that in the case of graph algorithms, it is important do
+dynamically balance the workloads; it's not simply sufficient to use a
+hierarchical partitioining workstealing
+
+.. comment::
+
+  Python lists cannot be partitioned for sorting in this fashion
 
 
 Show how they map to Jython very nicely.
 
 Tobias' forkjoin annotation is very nice, see if it can actually be
 implemented.
+
+@forkjoin # fork on call, join on iter - 
+
+XXX simple wrapper class that wraps __call__, __iter__ on the underlying generator
+
+XXX alternatively - may want to control when to fork or not by size;
+in which case do the fork explicitly
 
 
 Java Memory Model and Jython
@@ -563,22 +758,7 @@ Immutability
 
 Not final, not volatile. But endowed 
 
-Terracotta
-----------
 
-.. notes::
 
-  Terracotta. We should be able to do something meaningful w/o slowing
-  down the rest of PyObject - need to figure out the specifics of how
-  to mark that certain such objects should be shared. One possibility:
-  we could use the proxy mechanisms for exposing Map objects so that
-  they support the dict interface. That seems to be the most workable
-  solution.
-
-  Probably what makes most sense is to use TC with something like
-  Beaker for caching. Dog-pile prevention should be good strategy,
-  regardless of how the cache is backed, since it's about populating
-  the cache when necessary. (Presumably through some sort of
-  interesting protocol that could also benefit from being shared.)
 
 
