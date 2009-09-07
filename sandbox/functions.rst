@@ -19,9 +19,9 @@ into your namespace.
   code body. When a module is compiled, every function in it is
   compiled even if it's not ultimately bound to a name. In addition, a
   script or module is itself treated as a function when
-  compiled. Almost always, these function definitions are compiled to
-  Java bytecode, although future versions of Jython will support
-  compilation to other formats.
+  compiled. These function definitions are compiled to Java bytecode
+  (although there's experimental support for other formats, this is
+  not generally used).
 
 
 Function Syntax and Basics
@@ -44,6 +44,74 @@ you can use the ``times2`` function as follows::
   'abcabc'
   >>> times2([1,2,3])
   [1, 2, 3, 1, 2, 3]
+
+An empty function still needs something in its body. You can use the
+``pass`` statement::
+
+  def do_nothing():
+      pass # here's how to specify an empty body of code
+
+.. sidebar::  Functions that do nothing
+
+  Why have a function that does nothing? As in math, it's useful to
+  have an operation that stands for doing nothing, like "add zero" or
+  "multiply by one". These identity functions eliminate special
+  cases. Likewise, we may need to specify a callback function when
+  calling an API, but nothing actually needs to be done. By passing in
+  an empty function -- or having this be the default -- we can
+  simplify the API.
+
+``None`` is returned by functions that don't otherwise specify a
+return value. However, the Python console will not show the return
+value when it's ``None``, so you need to explicitly print it to see
+what is returned::
+
+   >>> do_nothing()
+   >>> print do_nothing()
+   None
+
+In addition, you can specify a document string for the function. The docstring, if it exists, 
+is a string that occurs as the first value of the function body::
+
+   def times2(n):
+       """Given n, returns n * 2"""
+       return n * 2
+
+By convention, use triple-quoted strings, even if your docstring is
+not multiline. If it is, this is how you might format it::
+
+   def fact(n):
+       """Returns the factorial of n
+
+       Computes the factorial of n recursively. Does not check its
+       arguments if nonnegative integer or if would stack
+       overflow. Use with care! 
+       """
+
+       if n in (0, 1):
+           return 1
+       else:
+           return n * fact(n - 1)
+
+Any such docstring becomes the ``__doc__`` attribute of
+that function object. (Docstrings are also used for modules and
+classes, and they work exactly the same way.)
+
+In either case, you can then use the ``help`` built-in function to get
+the docstring, or see them from various IDEs like PyDev for Eclipse
+and nbPython for NetBeans as part of the auto-complete.
+
+, and are almost always used for docgenerally used for such documentation. Given
+the name of the function, we can ask for help on it::
+
+   
+
+.. note:: Bug alert
+
+  Jython 2.5.1 does not correctly work with a document string
+  specified for a function entered on the console. Of course, that's a
+  relatively rare usage.
+
 
 In addition, a given name can only be associated with one function at
 a time, so function overloading is not possible just with using

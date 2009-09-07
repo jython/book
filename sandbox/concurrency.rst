@@ -518,14 +518,23 @@ XXX write a test harness for showing concurrency - maybe extract from
 test_list_jy (if I recall correctly), then plug in the below
 functions.
 
-Mutable collection types:
+Immutable collection types like frozenset and tuple -- not to mention
+unicode and str -- are simple. They have no thread safety
+issues. This is even true of ``unicode`` objects: while they do have
+internal mutable state to determine if the string contents are in the
+basic multilingual plane (by far, the most common case), this is not
+visible to the user and is used only to select if a slower method must
+be used.
 
-list
-dict
-set
+This is not true of mutable collection types, including:
+
+  * list (as well as collections.Deque)
+  * dict (as well as collections.defaultdict)
+  * set
+
 
 ``dict`` and ``set`` are concurrent collections; both are internally
-implemented such that use a ``ConcurrentHashMap``.
+implemented such that they use a ``ConcurrentHashMap``.
 
 Weakly consistent iteration
 No synchronization! No synchronization overhead!
@@ -539,11 +548,18 @@ Example to demonstrate this::
 
   XXX
 
-list
+What about ``__missing__`` on ``defaultdict``? Unfortunately, it's not
+atomic and subject to races if not synchronized. In a future release
+of Jython, we may want to base it on a ``SynchronizedMap`` instead of
+inheriting from the implementation of ``dict``. However, because the
+underlying implementation is a ``CHM``, at least it will not corrupt
+the underlying data structure. Maybe that's OK for your
+purposes. Otherwise, you will need to do something like the
+following::
 
-Immutable collection types:
-frozenset
-tuple
+  XXX code showing a dict used with setifabsent and an AtomicInteger
+  for a counter - hmm, must think this one through (as usual)!
+
 
 Behavior of builtin data structures
 
@@ -553,9 +569,17 @@ Behavior of builtin data structures
   What's the overhead of doing that?
   Let's do some simple testing.
 
-  This probably will go down in the future - local variables.
+  This probably will become less costly in the future - local variables.
 
-  For thread confined code - 
+
+  For thread confined code, this make sense.
+
+  But take care. The standard implementation of ``HashMap`` must be
+  thread confined or synchronized. Otherwise, you might observe its
+  internal bucket structure corrupted in such a way that a thred
+  traversing it will get trapped in an infinite loop.
+ 
+  [XXX refer to "A Beautiful Race Condition" by Paul Tyma ... http://mailinator.blogspot.com/2009/06/beautiful-race-condition.html ]
 
 
 Thread Local Storage with ``threading.local``
@@ -581,11 +605,11 @@ Of course, you will need to safely publish as names any such
 objects. Safe publication is guaranteed by creating these objects in a
 module, then importing them.
 
-In general, we do not recommend the use of thread local storage. By
-its nature, it interacts poorly with thread pools because any work is
-strongly coupled to the thread. However, it might find use to solve
-problems where the use of global state is interfering with working
-with threads.
+However, there's a substantial problem in using thread local
+storage. By its nature, it interacts poorly with thread pools because
+any work is strongly coupled to the thread. However, you might find
+useful in solving problems where the use of global state is
+interfering with working with threads.
 
 ``threading.local`` is implemented as a wrapper of
 ``java.lang.ThreadLocal``.
@@ -606,11 +630,10 @@ XXX link to relevant docs
     cache. Used timed execution services instead.
 
 These classes are more useful if you have an existing Python codebase
-that utilizes them, otherwise, we recommend the more robust Java
+that utilizes them, otherwise, we recommend the higher-level Java
 variants.
 
-XXX look through some Python codebases, see if these are actually used
-in practice.
+XXX a quick perusal of Google Code suggests that Semaphore is rarely used in practice.
 
 
 
@@ -636,6 +659,20 @@ recursively. The general form goes something like this::
       else:
           for x in gen(X):
               yield some_other_extract(x)
+
+So the base case must either yield something, or optionally, use
+return to stop the iteration at that level.
+
+The non-base case needs to pass through results in the generators it
+is called back to its caller.
+
+.. sidebar:: ``yield from``
+
+  Note that Python 2.7 (which is under active development as of the
+  writing of this book and not yet supported by Jython) supports an
+  alternative form, ``yield from``, that among other things, avoids
+  the need to loop over the generator being called recursively, and
+  yield results back up.
 
 XXX example of doing a traversal of a tree
 
