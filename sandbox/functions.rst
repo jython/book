@@ -19,24 +19,33 @@ into your namespace.
   code body. When a module is compiled, every function in it is
   compiled even if it's not ultimately bound to a name. In addition, a
   script or module is itself treated as a function when
-  compiled. These function definitions are compiled to Java bytecode
-  (although there's experimental support for other formats, this is
-  not generally used).
+  compiled. These function definitions are compiled to Java
+  bytecode. (There's experimental support for other formats, namely
+  Python bytecode, which we may see be used in later versions of
+  Jython.)
 
 
 Function Syntax and Basics
 --------------------------
 
 Functions are defined by using with ``def`` keyword, the name of the
-function, its parameters (if any), and the body of code::
+function, its parameters (if any), and the body of code. We will start
+with this simple example function::
 
   def times2(n):
       return n * 2
 
-Parameters, like variables in general in Python, are not typed. The
-objects, which are passed by reference, are instead typed. Because the
-``*`` operator means repeat for sequences (like strings and lists),
-you can use the ``times2`` function as follows::
+Function Parameters
+~~~~~~~~~~~~~~~~~~~
+
+Objects are strongly typed, as we have seen. But function parameters,
+like variables in general in Python, are not typed.  This means that
+any parameter can refer to any type of object.
+
+We see this play out in the ``times2`` function. The ``*`` operator
+not only means multiply for numbers, it also means repeat for
+sequences (like strings and lists).  So you can use the ``times2``
+function as follows::
 
   >>> times2(4)
   8
@@ -45,13 +54,29 @@ you can use the ``times2`` function as follows::
   >>> times2([1,2,3])
   [1, 2, 3, 1, 2, 3]
 
+Further simplifying things is the fact that all parameters in Python
+are passed by reference. This is identical to how Java does it. (Java
+does support passing unboxed primitive types by value, however, there
+are no such entities in Python.)
+
+XXX more on *args, **kwargs
+
+Function Body
+~~~~~~~~~~~~~
+
+XXX more general stuff on function bodies
+XXX currently limits of 64K java bytecode instructions when compiled. this will be relaxed in a future version
+
+XXX local variables - extend this with discussion 
+XXX global variables
+
 An empty function still needs something in its body. You can use the
 ``pass`` statement::
 
   def do_nothing():
       pass # here's how to specify an empty body of code
 
-.. sidebar::  Functions that do nothing
+.. sidebar::  Identity functions - functions that do nothing
 
   Why have a function that does nothing? As in math, it's useful to
   have an operation that stands for doing nothing, like "add zero" or
@@ -70,15 +95,16 @@ what is returned::
    >>> print do_nothing()
    None
 
-In addition, you can specify a document string for the function. The docstring, if it exists, 
-is a string that occurs as the first value of the function body::
+In addition, you can specify a document string for the function. The
+docstring, if it exists, is a string that occurs as the first value of
+the function body::
 
    def times2(n):
        """Given n, returns n * 2"""
        return n * 2
 
 By convention, use triple-quoted strings, even if your docstring is
-not multiline. If it is, this is how you might format it::
+not multiline. If it is multiline, this is how we recommend you format it::
 
    def fact(n):
        """Returns the factorial of n
@@ -93,45 +119,35 @@ not multiline. If it is, this is how you might format it::
        else:
            return n * fact(n - 1)
 
-Any such docstring becomes the ``__doc__`` attribute of
-that function object. (Docstrings are also used for modules and
-classes, and they work exactly the same way.)
+Any such docstring, but with leading indendetation stripped, becomes
+the ``__doc__`` attribute of that function object. Incidentally,
+docstrings are also used for modules and classes, and they work
+exactly the same way.
 
 In either case, you can then use the ``help`` built-in function to get
 the docstring, or see them from various IDEs like PyDev for Eclipse
-and nbPython for NetBeans as part of the auto-complete.
+and nbPython for NetBeans as part of the auto-complete::
 
-, and are almost always used for docgenerally used for such documentation. Given
-the name of the function, we can ask for help on it::
-
-   
-
-.. note:: Bug alert
-
-  Jython 2.5.1 does not correctly work with a document string
-  specified for a function entered on the console. Of course, that's a
-  relatively rare usage.
-
+  XXX help(fact)
 
 In addition, a given name can only be associated with one function at
-a time, so function overloading is not possible just with using
+a time, so function overloading is not possible just by using
 ``def``. If you were to define two (or more) functions with the same
 name, the last one defined is used.
 
 .. sidebar:: Function Metaprogramming
 
   However, it is possible to overload a function, or otherwise
-  genericize it. You simply need to create a dispatcher function to do
-  this on your behalf.
+  genericize it. You simply need to create a dispatcher function that
+  then dispatches to your set of corresponding functions.
 
   XXX TurboGears uses this for it routing functionality (but they no
   longer use Peak-Rules as of 2.1 [which is hard to port to
   Jython]). Need to find out more!
 
-An empty function -  can be written by using the ``pass`` statement::
 
-  def do_nothing():
-      pass
+Nested Scopes
+~~~~~~~~~~~~~
 
 A function introduces a scope for new names, such as variables. Any
 names that are created in the function are only visible within that
@@ -157,6 +173,8 @@ scope::
   balancing between a complex idea - the lexical scoping of names, and
   the operations on them - and the fact that in practice it is doing
   the right thing.
+  
+  XXX rewrite above, confusing
 
 
 .. sidebar:: Functions are Everywhere
@@ -166,16 +184,16 @@ scope::
   class definition or module import is just syntax around the
   underlying functions, which you can call yourself if you need to do
   so. (They are type and __import__ respectively, you will be learning
-  more about them later.)  ======
+  more about them later.)
 
 
 .. sidebar:: Recursion
 
   XXX Recursion. (I think it makes sense to not focus on recursion too
-  much; it may be a fundamental of CS, but it's also rarely necessary
-  for most end-user software development. So let's keep it in a
-  sidebar.)  Demo Fibonacci, since this requires no explanation, and
-  it's a non trivial use of recursion.
+  much; it may be a fundamental aspect of computer science, but it's
+  also rarely necessary for most end-user software development. So
+  let's keep it in a sidebar.)  Demo Fibonacci, since this requires no
+  explanation, and it's a non trivial use of recursion.
 
   Note that Jython, like CPython, is ultimately stack based [at least
   until we have some tail call optimization support in JVM]. Recursion
@@ -187,25 +205,37 @@ scope::
 
 .. sidebar::
 
-   The keyword def is not the only way to define a function
-   lambda. Creates an unnamed function that does not require the use
-   of whitespace.  generator expressions. Creates an unnamed
-   generator. But cover this later with respect to generators.
+   The keyword def is not the only way to define a function:
 
-   In addition, we can also create objects with classes whose instance
-   objects look like ordinary functions.  Objects supporting the
-   __call__ protocol. This should be covered in a later chapter.  For
-   Java developers, this is familiar. Classes implement such
-   single-method interfaces as Callable or Runnable.  Bound
-   methods. Instead of calling x.a(), I can pass x.a as a parameter or
-   bind to another name. Then I can invoke this name. The first
-   parameter of the method will be passed the bound object, which in
-   OO terms is the receiver of the method. This is a simple way of
-   creating callbacks. (In Java you would have just passed the object
-   of course, then having the callback invoke the appropriate method
-   such as `call` or `run`.)  staticmethod, classmethod, descriptors
-   functools, such as for partial construction Other function
-   constructors, including yours?  =====
+   * Lambda functions. The lambda keyword creates an unnamed
+     function. Some people like this because it requires minimal
+     space, especially when used in a callback::
+
+     XXX lambda in a keyed sort, maybe combine last name, first name?
+
+   * Generator expressions. Creates an unnamed generator. But cover
+     this later with respect to generators::
+
+     XXX gen exp ex
+
+   * Classes. In addition, we can also create objects with classes
+     whose instance objects look like ordinary functions.  Objects
+     supporting the __call__ protocol. This should be covered in a
+     later chapter.  For Java developers, this is familiar. Classes
+     implement such single-method interfaces as Callable or Runnable.
+     
+   * Bound methods. Instead of calling x.a(), I can pass x.a as a
+     parameter or bind to another name. Then I can invoke this
+     name. The first parameter of the method will be passed the bound
+     object, which in OO terms is the receiver of the method. This is
+     a simple way of creating callbacks. (In Java you would have just
+     passed the object of course, then having the callback invoke the
+     appropriate method such as `call` or `run`.)
+
+   * staticmethod, classmethod, descriptors functools, such as for
+     partial construction.
+
+   * Other function constructors, including yours?
 
 Calling functions is generally done by the familiar syntax. (But see
 the sidebar for operators.) For example, for the function x with
@@ -216,7 +246,7 @@ syntax.
 .. sidebar::
 
   Behind the scenes, this function application is compiled to
-  x.__call__(a,b,c), and that's how it's called from Java. A
+  x.__call__(*args, **kwargs), and that's how it's called from Java. A
   convenience method is also provided, invoke, that combines method
   lookup and dispatch together. So you can directly call Python
   functions from Java code in this way. We will look at this more in
@@ -344,9 +374,10 @@ have an infinite loop around their yield expression::
   value to the function that had called ``next`` (or ``send`` in the
   case of a coroutine). The generator is then indefinitely suspended,
   just like any other iterator. Upon calling next again, the generator
-  is resumed by restoring these variables, then executing the next
-  bytecode instruction. This process continues until the generator is
-  either garbage collected or it exits.
+  is resumed by restoring these local variables, then executing the
+  next bytecode instruction following the yield point. This process
+  continues until the generator is either garbage collected or it
+  exits.
 
   You can determine if the underlying function is a generator if its
   code object has the CO_GENERATOR flag set in co_flags.
@@ -394,12 +425,26 @@ Generator Expressions
 Coroutines
 ----------
 
-The PyCon tutorial on coroutines has some useful concepts. One thing to remember: coroutines do not mix with generators, despite being related in both syntax and implementation. Coroutines use push; generators use pull.
-Might be nice to show how to use this in conjunction with parallelism.
+ One thing
+to remember: coroutines do not mix with generators, despite being
+related in both syntax and implementation. Coroutines use push;
+generators use pull.
+
+XXX The PyCon tutorial on coroutines has some useful coroutine
+examples - certainly need similar coverage.
+
+XXX Might be nice to show how to use this in
+conjunction with parallelism. but that's a later chapter anyway
 
 
 Special Functions
+-----------------
+
 [this is no doubt __XXX__ methods and corresponding generics like len, iter, etc]
+
+
+Advanced Function Usage
+-----------------------
 
 Frames
 Tracebacks
@@ -419,6 +464,10 @@ names. As a result, they're somewhat like the classes from
 Please refer to the documentation of the Python standard library [XXX
 link to the Jython.org version] for the formal documentation of these
 builtin functions.
+
+XXX let's just pull in the actual documentation, then modify/augment
+as desired. I still prefer the grouping that we are doing here,
+especially if we can create an index.
 
 Let's list these by functionality, that is
 
