@@ -9,9 +9,9 @@ Introduction
 Functions are the fundamental unit of work in Python. They're also
 very easy to define and use. We will start with the basics of
 functions. Then we will look at some other ways of defining
-them. Lastly we look at using the builtin functions, which are the
-core functions that don't require an explicit import.  importing them
-into your namespace.
+them. Lastly we look at using the builtin functions. These core
+functions are always available, meaning they don't require an explicit
+import into your namespace.
 
 .. sidebar:: Function Code Bodies
 
@@ -28,9 +28,9 @@ into your namespace.
 Function Syntax and Basics
 --------------------------
 
-Functions are defined by using with ``def`` keyword, the name of the
+Functions are defined by using the ``def`` keyword, the name of the
 function, its parameters (if any), and the body of code. We will start
-with this simple example function::
+by looking at this simple example function::
 
   def times2(n):
       return n * 2
@@ -55,20 +55,42 @@ function as follows::
   [1, 2, 3, 1, 2, 3]
 
 Further simplifying things is the fact that all parameters in Python
-are passed by reference. This is identical to how Java does it. (Java
-does support passing unboxed primitive types by value, however, there
-are no such entities in Python.)
+are passed by reference. This is identical to how Java does it with
+object parameters. (Java does support passing unboxed primitive types
+by value, however, there are no such entities in Python.)
 
 XXX more on *args, **kwargs
+
+XXX accessing function params through introspection - let's discuss this later
 
 Function Body
 ~~~~~~~~~~~~~
 
-XXX more general stuff on function bodies
-XXX currently limits of 64K java bytecode instructions when compiled. this will be relaxed in a future version
+Typically when writing a function, it makes sense to start with a
+sequence of statements and just try it out in a console. Or maybe just
+write a short script in an editor. The idea is to just to prove a path
+and answer such questions as, "Does this API work as expect it to?"
+Because top-level code in a console or script works just like it does
+in a function, it's easy to later isolate this code in a function body
+and then package it as a function (or as a method as part of a
+class). The ease of doing this style of development is one aspect that
+makes Python such a joy to program in. And of course in the Jython
+implementation, it's easy to do that within the context of any Java
+library.
 
-XXX local variables - extend this with discussion 
-XXX global variables
+So what can go in a function body? Pretty much anything, including
+material that we will cover later in this book. You can even define
+functions or use import, within the scope of a function. Compiler
+directives, through ``from __future__ import whatever``, are the one
+exception.
+
+But usually you will use a more limited repetoire of statements. In
+``times2``, we use the ``return`` statement to exit the function with
+that value. If ``return`` is not specified, ``None`` is
+returned. There is no equivalent to a ``void`` method in Java; every
+function in Python does return a value.
+
+XXX transition
 
 An empty function still needs something in its body. You can use the
 ``pass`` statement::
@@ -86,14 +108,33 @@ An empty function still needs something in its body. You can use the
   an empty function -- or having this be the default -- we can
   simplify the API.
 
-``None`` is returned by functions that don't otherwise specify a
-return value. However, the Python console will not show the return
-value when it's ``None``, so you need to explicitly print it to see
-what is returned::
+However, the Python console will not show the return value when it's
+``None``, so you need to explicitly print it to see what is returned::
 
    >>> do_nothing()
    >>> print do_nothing()
    None
+
+Functions can easily return multiple values by returning a tuple or
+other structure. In addition, it's possible for a function to return
+different types::
+
+  XXX return a tuple or a string or something else
+
+
+Introducing variables
+XXX local variables - extend this with discussion 
+XXX global variables
+
+
+Return statement
+
+
+
+XXX more general stuff on function bodies
+
+
+
 
 In addition, you can specify a document string for the function. The
 docstring, if it exists, is a string that occurs as the first value of
@@ -144,6 +185,10 @@ name, the last one defined is used.
   XXX TurboGears uses this for it routing functionality (but they no
   longer use Peak-Rules as of 2.1 [which is hard to port to
   Jython]). Need to find out more!
+
+
+XXX various limits
+XXX currently limits of 64K java bytecode instructions when compiled. this will be relaxed in a future version
 
 
 Nested Scopes
@@ -300,13 +345,13 @@ Closures.
 
 .. sidebar:: What do functions look like from Java?
 
-  They are instances of PyObject, supporting the __call__ method.
+  They are instances of PyObject, supporting the ``__call__`` method.
 
   Additional introspection is available. If a function object is just
   a standard function written in Python, it will be of class
   PyFunction. A builtin function will be of class
-  PyBuiltinFunction. But you can't assume that in your code, because
-  many other objects support the function interface (__call__), and
+  PyBuiltinFunction. But don't assume that in your code, because many
+  other objects support the function interface (``__call__``), and
   these potentially could be proxying, perhaps several layers deep, a
   given function. You can only assume it's a PyObject.
 
@@ -449,7 +494,7 @@ Advanced Function Usage
 Frames
 Tracebacks
 Profiling and tracing
-
+Introspection on functions - various attributes, etc, not to mention the use of inspect
 
 
 
