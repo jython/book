@@ -6,34 +6,120 @@ Defining Functions and Using Built-Ins
 Introduction
 ------------
 
-Functions are the fundamental unit of work in Python. They're also
-very easy to define and use. We will start with the basics of
-functions. Then we will look at some other ways of defining
-them. Lastly we look at using the builtin functions. These core
-functions are always available, meaning they don't require an explicit
-import into your namespace.
+Functions are the fundamental unit of work in Python. Fortunately,
+they're also very easy to define and use. This is true not just
+syntactically, but in practice too. As you have already seen, Python
+encourages an incremental style of development.
 
-.. sidebar:: Function Code Bodies
+So how does this work out? Often when writing a function it may make
+sense to start with a sequence of statements and just try it out in a
+console. Or maybe just write a short script in an editor. The idea is
+to just to prove a path and answer such questions as, "Does this API
+work as expect it to?"  Because top-level code in a console or script
+works just like it does in a function, it's easy to later isolate this
+code in a function body and then package it as a function, maybe in a
+libary, or as a method as part of a class. The ease of doing this
+style of development is one aspect that makes Python such a joy to
+program in. And of course in the Jython implementation, it's easy to
+do that within the context of any Java library.
 
-  Jython, like CPython, only has one unit of compilation, the function
-  code body. When a module is compiled, every function in it is
-  compiled even if it's not ultimately bound to a name. In addition, a
-  script or module is itself treated as a function when
-  compiled. These function definitions are compiled to Java
-  bytecode. (There's experimental support for other formats, namely
-  Python bytecode, which we may see be used in later versions of
-  Jython.)
+.. note:: 
+
+  Perhaps the only tricky part is to keep the whitespace consistent as
+  you change the identation level. The key is to use a good editor
+  that supports Python.
+ 
+In this chapter, we will start with the basics of functions. Then we
+will look at some other ways of defining them. Lastly we look at using
+the builtin functions. These core functions are always available,
+meaning they don't require an explicit import into your namespace.
+
 
 
 Function Syntax and Basics
 --------------------------
 
-Functions are defined by using the ``def`` keyword, the name of the
-function, its parameters (if any), and the body of code. We will start
-by looking at this simple example function::
+Functions are usually defined by using the ``def`` keyword, the name
+of the function, its parameters (if any), and the body of code. We
+will start by looking at this simple example function::
 
   def times2(n):
       return n * 2
+
+Normal usage can treat function definitions as being very simple. But
+there's subtle power in every piece of the function definition,
+due to the fact that Python is a dynamic language. We look at these
+pieces from both the beginning and advanced perspective.
+
+We will also look at some alternative ways of creating functions in a
+later section.
+
+The ``def`` Keyword
+~~~~~~~~~~~~~~~~~~~
+
+Using ``def`` for *define* seems simple enough, and this keyword
+certainly can be used to declare a function just like you would in a
+static language. You should write most code that way in fact.
+
+However, the more advanced usage is that a function definition can
+occur at any level in your code and be introduced at any time. Unlike
+the case in a language like C or Java, function definitions are not
+declarations. Instead they are executable statements. You can nest
+functions, and we'll describe that more when we talk about nested
+scopes. And you can do things like conditionally define them.
+
+This means it's perfectly valid to write code like this::
+
+    if variant:
+        def f():
+            print "One way"
+     else:
+        def f():
+            print "or another"
+
+However, regardless of when and where the definition occurs, including
+its variants as above, it will be compiled into a function object at
+the same time as the rest of the module or script that the function is
+defined in.
+
+Naming the Function
+~~~~~~~~~~~~~~~~~~~
+
+The ``dir`` builtin function will tell us about all names defined in a
+namespace, defaulting to the module, script, or console environment we
+are working in. With this new ``times2`` function defined above, we
+now see the following (at least)::
+
+  >>> dir()
+  ['__doc__', '__name__', 'times2']
+
+We can also just look at what is bound to that name::
+
+  >>> times2
+  <function times2 at 0x1>
+
+We can also redefine a function at any time. So here's another way to
+define that same function::
+
+  def times2(n):
+      return 2 * n # not too many ways to write the same simple piece of code!
+
+The ``*`` operator is not necessarily commutative, but it is for this
+case.  Also, the same function object is still around -- until garbage
+collected, because nothing else is referencing it.
+
+What's important here is that we simply rebound the name
+``times2``. First it pointed to one function object, then another. We
+can see that in action by simply setting another name (equivalently,
+a variable) to ``times2``::
+
+  >>> t2 = times2
+  >>> t2(5)
+  10
+
+This makes passing a function as a parameter very easy, for a callback
+for example. But first, we need to look at function parameters in more
+details.
 
 Function Parameters
 ~~~~~~~~~~~~~~~~~~~
@@ -54,29 +140,34 @@ function as follows::
   >>> times2([1,2,3])
   [1, 2, 3, 1, 2, 3]
 
+XXX maybe mention other things like float, Decimal, etc
+
 Further simplifying things is the fact that all parameters in Python
 are passed by reference. This is identical to how Java does it with
 object parameters. (Java does support passing unboxed primitive types
 by value, however, there are no such entities in Python.)
 
+XXX passing a function as a parameter - We can simply pass its name, then in the function using it
+
+
 XXX more on *args, **kwargs
 
-XXX accessing function params through introspection - let's discuss this later
+XXX accessing function params through introspection - let's discuss this later, so just reference this through a link.
+
+
+
+Calling Functions
+~~~~~~~~~~~~~~~~~
+
+Parentheses are mandatory. 
+
+Functions are passed by reference.
+
+So you can just take a function 
 
 Function Body
 ~~~~~~~~~~~~~
 
-Typically when writing a function, it makes sense to start with a
-sequence of statements and just try it out in a console. Or maybe just
-write a short script in an editor. The idea is to just to prove a path
-and answer such questions as, "Does this API work as expect it to?"
-Because top-level code in a console or script works just like it does
-in a function, it's easy to later isolate this code in a function body
-and then package it as a function (or as a method as part of a
-class). The ease of doing this style of development is one aspect that
-makes Python such a joy to program in. And of course in the Jython
-implementation, it's easy to do that within the context of any Java
-library.
 
 So what can go in a function body? Pretty much anything, including
 material that we will cover later in this book. You can even define
@@ -88,7 +179,9 @@ But usually you will use a more limited repetoire of statements. In
 ``times2``, we use the ``return`` statement to exit the function with
 that value. If ``return`` is not specified, ``None`` is
 returned. There is no equivalent to a ``void`` method in Java; every
-function in Python does return a value.
+function in Python returns a value.
+
+XXX can return different types.
 
 XXX transition
 
@@ -189,6 +282,18 @@ name, the last one defined is used.
 
 XXX various limits
 XXX currently limits of 64K java bytecode instructions when compiled. this will be relaxed in a future version
+
+
+.. sidebar:: Function Code Bodies
+
+  Jython, like CPython, only has one unit of compilation, the function
+  code body. When a module is compiled, every function in it is
+  compiled even if it's not ultimately bound to a name. In addition, a
+  script or module is itself treated as a function when
+  compiled. These function definitions are compiled to Java
+  bytecode. (There's experimental support for other formats, namely
+  Python bytecode, which we may see be used in later versions of
+  Jython.)
 
 
 Nested Scopes
@@ -332,16 +437,6 @@ Closures.
 
 .. sidebar::
 
-  Note that the function declarations are executable statements. So
-  it's perfectly valid to write code like this::
-
-    # write more interesting code
-    if variant:
-        def f():
-            ###
-     else:
-        def f():
-            ###
 
 .. sidebar:: What do functions look like from Java?
 
@@ -502,9 +597,10 @@ Builtin Functions
 -----------------
 
 Builtin functions are those functions that are always in the Python
-namespace. In other words, they are the only truly globally defined
-names. As a result, they're somewhat like the classes from
-``java.lang``. They 
+namespace. In other words, these functions -- and builtin exceptions,
+boolean values, and some other objects -- are the only truly globally
+defined names. If you are familiar with Java, they are somewhat like
+the classes from ``java.lang``.
 
 Please refer to the documentation of the Python standard library [XXX
 link to the Jython.org version] for the formal documentation of these
