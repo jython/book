@@ -6,16 +6,22 @@ Defining Functions and Using Built-Ins
 Introduction
 ------------
 
-Functions are the fundamental unit of work in Python. Fortunately,
-they're also very easy to define and use. This is true not just
-syntactically, but in practice too. As you have already seen, Python
-encourages an incremental style of development.
+Functions are the fundamental unit of work in Python. In this chapter,
+we will start with the basics of functions. Then we will look at some
+other ways of defining them. Lastly we look at using the builtin
+functions. These are the core functions that are always available,
+meaning they don't require an explicit import into your namespace.
+
+As you will see, functions are very easy to define and use. This is
+true not just syntactically, but in practice too, because Python
+encourages an incremental style of development that you can leverage
+when writing functions.
 
 So how does this work out? Often when writing a function it may make
 sense to start with a sequence of statements and just try it out in a
 console. Or maybe just write a short script in an editor. The idea is
 to just to prove a path and answer such questions as, "Does this API
-work as expect it to?"  Because top-level code in a console or script
+work as I expect it to?"  Because top-level code in a console or script
 works just like it does in a function, it's easy to later isolate this
 code in a function body and then package it as a function, maybe in a
 libary, or as a method as part of a class. The ease of doing this
@@ -28,12 +34,6 @@ do that within the context of any Java library.
   Perhaps the only tricky part is to keep the whitespace consistent as
   you change the identation level. The key is to use a good editor
   that supports Python.
- 
-In this chapter, we will start with the basics of functions. Then we
-will look at some other ways of defining them. Lastly we look at using
-the builtin functions. These core functions are always available,
-meaning they don't require an explicit import into your namespace.
-
 
 
 Function Syntax and Basics
@@ -53,6 +53,7 @@ pieces from both the beginning and advanced perspective.
 
 We will also look at some alternative ways of creating functions in a
 later section.
+
 
 The ``def`` Keyword
 ~~~~~~~~~~~~~~~~~~~
@@ -77,10 +78,11 @@ This means it's perfectly valid to write code like this::
         def f():
             print "or another"
 
-However, regardless of when and where the definition occurs, including
-its variants as above, it will be compiled into a function object at
-the same time as the rest of the module or script that the function is
-defined in.
+Please note, regardless of when and where the definition occurs,
+including its variants as above, the function definition will be
+compiled into a function object at the same time as the rest of the
+module or script that the function is defined in.
+
 
 Naming the Function
 ~~~~~~~~~~~~~~~~~~~
@@ -119,7 +121,8 @@ a variable) to ``times2``::
 
 This makes passing a function as a parameter very easy, for a callback
 for example. But first, we need to look at function parameters in more
-details.
+detail.
+
 
 Function Parameters
 ~~~~~~~~~~~~~~~~~~~
@@ -144,8 +147,13 @@ XXX maybe mention other things like float, Decimal, etc
 
 Further simplifying things is the fact that all parameters in Python
 are passed by reference. This is identical to how Java does it with
-object parameters. (Java does support passing unboxed primitive types
-by value, however, there are no such entities in Python.)
+object parameters. However, while Java does support passing unboxed primitive
+types by value, there are no such entities in Python. Everything is an
+object in Python.
+
+And this includes functions of course. So here's how to pass a function::
+
+  >>> 
 
 XXX passing a function as a parameter - We can simply pass its name, then in the function using it
 
@@ -165,9 +173,9 @@ Functions are passed by reference.
 
 So you can just take a function 
 
+
 Function Body
 ~~~~~~~~~~~~~
-
 
 So what can go in a function body? Pretty much anything, including
 material that we will cover later in this book. You can even define
@@ -333,8 +341,8 @@ scope::
   typically declarations in other languages like Java. For example, a
   class definition or module import is just syntax around the
   underlying functions, which you can call yourself if you need to do
-  so. (They are type and __import__ respectively, you will be learning
-  more about them later.)
+  so. (Incidentally, these functions are ``type`` and ``__import__`` respectively, and you will be learning
+  more about them later in the sections on builtins.)
 
 
 .. sidebar:: Recursion
@@ -419,6 +427,7 @@ syntax.
 The code definition is separate from the name of the function.
 This distinction proves to be useful for decorators, as we will see later.
 
+
 Scoping
 ~~~~~~~
 
@@ -457,22 +466,6 @@ Closures.
 
 .. sidebar:: Partitioning this global namespace with shadowing.
 
-Decorators
-----------
-
-Functions on functions
-
-Using Decorators
-~~~~~~~~~~~~~~~~
-
-Memoization decorator. For our same Fibonacci example.
-How about a decorator for Java integration? eg add support of a given interface to facilitate callbacks
-
-Creating Decorators
-~~~~~~~~~~~~~~~~~~~
-
-Using __future__
-with_statement
 
 Generators
 ----------
@@ -486,6 +479,7 @@ Call obj.next
 Advance to the next point by calling the special method
 ``next``. Usually that's done implicitly, typically through a loop or
 a consuming function that accepts iterators, including generators.
+
 
 Defining Generators
 ~~~~~~~~~~~~~~~~~~~
@@ -520,7 +514,7 @@ have an infinite loop around their yield expression::
   exits.
 
   You can determine if the underlying function is a generator if its
-  code object has the CO_GENERATOR flag set in co_flags.
+  code object has the ``CO_GENERATOR`` flag set in ``co_flags``.
 
   Generators can also be resumed from any thread, although some care
   is necessary to ensure that underlying system state is shared (or
@@ -536,7 +530,13 @@ Python iteration protocol. iter, next.
 Generator Example
 ~~~~~~~~~~~~~~~~~
 
-How to use in interesting ways with Java. For example, we wrap everything in Java that supports Iterator so it supports the Python iteration protocol.
+contextlib
+
+Jar scanner
+
+How to use in interesting ways with Java. For example, we wrap
+everything in Java that supports ``java.util.Iterator`` so it supports
+the Python iteration protocol.
 
 Maybe something simple like walking a directory tree?
 In conjunction with glob type functionality? And possibly other analysis.
@@ -561,35 +561,43 @@ http://java.sun.com/docs/books/tutorial/essential/io/notification.html  - how to
 Generator Expressions
 ---------------------
 
+XXX Maybe something simple with Java Mail? Could show how to attach files that meet a certain criteria?
 
-Coroutines
-----------
+Function Decorators
+-------------------
 
- One thing
-to remember: coroutines do not mix with generators, despite being
-related in both syntax and implementation. Coroutines use push;
-generators use pull.
+Function decorators are two things:
 
-XXX The PyCon tutorial on coroutines has some useful coroutine
-examples - certainly need similar coverage.
+ * A convenient syntax that describes how to transform a function. You
+   might want to *memoize* a given function, so it uses a cache, with
+   a desired policy, to remember a result for a given set of
+   parameters. Or you may want to create a static method in a class.
 
-XXX Might be nice to show how to use this in
-conjunction with parallelism. but that's a later chapter anyway
+ * A powerful, yet simple design where the decorator is a function on
+   function that results in the decorated, or transformed, function.
 
+(Class decorators are similar, except they are functions on classes).
 
-Special Functions
------------------
-
-[this is no doubt __XXX__ methods and corresponding generics like len, iter, etc]
+XXX example - XXX How about a decorator for Java integration? eg add support of a given interface to facilitate callbacks
 
 
-Advanced Function Usage
------------------------
+Creating Decorators
+~~~~~~~~~~~~~~~~~~~
 
-Frames
-Tracebacks
-Profiling and tracing
-Introspection on functions - various attributes, etc, not to mention the use of inspect
+Memoization decorator. For our same Fibonacci example.
+
+
+Often a function definition is not the simplest way to write the
+desired decorator function. Instead, you might want to create a class,
+as we described in alternate ways to create function objects.
+
+XXX In addition, ``functools``, specifically the ``wraps`` function.
+
+XXX ref Eckel's article on decorators.
+
+
+Using Decorators
+~~~~~~~~~~~~~~~~
 
 
 
@@ -611,6 +619,7 @@ as desired. I still prefer the grouping that we are doing here,
 especially if we can create an index.
 
 Let's list these by functionality, that is
+
 
 Constructor Functions
 ~~~~~~~~~~~~~~~~~~~~~
@@ -696,13 +705,13 @@ abs, cmp, divmod, pow, round
 
 You may need to use named functions 
 
+
 Functions on Iterables
 ~~~~~~~~~~~~~~~~~~~~~~
 
 The next group of builtin functions operate on iterables, which in
 Jython also includes all Java objects that implement the
-``java.util.Interface``. (This extends to the related functions in the
-functools and itertools modules.)
+``java.util.Iterator`` interface.
 
 In particular,
 
@@ -741,7 +750,8 @@ whether the characters are upper or lowercase::
 
 Although using a *key* function requires building a decorated version
 of the list to be sorted, in practice this uses substantially less
-overhead than calling a *cmp* function on every comparison.
+overhead than calling a *cmp* function on every comparison. We
+recommend you take advantage of a keyed sort.
 
 .. function:: all(iterable), any(iterable)
 
@@ -765,8 +775,12 @@ Python 3.x, using ``list(xrange())`` instead is better.
 
 Some advice:
 
- * Generator expressions (or list comprehensions) are easier to use than ``filter``.
- * Most interesting uses of ``reduce`` can be done with ``sum``. Anything more complex should likely be written as a generator.
+ * Generator expressions (or list comprehensions) are easier to use
+   than ``filter``.
+
+ * Most interesting but simple uses of ``reduce`` can be implemented
+   through ``sum``. And anything more complex should likely be written
+   as a generator.
 
 
 XXX some extra stuff here:
@@ -844,5 +858,28 @@ Operators
 
 
 
+XXX Chopping block
 
 
+Coroutines
+----------
+
+ One thing
+to remember: coroutines do not mix with generators, despite being
+related in both syntax and implementation. Coroutines use push;
+generators use pull.
+
+XXX The PyCon tutorial on coroutines has some useful coroutine
+examples - certainly need similar coverage.
+
+XXX Might be nice to show how to use this in
+conjunction with parallelism. but that's a later chapter anyway
+
+
+Advanced Function Usage
+-----------------------
+
+Frames
+Tracebacks
+Profiling and tracing
+Introspection on functions - various attributes, etc, not to mention the use of inspect
