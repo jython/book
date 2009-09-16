@@ -1,5 +1,7 @@
 XXX Link into the standard docs
 
+XXX ensure PSF license is incorporated in our book, much of the text of this chapter is the description of the builtin functions
+
 Defining Functions and Using Built-Ins
 ======================================
 
@@ -12,7 +14,7 @@ builtin functions. These are the core functions that are always
 available, meaning they don't require an explicit import into your
 namespace.
 
-Then we will look at some alternative ways of defining them, such as
+Next we will look at some alternative ways of defining functions, such as
 lambdas and classes. We will also look at more advanced types of
 functions, namely closures and generator functions.
 
@@ -54,7 +56,7 @@ XXX Functions are first-class objects XXX incorporate
 Function Syntax and Basics
 --------------------------
 
-Functions are usually defined by using the ``def`` keyword, the name
+Functions are usually defined by using the :keyword:`def` keyword, the name
 of the function, its parameters (if any), and the body of code. We
 will start by looking at this example function::
 
@@ -62,25 +64,26 @@ will start by looking at this example function::
       return n * 2
 
 Normal usage can treat function definitions as being very simple. But
-there's subtle power in every piece of the function definition,
-due to the fact that Python is a dynamic language. We look at these
-pieces from both the beginning and advanced perspective.
+there's subtle power in every piece of the function definition, due to
+the fact that Python is a dynamic language. We look at these pieces
+from both a simple (the more typical case) and a more advanced
+perspective.
 
 We will also look at some alternative ways of creating functions in a
 later section.
 
 
-The ``def`` Keyword
+The :keyword:`def` Keyword
 ~~~~~~~~~~~~~~~~~~~
 
-Using ``def`` for *define* seems simple enough, and this keyword
+Using :keyword:`def` for *define* seems simple enough, and this keyword
 certainly can be used to declare a function just like you would in a
 static language. You should write most code that way in fact.
 
 However, the more advanced usage is that a function definition can
 occur at any level in your code and be introduced at any time. Unlike
 the case in a language like C or Java, function definitions are not
-declarations. Instead they are executable statements. You can nest
+declarations. Instead they are *executable statements*. You can nest
 functions, and we'll describe that more when we talk about nested
 scopes. And you can do things like conditionally define them.
 
@@ -102,10 +105,11 @@ module or script that the function is defined in.
 Naming the Function
 ~~~~~~~~~~~~~~~~~~~
 
-The ``dir`` builtin function will tell us about all names defined in a
-namespace, defaulting to the module, script, or console environment we
-are working in. With this new ``times2`` function defined above, we
-now see the following (at least)::
+We will describe this more in a later section, but the ``dir`` builtin
+function will tell us abou the names defined in a given namespace,
+defaulting to the module, script, or console environment we are
+working in. With this new ``times2`` function defined above, we now
+see the following (at least) in the console namespace::
 
   >>> dir()
   ['__doc__', '__name__', 'times2']
@@ -115,20 +119,28 @@ We can also just look at what is bound to that name::
   >>> times2
   <function times2 at 0x1>
 
-We can also redefine a function at any time. So here's another way to
-define that same function::
+(This object is further introspectable. Try ``dir(times2)`` and go
+from there.)
 
-  def times2(n):
-      return 2 * n # not too many ways to write the same simple piece of code!
+We can also redefine a function at any time::
 
-The ``*`` operator is not necessarily commutative, but it is for this
-case.  Also, the same function object is still around -- until garbage
-collected, because nothing else is referencing it.
+  >>> def f(): print "Hello, world"
+  ... 
+  >>> def f(): print "Hi, world"
+  ... 
+  >>> f()
+  Hi, world
 
-What's important here is that we simply rebound the name
-``times2``. First it pointed to one function object, then another. We
-can see that in action by simply setting another name (equivalently,
-a variable) to ``times2``::
+This is true not just of running it from the console, but any module
+or script. The original version of the function object will persist
+until it's no longer referenced, at which point it will be ultimately
+be garbage collected. In this case, the only reference was the name
+``f``, so it became available for GC immediately upon rebind.
+
+What's important here is that we simply rebound the name.  First it
+pointed to one function object, then another. We can see that in
+action by simply setting another name (equivalently, a variable) to
+``times2``::
 
   >>> t2 = times2
   >>> t2(5)
@@ -138,24 +150,51 @@ This makes passing a function as a parameter very easy, for a callback
 for example. But first, we need to look at function parameters in more
 detail.
 
-In addition, a given name can only be associated with one function at
-a time, so function overloading is not possible just by using
-``def``. If you were to define two (or more) functions with the same
-name, the last one defined is used.
-
 .. sidebar:: Function Metaprogramming
+
+  A given name can only be associated with one function at a time, so
+  can't overload a function with multiple definitions. If you were to
+  define two or more functions with the same name, the last one
+  defined is used, as we saw.
 
   However, it is possible to overload a function, or otherwise
   genericize it. You simply need to create a dispatcher function that
   then dispatches to your set of corresponding functions.
 
-  XXX TurboGears uses this for it routing functionality (but they no
-  longer use Peak-Rules as of 2.1 [which is hard to port to
-  Jython]). Need to find out more!
 
+Function Parameters and Calling Functions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Function Parameters
-~~~~~~~~~~~~~~~~~~~
+When defining a function, you specify the parameters it
+takes. Typically you will see something like the following. The syntax
+is familar::
+
+  XXX def f(a, b, c)
+
+Often defaults are specified::
+
+  XXXX def f(a, b=1, c=None)
+
+With this being the general form of what it take::
+
+  XXX what's a clear way to describe this? probably from the python tutorial or ref
+  def f(param1[=default1], *args, **kwargs)
+
+.. note:: 
+
+  This is not exhaustive. You can also use tuple parameters, but in
+  practice, they are not typically used, and were removed in Python
+  3. We recommend you don't use them. For one thing, they cannot be
+  properly introspected from Jython.
+
+Calling a function is symmetric. 
+You can call a function. The parentheses are mandatory. 
+
+Calling functions is also done by with a familiar syntax. For example,
+for the function x with parameters ``a,b,c`` that would be
+x(a,b,c). Unlike some other dynamic languages like Ruby and Perl, the
+use of parentheses is required syntax (due the function name being
+just like any other name).
 
 Objects are strongly typed, as we have seen. But function parameters,
 like names in general in Python, are not typed.  This means that
@@ -173,68 +212,54 @@ function as follows::
   >>> times2([1,2,3])
   [1, 2, 3, 1, 2, 3]
 
-XXX maybe mention other things like float, Decimal, etc
+All parameters in Python are passed by reference. This is identical to
+how Java does it with object parameters. However, while Java does
+support passing unboxed primitive types by value, there are no such
+entities in Python. Everything is an object in Python.
 
-Further simplifying things is the fact that all parameters in Python
-are passed by reference. This is identical to how Java does it with
-object parameters. However, while Java does support passing unboxed primitive
-types by value, there are no such entities in Python. Everything is an
-object in Python.
+Functions are objects too, and they can be passed as parameters::
 
-And this includes functions of course. So here's how to pass a function::
+  XXX passing a function as a parameter - We can simply pass its name, then in the function using it
 
-  >>> 
+If you have more than two or so arguments, it often makes more sense
+to call a function by parameter, rather than by the defined
+order. This tends to create more robust code. So if you have a
+function ``draw_point(x,y)``, you might want to call it as
+``draw_point(x=10,y=20)``.
 
-XXX passing a function as a parameter - We can simply pass its name, then in the function using it
+Defaults further simplify calling a function. You use the form of
+``param=default_value`` when defining the function. For instance, you
+might take our ``times2`` function and generalize it::
+
+  def times_by(n, by=2):
+      return n * by
+
+This function is equivalent to ``times2`` when called using that
+default value.
+
+There's one point to remember that oftens trips up developers. The
+default value is initialized exactly once, when the function is
+defined. That's certainly fine for immutable values like numbers,
+strings, tuples, frozensets, and similar objects. But you need to
+ensure that if the default value is mutable, that it's being used in
+this fashion correctly. So a dictionary for a shared cache makes
+sense. But this mechanism won't work for but a list where we expect it
+is initialized to an empty list upon invocation. If you're doing that,
+you need to write that explicitly in your code.
+
+Lastly, a function can take an unspecified number of ordered
+arguments, through ``*args``, and keyword args, through
+``**kwargs``. These parameter names (``args`` and ``kwargs``) are conventional, so you can use whatever name makes sense for your function. The markers ``*`` and ``**`` are used to to determine that this functionality should be used.
+
+  XXX by factors
 
 
-XXX more on *args, **kwargs
 
-XXX accessing function params through introspection - let's discuss this later, so just reference this through a link.
-
-
-Calling Functions
-~~~~~~~~~~~~~~~~~
-
-Parentheses are mandatory. 
-
-Functions are passed by reference.
-
-
-Unpacking the return value.
-
-Calling functions is generally done by the familiar syntax. (But see
-the sidebar for operators.) For example, for the function x with
-parameters a,b,c that would be x(a,b,c). Unlike some other dynamic
-languages like Ruby and Perl, the use of parentheses is required
-syntax.
-
-.. sidebar::
-
-  Behind the scenes, this function application is compiled to
-  x.__call__(*args, **kwargs), and that's how it's called from Java. A
-  convenience method is also provided, invoke, that combines method
-  lookup and dispatch together. So you can directly call Python
-  functions from Java code in this way. We will look at this more in
-  the chapter on Java integration.
-
-.. sidebar:: Special syntax support for operators
-
-  x.a
-  del x
-  x[i]
-  etc.
-
-  All operators are available as functions from the operator module.
-  It should be noted that operators on built-in types (int, str, dict,
-  etc.) will usually execute faster on the JVM because they do not
-  require dynamic dispatch. Invokedynamic, part of JDK 7, is exciting
-  because it makes that cost go away, but we will have to wait for
-  that. 
+Calling Functions - Recursion
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The code definition is separate from the name of the function.
 This distinction proves to be useful for decorators, as we will see later.
-
 
   XXX Recursion. (I think it makes sense to not focus on recursion too
   much; it may be a fundamental aspect of computer science, but it's
@@ -249,7 +274,6 @@ This distinction proves to be useful for decorators, as we will see later.
 
    Memoization, as we will discuss with decorators, can make a
    recursive solution practical, however.
-
 
 
 Function Body
@@ -326,6 +350,12 @@ what is returned::
    >>> print do_nothing()
    None
 
+A delighter in Python is the ease by which it enables returning multiple values::
+
+  XXX function - return a, b
+
+We can then readily unpack the return value.
+
 
 Introducing Variables
 ^^^^^^^^^^^^^^^^^^^^^
@@ -386,7 +416,7 @@ Other Statements
 
     * Compiler directives. Python supports a limited set of compiler
       directives that have the provocative syntax of ``from __future__
-      import X``; see PEP 236. These are features that will be
+      import X``; see :pep:`236`. These are features that will be
       eventually be made available, generally in the next minor
       revision (such as 2.5 to 2.6). In addition, it's a popular place
       to put Easter eggs, such as ``from __future__ import
@@ -455,11 +485,13 @@ the classes from ``java.lang``.
 
 Builtins are rarely sufficient, however; even a simple command line
 script generally needs to parse its arguments or read in from its
-standard input. (For this case you would need to ``import sys``.) And
-in the context of Jyhton, you will need to import the relevant Java
-classes you are using (maybe start with ``import java``). But the
+standard input. So for this case you would need to ``import sys``. And
+in the context of Jython, you will need to import the relevant Java
+classes you are using, perhaps with ``import java``. But the
 builtin functions are really the core function that almost all Python
 code uses.
+
+.. include:: builtins.rst
 
 XXX let's just pull in the actual documentation, then modify/augment
 as desired. I still prefer the grouping that we are doing here,
@@ -470,248 +502,13 @@ Group by functionality; this is the standard docs, augmented by our
 perspectives on how to use them.
 
 
-Constructor Functions
-~~~~~~~~~~~~~~~~~~~~~
-
-Constructor functions are used to create objects of a given type.
-
-.. note:: 
-
-  In Python, the type is a constructor function; there's no difference
-  at all in Python. So you can use the ``type`` function, which we
-  discuss momentarily, to look up the type of an object, then make
-  instances of that same type.
-
-First we will look at the constructor functions, which are more
-typically used for conversion. This is because there is generally a
-convenient literal syntax available, or in the case of ``bool``, there
-are only two such constants, ``True`` and ``False``.
-
-bool
-chr
-complex
-dict
-float
-list
-int
-str
-tuple
-unichr
-unicode 
-
-.. note:: 
-
-  So you should use ``42`` in your code instead of ``int('42')`` - and
-  even then you still need to a string literal!
-
-.. note:: 
-
-  The function ``long`` is no longer necessary to use. This is because
-  int has no restriction on its size.
-
-Although there is a convenient literal for creating ``dict`` objects::
-
-  a_dict = { 'alpha' : 1, 'beta' : 2, 'gamma' : 3 }
-
-It can be more convenient to create them using the ``dict`` function::
-
-  a_dict = dict(alpha=1, beta=2, gamma=3)
-
-Of course in this latter case, the keys of the entries being created
-must be valid Python keywords.
-
-frozenset, set
-object - use to create a unique object
-
-Constructing iterators: iter, xrange
-
-.. function:: iter(o[, sentinel])
-
-
-list, long (*), object, open, property, set, slice,  super, tuple, type, - note, no buffer (but string is usually a reasonable sub)
-
-file, open
-
-
-
-
-Use as decorators:
-classmethod, staticmethod, property
-
-``slice`` is rarely used directly.
-
-super
-type - 3 arg form
-compile
-
-
-Math Builtin Functions
-~~~~~~~~~~~~~~~~~~~~~~
-
-Most math functions are defined in ``math`` (or ``cmath`` for complex math). These are functions that are builtin:
-
-abs, cmp, divmod, pow, round
-
-You may need to use named functions 
-
-
-Functions on Iterables
-~~~~~~~~~~~~~~~~~~~~~~
-
-The next group of builtin functions operate on iterables, which in
-Jython also includes all Java objects that implement the
-``java.util.Iterator`` interface.
-
-In particular,
-
-.. function:: enumerate(iterable)
-
-.. function:: zip([,iterable, ...])
-
-The ``zip`` function creates a list of tuples by stepping through each
-*iterable*. One very common idiom is to use ``zip`` to create a
-``dict`` where one iterable has the keys, and the other the
-values. This is often seen in working with CSV files (from a header
-row) or database cursors (from the ``description``
-attribute). However, you might want to consider using
-``collections.namedtuple`` instead::
-
-  XXX example code - read from CSV, zip together
-
- 
-.. function:: sorted(iterable[, cmp[, key[, reverse]]])
-
-The ``sorted`` function returns a sorted list. Use the optional *key*
-argument to specify a key function to control how it's sorted. So for
-example, this will sort the list by the length of the elements in it::
-  
-  >>> sorted(['Massachusetts', 'Colorado', 'New York', 'California', 'Utah'], key=len)
-  ['Utah', 'Colorado', 'New York', 'California', 'Massachusetts']
-
-And this one will sort a list of Unicode strings without regard to it
-whether the characters are upper or lowercase::
-
-  >>> sorted(['apple', 'Cherry', 'banana'])
-  ['Cherry', 'apple', 'banana']
-
-  >>> sorted(['apple', 'Cherry', 'banana'], key=str.upper)
-  ['apple', 'banana', 'Cherry']
-
-Although using a *key* function requires building a decorated version
-of the list to be sorted, in practice this uses substantially less
-overhead than calling a *cmp* function on every comparison. We
-recommend you take advantage of a keyed sort.
-
-.. function:: all(iterable), any(iterable)
-
-``all`` and ``any`` will also short cut, if possible.
-
-
-and sum(iterable[, start=0]) are functions that you
-will find frequent use for. 
-
-.. function:: max(iterable[, key]) or max([, arg, ...][, key]); min(iterable[, key]) or min([, arg, ...][, key])
-
-The ``max`` and ``min`` functions
-take a *key* function as an optional argument.
-
-
-Although ``filter``, ``map``, and ``reduce`` are still useful, their
-use is largely superseded by using other functions, in conjunction
-with generator expressions. The ``range`` function is still useful for
-creating a list of a given sequence, but for portability eventualy to
-Python 3.x, using ``list(xrange())`` instead is better.
-
-Some advice:
-
- * Generator expressions (or list comprehensions) are easier to use
-   than ``filter``.
-
- * Most interesting but simple uses of ``reduce`` can be implemented
-   through ``sum``. And anything more complex should likely be written
-   as a generator.
-
-
-XXX some extra stuff here:
-
-.. function:: all(iterable)
-
-Returns True if all of the elements in the iterable are true,
-otherwise False and stop the iteration. (If the iterable is empty,
-this function returns True).
-
-.. function:: any(iterable)
-
-Returns True if any of the elements in the iterable are true, stopping the iteration.
-Otherwise returns False and stop the iteration. (If the iterable is empty,
-this function returns True).
-
-Returns True if any of the 
-
-.. function:: enumerate(iterable)
-
-.. function:: filter(function, iterable)
-
-
-.. function:: sum(iterable[, start=0])
-
-   XXX maybe show how to construct a count using bool
-
-
-Namespace Functions
-~~~~~~~~~~~~~~~~~~~
-namespace - __import__, delattr, dir, getattr, locals, globals, hasattr, reload, setattr, vars
-
-getattr
-
-.. sidebar::
-  
-  Java dynamic integration. the supporting special method for getattr
-  is __getattr__. When Jython code is compiled, it actually uses
-  __getattr__ for implementing attribute lookup. So x.y.z is actually
-  compiled to the equivalent chain of
-  x.__getattr__('y').__getattr__('z'). Alternatively for more
-  efficient Java integration, __findattr__ is supported. It returns
-  null instead of throwing an AttributeError if the attribute is not
-  part of a given object. But use __getattr__ if you are going to be
-  chaining method calls together so as to maintain Python exception
-  handling semantics.
-
-  If the given Jython class implements a Java interface (or extends a
-  Java class, but this is the less preferrable case in Jython as it is
-  in Java in general), then Java code that uses such instances can
-  statically bind method lookup.
-
-  XXX [The Clamp project supports an alternate way of exposing Java
-  interfaces, such that the interfaces are created from Jython
-  code. I'm not so certain about this approach as a best practice
-  however. Java interfaces in Java are quite precise with respect to
-  interoperability. Other parts are useful, such as AOT compilation of
-  Java proxies for Jython classes.]
-
-
-compile, eval, exec
-Creating code objects.
-
-evaluation - eval, execfile, 
-predicates - callable, isinstance, issubclass 
-hex, oct, id, hash, ord, repr
-len
-input, rawinput
-
-Just refer to the documentation on these:
-deprecated functions - apply, buffer, coerce, intern ...
-
-Operators
-
-
-
 Alternative Ways to Define Functions
 ------------------------------------
 
-The ``def`` keyword is not the only way to define a function. Here are some alternatives:
+The :keyword:`def` keyword is not the only way to define a function. Here are
+some alternatives:
 
-   * Lambda functions. The lambda keyword creates an unnamed
+   * :keyword:`lambda` functions. The :keyword:`lambda` keyword creates an unnamed
      function. Some people like this because it requires minimal
      space, especially when used in a callback::
 
@@ -836,7 +633,9 @@ doesn't matter.
 Generator Expressions
 ^^^^^^^^^^^^^^^^^^^^^
 
-This is an alternative way to create the generator object. Please note this is not a generator function! It's the equivalent to what a generator function returns when called.
+This is an alternative way to create the generator object. Please note
+this is not a generator function! It's the equivalent to what a
+generator function returns when called.
 
 . Creates an unnamed generator. But cover
 this later with respect to generators. Note that generators are not callable objects::
@@ -996,3 +795,35 @@ Introspection on functions - various attributes, etc, not to mention the use of 
 
   The inspect module. Determining parameters, etc.
   One thing that is not supported: introspecting on code objects themselves.
+
+
+
+
+
+
+.. sidebar::
+
+  Behind the scenes, this function application is compiled to
+  x.__call__(*args, **kwargs), and that's how it's called from Java. A
+  convenience method is also provided, invoke, that combines method
+  lookup and dispatch together. So you can directly call Python
+  functions from Java code in this way. We will look at this more in
+  the chapter on Java integration.
+
+
+
+
+
+.. sidebar:: Special syntax support for operators
+
+  x.a
+  del x
+  x[i]
+  etc.
+
+  All operators are also available as functions from the :module:`operator`. 
+  It should be noted that operators on built-in types (int, str, dict,
+  etc.) will usually execute faster on the JVM because they do not
+  require dynamic dispatch. Invokedynamic, part of JDK 7, is exciting
+  because it makes that cost go away, but we will have to wait for
+  that. 
