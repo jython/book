@@ -17,13 +17,86 @@ imported and used in different applications that share some functionality.
 Jython's standard library comes with a large number of modules that can be used
 in your programs right away.
 
+Import Basics
+=============
+
+We'll start with a couple of definitions.  A *namespace* is a logical grouping of
+unique identifiers.  In other words, a namespace is that set of names that can
+be accessed from a given bit of code in your program.  For example, if you open
+up a Jython prompt and type dir(), the names in the interpreters namespace will
+be displayed.  ::
+
+    >>> dir()
+    ['__doc__', '__name__']
+
+The interpreter namespace contains __doc__ and __name__.  __doc__ is empty in
+this case, and __name__ contains the string '__main__'.  The __name__ property
+contains the name of the module the code is running in or '__main__' if it is
+running outside of a module. ::
+
+    >>> __doc__
+    >>> __name__
+    '__main__'
+
+Here is a silly file called breakfast.py: ::
+
+    class Spam(object):
+
+        def order(self, number):
+            print "spam " * number
+
+    def order_eggs(): 
+        print " and eggs!"
+
+    s = Spam()
+    s.order(3)
+    order_eggs()
+
+Let's see what happens when we import breakfast: ::
+    >>> import breakfast
+    spam spam spam 
+     and eggs!
+    >>> dir()
+    ['__doc__', '__name__', 'breakfast']
+
+Checking the doc() after the import shows that breakfast has been added to the
+top level namespace.  Notice that the act of importing actually executed the
+code in breakfast.py.  In languages like Java, the import statement is strictly
+a compiler directive that must occur at the top of the source file. In Jython,
+the import statement is an expression that can occur anywhere in the source
+file, and can even be conditionally executed.
+
+As an example, a common idiom is to attempt to import something that may not be
+there in a try block, and in the except block import a module that is known to
+be there. ::
+
+    >>> try:
+    ...     from blah import foo
+    ... except ImportError:
+    ...     def foo():
+    ...         return "hello from backup foo"
+    ...
+    >>> foo()
+    'hello from backup foo'
+    >>>
+
+If a module named blah had existed, the definition of foo would have been taken
+from there. Since no such module existed, foo was defined in the except block,
+and when we called foo, the 'hello from backup foo' string was returned.
+
+I should point out that dir() does not actually print out the entire namespace
+for the top level of the interpreter.  There are a large number of names that
+are ommitted since the dir() output would not be as useful.  The special
+__builtin__ module can be imported to see the rest: ::
+
+    >>> import __builtin__
+    >>> dir(__builtin__)
+    ['ArithmeticError', 'AssertionError', 'AttributeError', ...
+
 Definitions
 -----------
 
 Here are some basic concepts that are needed to discuss imports in Jython.
-
-Namespace
-	a logical grouping of unique identifiers.
 
 Python Module
 	A file containing Python definitions and statements which in turn define a namespace. The module
@@ -40,34 +113,8 @@ Java Package
         do not require an __init__.py file. Also unlike Python packages, Java packages are explicitly
         referenced in each Java file with a package directive at the top.
 
-
 The Import Statement
 --------------------
-
-In Java, the import statement is strictly a compiler directive that must occur
-at the top of the source file. In Jython, the import statement is an expression
-that can occur anywhere in the source file, and can even be conditionally
-executed.
-
-As an example, a common idiom is to attempt to import something that may not be
-there in a try block, and in the except block import a module that is known to
-be there. ::
-
-    >>> try:
-    ...   from blah import foo
-    ... except:
-    ...   def foo():
-    ...     return "hello from backup foo"
-    ...
-    >>> foo()
-    'hello from backup foo'
-    >>>
-
-
-
-If a module named blah had existed, the definition of foo would have been taken
-from there. Since no such module existed, foo was defined in the except block,
-and when we called foo, the 'hello from backup foo' string was returned.
 
 An Example Program
 ------------------
