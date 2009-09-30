@@ -29,10 +29,11 @@ be displayed.  ::
     >>> dir()
     ['__doc__', '__name__']
 
-The interpreter namespace contains __doc__ and __name__.  __doc__ is empty in
-this case, and __name__ contains the string '__main__'.  The __name__ property
-contains the name of the module the code is running in or '__main__' if it is
-running outside of a module. ::
+The interpreter namespace contains __doc__ and __name__.  The __doc__ property
+contains the top level docstring, which is empty in this case, and __name__
+contains the string '__main__'.  The __name__ property contains the name of the
+module the code is running in or '__main__' if it is running outside of a
+module. ::
 
     >>> __doc__
     >>> __name__
@@ -61,10 +62,35 @@ Let's see what happens when we import breakfast: ::
 
 Checking the doc() after the import shows that breakfast has been added to the
 top level namespace.  Notice that the act of importing actually executed the
-code in breakfast.py.  In languages like Java, the import statement is strictly
-a compiler directive that must occur at the top of the source file. In Jython,
-the import statement is an expression that can occur anywhere in the source
-file, and can even be conditionally executed.
+code in breakfast.py.  Most of the time, we wouldn't want a module to execute
+in this way on import.  To avoid this, but allow the code to execute when it
+is called directly, we typically check the __name__ property: ::
+
+    class Spam(object):
+
+        def order(self, number):
+            print "spam " * number
+
+    def order_eggs(): 
+        print " and eggs!"
+
+    if __name__ == '__main__':
+        s = Spam()
+        s.order(3)
+        order_eggs()
+
+Now if we import breakfast, we will not get the output: ::
+    >>> import breakfast
+
+This is because in this case the __name__ property will contain 'breakfast',
+the name of the module.  If we call breakfast.py from the commandline like
+"jython breakfast.py" we would then get the output again, because breakfast
+would be executing as __main__.
+
+In languages like Java, the import statement is strictly a compiler directive
+that must occur at the top of the source file. In Jython, the import statement
+is an expression that can occur anywhere in the source file, and can even be
+conditionally executed.
 
 As an example, a common idiom is to attempt to import something that may not be
 there in a try block, and in the except block import a module that is known to
