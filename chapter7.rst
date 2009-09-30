@@ -20,26 +20,8 @@ in your programs right away.
 Import Basics
 =============
 
-We'll start with a couple of definitions.  A *namespace* is a logical grouping of
-unique identifiers.  In other words, a namespace is that set of names that can
-be accessed from a given bit of code in your program.  For example, if you open
-up a Jython prompt and type dir(), the names in the interpreters namespace will
-be displayed.  ::
-
-    >>> dir()
-    ['__doc__', '__name__']
-
-The interpreter namespace contains __doc__ and __name__.  The __doc__ property
-contains the top level docstring, which is empty in this case, and __name__
-contains the string '__main__'.  The __name__ property contains the name of the
-module the code is running in or '__main__' if it is running outside of a
-module. ::
-
-    >>> __doc__
-    >>> __name__
-    '__main__'
-
-Here is a silly file called breakfast.py: ::
+The following discussion will use the a silly example file called breakfast.py:
+::
 
     class Spam(object):
 
@@ -52,6 +34,32 @@ Here is a silly file called breakfast.py: ::
     s = Spam()
     s.order(3)
     order_eggs()
+
+We'll start with a couple of definitions.  A *namespace* is a logical grouping of
+unique identifiers.  In other words, a namespace is that set of names that can
+be accessed from a given bit of code in your program.  For example, if you open
+up a Jython prompt and type dir(), the names in the interpreter's namespace will
+be displayed.  ::
+
+    >>> dir()
+    ['__doc__', '__name__']
+
+The interpreter namespace contains __doc__ and __name__.  The __doc__ property
+contains the top level docstring, which is empty in this case.  We'll get to
+the __name__ property in a moment.  First we need to talk about Jython
+*modules*.  A *module* in Jython is a file containing Python definitions and
+statements which in turn define a namespace. The module name is the same as the
+file name with the suffix .py removed, so in our current example the Python
+file “breakfast.py” defines the module “breakfast”. 
+
+Now we can talk about the __name__ property.  When a module is run directly, as
+in "jython breakfast.py", __name__ will contain '__main__'.  If a module is imported,
+__name__ will contain the name of the module, so "import breakfast" result's in the
+breakfast module containing a __name__ of "breakfast". ::
+
+    >>> __doc__
+    >>> __name__
+    '__main__'
 
 Let's see what happens when we import breakfast: ::
     >>> import breakfast
@@ -119,45 +127,28 @@ __builtin__ module can be imported to see the rest: ::
     >>> dir(__builtin__)
     ['ArithmeticError', 'AssertionError', 'AttributeError', ...
 
-Definitions
------------
+Packages
+--------
 
-Here are some basic concepts that are needed to discuss imports in Jython.
+Unfortunately, Jython must contend with two very different definitions of
+"Package". In the Python world, a *Python package* is a directory containing an
+__init__.py file. The directory usually contains some Python modules which are
+said to be contained in the package. The __init__.py file is executed before
+any contained modules are imported.
 
-Python Module
-	A file containing Python definitions and statements which in turn define a namespace. The module
-        name is the same as the file name with the suffix .py removed, so for example the Python file
-        “foo.py” defines the module “foo”. 
+In the Java world, a *Java package* organizes Java classes into a namespace
+using nested directories. Java packages do not require an __init__.py file.
+Also unlike Python packages, Java packages are explicitly referenced in each
+Java file with a package directive at the top.
 
-Python Package
-	A directory containing an __init__.py file and usually some Python modules which are said
-        to be contained in the package. The __init__.py file is executed before any contained modules
-        are imported.
+::
 
-Java Package
-	Java packages organize Java classes into a namespace using nested directories. Java packages
-        do not require an __init__.py file. Also unlike Python packages, Java packages are explicitly
-        referenced in each Java file with a package directive at the top.
-
-The Import Statement
---------------------
-
-An Example Program
-------------------
-
-To have a reasonable discussion about modules and packages, it helps to have a
-motivating example that is complex enough for discussion, but simple enough to
-describe in a short space. I have chosen to show an application that takes
-command line input that will then be used to search through the files in a
-given directory for a given bit of text and list the files that match the input
-in a swing window. ::
-
-	chapter7/
-		searchdir.py
-		search/
-			__init__.py
-			walker.py
-			scanner.py
+    chapter7/
+        searchdir.py
+        search/
+            __init__.py
+            walker.py
+            scanner.py
 
 The example contains one package: search, which is a package because it is a
 directory containing the special __init__.py file.  In this case __init__.py is
@@ -306,7 +297,7 @@ This most basic type of import imports a module directly. Unlike Java, this
 form of import binds the leftmost module name, so If you import a nested module
 like: ::
 
-	import javax.swing.JFrame
+    import javax.swing.JFrame
 
 You would need to refer to it as “javax.swing.JFrame” in your code.  In Java
 this would have imported “JFrame”.
