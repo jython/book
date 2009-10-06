@@ -30,6 +30,7 @@ with log4j. Within the properties file, you can include appender information, wh
 *Example properties file:*
 
 ::
+    
     log4j.rootLogger=debug, stdout, R
     
     log4j.appender.stdout=org.apache.log4j.ConsoleAppender
@@ -57,11 +58,13 @@ Once again, using log4j within a Jython application is very similar to it's usag
 First, you must import the log4j packages:
 
 ::
+    
     from org.apache.log4j import *
 
 Second, you obtain a new logger for your class or module and set up a PropertyConfigurator:
 
 ::
+    
     logger = Logger.getLogger("myClass")
     # Assume that the log4j properties resides within a folder named "utilities"
     PropertyConfigurator.configure(sys.path[0] + "/utilities/log4j.properties")
@@ -69,6 +72,7 @@ Second, you obtain a new logger for your class or module and set up a PropertyCo
 Lastly, use log4j:
 
 ::
+    
     # Example module within the class:
     def submitDocument(self, event):
         try:
@@ -90,6 +94,7 @@ The overall implementation is the same as above, the most important thing to rem
 and properties file within your Jython path. Once this is ready to go you can use log4j in your script.
 
 ::
+    
     from org.apache.log4j import *
     logger = Logger.getLogger("scriptname")
     PropertyConfigurator.configure("C:\path_to_properties\log4j.properties")
@@ -99,8 +104,8 @@ and properties file within your Jython path. Once this is ready to go you can us
 Author: Josh Juneau
 URL:  http://wiki.python.org/jython/JythonMonthly/Articles/August2006/1
 
-Another log4j Example
-~~~~~~~~~~~~~~~~~~~~~
+Another log4j Example - Greg Moore
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 This example require several things.
 
@@ -159,6 +164,7 @@ you provide a full path to the file. It configures how log4j operates. If it is 
 Since this is for example purposes the file below is larger then really needed.
 
 ::
+    
     #define loging level and output
     log4j.rootLogger=debug, stdout, LOGFILE
     #log4j.rootLogger=info, LOGFILE
@@ -194,6 +200,7 @@ This is here for completeness. Any text file could be use with the example above
 in the above line.
 
 ::
+    
     <?xml version="1.0" encoding="utf-8"?>
     <SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" 
                        xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/" 
@@ -229,6 +236,7 @@ in the above line.
       </SOAP-ENV:Body>
     </SOAP-ENV:Envelope>
 
+Author:  Greg Moore
 URL:  http://wiki.python.org/jython/Log4jExample
 
 Working with Spreadsheets
@@ -243,6 +251,7 @@ This is from the Jython mailing list and was posted September 2007
 This is based on Java code at http://officewriter.softartisans.com/OfficeWriter-306.aspx and converted to Jython by Alfonso Reyes
 
 ::
+    
     #jython poi example. from Jython mailing list
      
     from java.io import FileOutputStream
@@ -332,7 +341,6 @@ This is based on Java code at http://officewriter.softartisans.com/OfficeWriter-
     cellSum0.setCellValue("TOTALS:")
     cellSum0.setCellStyle(sumStyle)
      
-     
     # numbers
     # B
     cellB = rowSummary.createCell( 1)
@@ -345,27 +353,26 @@ Posted to the Jython-users mailing list by Alfonso Reyes on October 14, 2007 Thi
 Excel file you can download the file at http://www.nabble.com/file/p13199712/Book1.xls
 
 ::
+        
     """    read.py
     Read an existant Excel file (Book1.xls) and show it on the screen
     """
     from org.apache.poi.hssf.usermodel import *
     from java.io import FileInputStream
-    
+        
     file = "H:Book1.xls"
     print file
     fis = FileInputStream(file)
     wb = HSSFWorkbook(fis)
     sheet = wb.getSheetAt(0)
-    
+        
     # get No. of rows
     rows = sheet.getPhysicalNumberOfRows()
     print wb, sheet, rows
-    
     cols = 0 # No. of columns
     tmp = 0
-    
     # This trick ensures that we get the data properly even if it
-    # doesnÕt start from first few rows
+    # does not start from first few rows
     for i in range(0, 10,1):
         row = sheet.getRow(i)
         if(row != None):
@@ -373,7 +380,7 @@ Excel file you can download the file at http://www.nabble.com/file/p13199712/Boo
             if tmp > cols:
                 cols = tmp
     print cols
-    
+        
     for r in range(0, rows, 1):
         row = sheet.getRow(r)
         print r
@@ -382,14 +389,13 @@ Excel file you can download the file at http://www.nabble.com/file/p13199712/Boo
                 cell = row.getCell(c)
                 if cell != None:
                     print cell
-    
     #wb.close()
     fis.close()
 
 URL: http://wiki.python.org/jython/PoiExample
 
-Jython and XML
---------------
+Jython and XML - Greg Moore
+---------------------------
 
 Element tree
 
@@ -400,6 +406,7 @@ More information on element tree is at http://effbot.org/zone/element-index.htm.
 Download element tree from http://effbot.org/downloads/
 
 ::
+    
     from  elementtree import ElementTree as ET
     
     root = ET.Element("html")
@@ -418,9 +425,11 @@ Download element tree from http://effbot.org/downloads/
 which produces:
 
 ::
+    
     <html><head><title>Page Title</title></head><body bgcolor="#ffffff">Hello, World!</body></html>
 
 
+Author:  Greg Moore
 URL:  http://wiki.python.org/jython/XmlRelatedExamples
 
 Writing and Parsing RSS with ROME - Josh Juneau
@@ -444,11 +453,13 @@ In order to use this example, you must obtain the ROME and JDOM jar files and pl
 
 Windows:
 ::
+    
     set CLASSPATH=C:\Jython\Jython2.2\rome-0.9.jar;%CLASSPATH%
     set CLASSPATH=C:\Jython\Jython2.2\jdom.jar;%CLASSPATH%
     
 OSX:
 ::
+    
     export CLASSPATH=/path/to/rome-0.9.jar:/path/to/jdom.jar
 
 **Parsing Feeds**
@@ -462,6 +473,7 @@ looking front end is up to you.
 
 FeedReader.py
 ::
+    
     ########################################
     # File: FeedReader.py
     #
@@ -520,6 +532,7 @@ and lastly you must publish the XML.
 
 FeedWriter.py
 ::
+    
     ########################################
     # File: FeedReader.py
     #
@@ -660,6 +673,7 @@ For brevity we will not repeat the original Java code here. This is how I call t
 addFile or addURL depending on whether the Jar is on a locally accesable file system or remote server).
 
 ::
+    
     import sys
     from com.ziclix.python.sql import zxJDBC
     
@@ -682,6 +696,7 @@ And here is the class "classPathHacker" which is what the original author called
 on "classPathHacker" to find the Java solution.
 
 ::
+    
     class classPathHacker :
     ##########################################################
     # from http://forum.java.sun.com/thread.jspa?threadID=300557
@@ -797,10 +812,12 @@ To compile the jython source in this article you will need to add the ant.jar fi
 available to Jython to extend which we'll do below. To do that define your classpath:
 
 ::
+    
     <DOS>
     set CLASSPATH=c:\path\to\ant\lib\ant.jar
 
 ::
+    
     <UNIX>
     export CLASSPATH=/path/to/ant/lib/ant.jar
 
@@ -836,6 +853,7 @@ which calls the execute() method). So lets try it out.
 To build this into a jar file for use in Ant, do the following:
 
 ::
+    
     jythonc -a -c -d -j myTasks.jar SimpleTask.py
 
 This will produce a jar file myTasks.jar and include the jython core support classes in the jar. Copy this jar file into your
@@ -846,6 +864,7 @@ ant installation's lib directory. In my case I copy it to c:\tools\ant\lib.
 Once you've got that working, here is a very simple test ant build file to test your custom jython task.
 
 ::
+    
     <project name="ant jython demo" default="testit" basedir=".">
     
       <!-- Define the tasks we are building -->
@@ -864,6 +883,7 @@ All right, that is a pretty simple task. What else can we do?  Well, the sky is 
 of a task container. In this case, the task holds references to a set of other tasks (SimpleTask tasks in this case):
 
 ::
+    
     from org.apache.tools.ant import Task
     from org.apache.tools.ant import TaskContainer
     
@@ -908,6 +928,7 @@ Here is a ant build file to test your custom jython task container. Note that yo
 for the contained SimpleTask unless you want to use it directly. The createSimpleTask factory method does it for you.
 
 ::
+    
     <project name="ant jython demo" default="testit" basedir=".">
     
       <!-- Define the tasks we are building -->
@@ -933,6 +954,7 @@ As I learned this technique I discovered that the magic doc strings are really n
 in the generated java classes. For example:
 
 ::
+    
     """@sig public void execute()"""
 
 This is primarily due to Ant's introspection that looks for those specific methods and signatures. These docstrings are required
@@ -941,6 +963,7 @@ or Ant won't recognize the classes as Ant tasks.
 I also learned that for Jython to extend a java class, it must specifically import the java classes using this syntax:
 
 ::
+    
     from org.apache.tools.ant import Task
     from org.apache.tools.ant import TaskContainer
     
@@ -959,6 +982,7 @@ This is because, for some reason, Jython doesn't figure out that MyTask is exten
 right Java wrapper classes. You will know that this working right when you see output like the following when you run the jythonc compiler:
 
 ::
+    
     processing SimpleTask
     
     Required packages:
