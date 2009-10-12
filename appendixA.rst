@@ -194,7 +194,8 @@ provides a way to create a virtual Python environment that can be used for vario
 of different package versions.  Virtual environments can also be nice for those who do not have administrative
 access for a particular Python installation but still need to have the ability to install packages to it, such is often
 the case when working with domain hosts.  Whatever the case may be, the virtualenv tool provides a means for creating
-one or more virtual environments for a particular Python installation.  The release of Jython 2.5.0 opened new doors
+one or more virtual environments for a particular Python installation so that the libraries can be installed into controlled
+environments other than the global site-packages area for your Python or Jython installation.  The release of Jython 2.5.0 opened new doors
 for the possibility of using such tools as virtualenv.
 
 To use virtualenv with Jython, we first need to obtain it.  The easiest way to do so is via the Python Package
@@ -205,7 +206,8 @@ example shows how to install virtualenv using easy_install with Jython.
     jython easy_install.py virtualenv
 
 Once installed, it is quite easy to use the tool for creation of a virtual environment.  The virtual environment
-will include a Jython executable along with an installation of setuptools.  This was done so that you have
+will include a Jython executable along with an installation of setuptools and it's own site-packages directory.
+This was done so that you have
 the ability to install different packages from the PyPI to your virtual environment.  Let's create an enviroment
 named JY2.5.1Env using the virtualenv.py module that exists within our Jython environment.
 
@@ -216,15 +218,69 @@ named JY2.5.1Env using the virtualenv.py module that exists within our Jython en
     Installing setuptools............done.
 
 Now a new directory named JY2.5.1Env should have been created within your current working directory.  You can run
-Jython from this virtual environment by simply invoking the executable that was created.
+Jython from this virtual environment by simply invoking the executable that was created.  The virtualenv tool allows
+us the ability to open a terminal and disignate it to be used for our virutal Jython environment exclusively via the
+use of the *activate* command.  To do so, open up a terminal and type the following:
+::
+    
+    source <path-to-virtual-environment/JY2.5.1Env/bin/activate
+
+Once this is done, you should notice that the command line is preceeded with the name of the virutal environment that
+you have activated.  Any Jython shell or tool used in this terminal will now be using the virtual environment.  This is an
+excellent way to run a tool using two different versions of a particular libarary or for running a production and development
+environment side-by-side.  If you run the easy_install.py tool within the activated virtual environment terminal then the tool(s)
+will be installed into the virtual environment.  There can be an unlimited number of virtual environments installed
+on a particular machine.  To stop using the virtual environment within the terminal, simply type:
+
+::
+    
+    deactivate
+
+Now your terminal should go back to normal use and default to the global Jython installation.  Once deactivated any of the Jython
+references made will call the global installation or libraries within the global site-packages area.  It should be noted that
+when you create a virtual environment, it automatically inherits all of the packages used by the global installation.  Therefore
+if you have a library installed in your global site-packages area then it can be used from the virtual environment right away.
+A good practice is to install only essential libraries into your global Jython environment and then install one-offs or test
+libraies into virtual environments.
+
+It is useful to have the ability to list installations that are in use within a particular environment.  One way
+to do this is to install the *yolk* utility and make use of it's *-l* command.  In order to install *yolk*, you must
+grab a copy of the latest version of Jython beyond 2.5.1 as there has been a patch submitted that corrects some functionaility
+which is used by *yolk*.  You must also be running with JDK 1.6 or above as the patched version of Jython makes use
+of the *webbrowser* module.  The *webbrowser* module makes use of some java.awt.Desktop features that are only available
+in JDK 1.6 and beyond.  To install *yolk*, use the ez_install.py script as we've shown previously.
+
+::
+    
+    jython ez_install.py yolk
+
+Once installed you can list the package installations for your Jython installations by issuing the *-l* command as follows:
+
+::
+    
+    yolk -l
+    Django          - 1.0.2-final  - non-active development (/jython2.5.1/Lib/site-packages)
+    Django          - 1.0.3        - active development (/jython2.5.1/Lib/site-packages/Django-1.0.3-py2.5.egg)
+    Django          - 1.1          - non-active development (/jython2.5.1/Lib/site-packages)
+    SQLAlchemy      - 0.5.4p2      - active development (/jython2.5.1/Lib/site-packages)
+    SQLAlchemy      - 0.6beta1     - non-active development (/jython2.5.1/Lib/site-packages)
+    django-jython   - 0.9          - active development (/jython2.5.1/Lib/site-packages/django_jython-0.9-py2.5.egg)
+    django-jython   - 1.0b1        - non-active development (/jython2.5.1/Lib/site-packages)
+    nose            - 0.11.1       - active development (/jython2.5.1/Lib/site-packages/nose-0.11.1-py2.5.egg)
+    setuptools      - 0.6c9        - active 
+    setuptools      - 0.6c9        - active 
+    snakefight      - 0.4          - active development (/jython2.5.1/Lib/site-packages/snakefight-0.4-py2.5.egg)
+    virtualenv      - 1.3.3        - active development (/jython2.5.1/Lib/site-packages/virtualenv-1.3.3-py2.5.egg)
+    wsgiref         - 0.1.2        - active development (/jython2.5.1/Lib)
+    yolk            - 0.4.1        - active
+
+As you can see, all installed packages will be listed.  If you are using yolk from within a virtual environment then
+you will see all packages installed in that virtual environment as well as those installed into the global
+environment.
+
+Similarly to setuptools, there is no way to automatically uninstall virtualenv.  You must also manually delete the
+package egg directory or zip file as well as remove references within ``easy-install.pth``.
 
 
-snakefight
-----------
 
-As you have learned in previous chapters, the default file format for installing a Java web application to a Java
-application server is the WAR (web archive) file.  When deploying Python applications to
-Java application servers, the WAR file is also the standard format that should be used.  The *snakefight* tool
-provides a means for creating WAR files for Jython projects using WSGI frameworks.  The snakefight package resides
-within the PyPI and can be installed into your Jython environment using easy_install.
 
