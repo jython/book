@@ -836,33 +836,10 @@ tests on any module whose name starts with "test". You can override that, of
 course. In our case, the example code of the previous section follows the
 convention (the test module is named ``eightqueens.test_checker``).
 
-.. XXX: I'm duplicating setuptools instructions here, from Chapter 14. We need
-..      to rethink in which part of the book we want to introduce setuptools
+We will use setuptools to install nose. Refer to Appendix A for instructions on
+how to install setuptools if you haven't installed it yet. 
 
-An easy way to install nose is via setuptools. First, download ez_setup.py from
-http://peak.telecommunity.com/dist/ez_setup.py. Then, go to the directory where
-you left the downloaded file and execute::
-
-    $ jython ez_setup.py
-
-You will see the following output::
-
-    Downloading http://pypi.python.org/packages/2.5/s/setuptools/setuptools-0.6c9-py2.5.egg
-    Processing setuptools-0.6c9-py2.5.egg
-    Copying setuptools-0.6c9-py2.5.egg to /home/lsoto/jython2.5.0/Lib/site-packages
-    Adding setuptools 0.6c9 to easy-install.pth file
-    Installing easy_install script to /home/lsoto/jython2.5.0/bin
-    Installing easy_install-2.5 script to /home/lsoto/jython2.5.0/bin
-    
-    Installed /home/lsoto/jython2.5.0/Lib/site-packages/setuptools-0.6c9-py2.5.egg
-    Processing dependencies for setuptools==0.6c9
-    Finished processing dependencies for setuptools==0.6c9
-
-(Naturally, the filesystem paths will change, but it will be essentially the
-same)
-
-After this, you have setuptools installed, and the ``easy_install`` command
-available. Armed with this we proceed to install nose::
+Once you have setuptools installed, run::
 
     $ easy_install nose
   
