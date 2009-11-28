@@ -40,6 +40,12 @@ library.
   Perhaps the only tricky part is to keep the whitespace consistent as
   you change the identation level. The key then is to use a good editor
   that supports Python.
+  
+XX - JJ:  This note sounds a bit negative on the whitespace that Python uses.  In
+          my chapters I've been building the whitespace as a great feature of the language.
+          As Mark Ramm had mentioned, our minds are wired just like Python is
+          written...the whitespace is natural and allows for consistency and easy
+          management.  
 
 And nearly everything else is in terms of functions, even what are
 typically declarations in other languages like Java. For example, a
@@ -48,6 +54,11 @@ functions, which you can call yourself if you need to do
 so. (Incidentally, these functions are ``type`` and ``__import__``
 respectively, and you will be learning more about them later in the
 sections on builtins.)
+
+XX - JJ:  These topics are probably a bit advanced for a beginning programmer.  I agree
+          that they are useful and should be included in the chapter...but perhaps
+          not mentioned yet.  An example right of the start would be great!
+          
 
 XXX Functions are first-class objects XXX incorporate
 
@@ -62,6 +73,8 @@ will start by looking at this example function::
 
   def times2(n):
       return n * 2
+      
+XX - JJ:  I like the times2 function as a starter...good choice here.
 
 Normal usage can treat function definitions as being very simple. But
 there's subtle power in every piece of the function definition, due to
@@ -74,7 +87,7 @@ later section.
 
 
 The :keyword:`def` Keyword
-~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Using :keyword:`def` for *define* seems simple enough, and this keyword
 certainly can be used to declare a function just like you would in a
@@ -106,7 +119,7 @@ Naming the Function
 ~~~~~~~~~~~~~~~~~~~
 
 We will describe this more in a later section, but the ``dir`` builtin
-function will tell us abou the names defined in a given namespace,
+function will tell us about the names defined in a given namespace,
 defaulting to the module, script, or console environment we are
 working in. With this new ``times2`` function defined above, we now
 see the following (at least) in the console namespace::
@@ -170,10 +183,63 @@ takes. Typically you will see something like the following. The syntax
 is familar::
 
   XXX def f(a, b, c)
+  
+XX JJ:  Maybe use the tip_calc function for explaining multiple parameters:
+    def tip_calc(amt, pct) or something similar?  Although your example gets the point accross
 
 Often defaults are specified::
 
   XXXX def f(a, b=1, c=None)
+
+With this being the general form of what it take::
+
+  XXX what's a clear way to describe this? probably from the python tutorial or ref
+  def f(param1[=default1], *args, **kwargs)
+  
+  It is oftentimes nice to include default values when defining a function.  This
+helps reduce the chance of errors when calling and using the function.  For instance,
+if the tip_calc function were to be called without passing any arguments then
+no error would be raised if defaults were provided.  However, if we were to try
+and do the same without any defaults thn an expected error would be raised.  Let's
+take a look at some examples to see how useful defaults can be.
+
+First, let's define the simple *tip_calc* function:
+
+::
+    
+    def tip_calc(amt, pct=.18):
+        return amt * pct
+
+Next, we'll try to use the function in various ways.  You will see that since we
+did not provide any default for the *amt* argument, we must specify a value for
+the it when calling the function.
+
+::
+    
+    # Call the function providing a value for both amt and pct arguments
+    >>> tip_calc(15.98, .18)
+    2.8764
+    # Call the function without providing a value for pct
+    >>> tip_calc(15.98)     
+    2.8764
+    # Call the function without providing any values
+    >>> tip_calc()     
+    Traceback (most recent call last):
+      File "<stdin>", line 1, in <module>
+    TypeError: tip_calc() takes at least 1 argument (0 given)
+
+What if a function is called specifying only one or two arguments when there are
+default values specified for each argument?  How does the function know to which argument
+we wish to assign the passed values?  Python allows the names of arguments to be
+specified when calling the function.  Such a design helps one move past issues such
+as this.
+
+::
+    
+    def tip_calc(amt=1.00, pct=.18):
+        return amt * .18
+
+
 
 With this being the general form of what it take::
 
@@ -220,6 +286,29 @@ entities in Python. Everything is an object in Python.
 Functions are objects too, and they can be passed as parameters::
 
   XXX passing a function as a parameter - We can simply pass its name, then in the function using it
+  
+XX JJ:  Try this example here:
+::
+    
+    # Define a function that takes two values and a mathematical function
+    >>> def perform_calc(value1, value2, func):
+    ...     return func(value1, value2)
+    ...
+    # Define a mathematical function to pass
+    >>> def mult_values(value1, value2):
+    ...     return value1 * value2
+    ... 
+    >>> perform_calc(2, 4, mult_values)
+    8
+    
+    # Define another mathematical function to pass
+    >>> def add_values(value1, value2):
+    ...     return value1 + value2
+    ... 
+    >>> perform_calc(2, 4, add_values) 
+    6
+    >>> 
+
 
 If you have more than two or so arguments, it often makes more sense
 to call a function by parameter, rather than by the defined
@@ -330,6 +419,17 @@ Functions can easily return multiple values at once by returning a tuple or
 other structure::
 
   XXX especially show the construct return x, y - this is an elegant way to do multiple values
+  
+XX JJ:  A simple example returning two values
+
+::
+
+    >>> def calc_tips(amount):
+    ...     return (amount * .18), (amount * .20)
+    ... 
+    >>> calc_tips(25.25)
+    (4.545, 5.050000000000001)
+
 
 A function can return at any time::
 
@@ -339,6 +439,26 @@ And it can also return any object as its value. So you can have a
 function that looks like this::
 
   XXX think of an interesting, simple function that returns different values based on input
+  
+XX JJ: In this example, we rewrite the perform_calc function to accept only positive numbers
+       and return an error message if a negative number is passed into it.
+
+::
+
+    >>> def check_pos_perform_calc(num1, num2, func):                          
+    ...     if num1 > 0 and num2 > 0:                                          
+    ...         return func(num1, num2)                                        
+    ...     else:                                                              
+    ...         return 'Only positive numbers can be used with this function!' 
+    ... 
+    >>> def mult_values(value1, value2):
+    ...     return value1 * value2
+    ... 
+    >>> check_pos_perform_calc(3, 4, mult_values)
+    12
+    >>> check_pos_perform_calc(3, -44, mult_values)
+    'Only positive numbers can be used with this function!'
+
 
  If a return statement is not used, the value ``None`` is returned. There is no
 equivalent to a ``void`` method in Java, because every function in Python
@@ -354,6 +474,8 @@ A delighter in Python is the ease by which it enables returning multiple values:
 
   XXX function - return a, b
 
+XX JJ:  Already covered this, no?
+
 We can then readily unpack the return value.
 
 
@@ -368,6 +490,22 @@ names that are created in the function are only visible within that
 scope::
 
   XXX scope
+
+XX JJ:  In the following example, the sq variable is defined within the
+        scope of the function definition itself.  If we try to use it outside
+        of the function then we'll receive an error.
+::
+
+    >>> def square_num(num):
+    ...     sq = num * num
+    ...     return sq                  
+    ... 
+    >>> square_num(35)
+    1225
+    >>> sq
+    Traceback (most recent call last):
+      File "<stdin>", line 1, in <module>
+    NameError: name 'sq' is not defined
 
 (Example showing a syntax error...)
 
@@ -394,6 +532,9 @@ scope::
 
 Functions create scopes for their variables.
 Assigning a variable, just like in a simple script, implicitly
+
+XX JJ:  I'd say that detail can be left out...the example we provided
+        above demonstrates function scope
 
 
 Other Statements
@@ -472,6 +613,8 @@ XXX currently limits of 64K java bytecode instructions when compiled. this will 
   other objects support the function interface (``__call__``), and
   these potentially could be proxying, perhaps several layers deep, a
   given function. You can only assume it's a PyObject.
+  
+XX JJ:  This works in a sidebar, but is too much info for a beginner.
 
 
 Builtin Functions
@@ -493,6 +636,8 @@ code uses.
 
 .. include:: builtins.rst
 
+XX JJ:  Maybe this can be a separate chapter?
+
 XXX let's just pull in the actual documentation, then modify/augment
 as desired. I still prefer the grouping that we are doing here,
 especially if we can create an index.
@@ -513,7 +658,16 @@ some alternatives:
      space, especially when used in a callback::
 
      XXX lambda in a keyed sort, maybe combine last name, first name?
+     
+XX JJ:  Example of using a lambda function to combine two strings.  In this case, a first
+        and last name
 
+::
+
+    >>> name_combo = lambda first,last: first + ' ' + last
+    >>> name_combo('Jim','Baker')
+    'Jim Baker'
+    
      XXX gen exp ex
 
    * Classes. In addition, we can also create objects with classes
@@ -542,6 +696,9 @@ Lambda Functions
 
 Limitations.
 
+XX JJ:  I imagine that this will be filled out, should the lambda function from
+        above be moved into this section?
+
 
 Generator Functions
 -------------------
@@ -556,6 +713,10 @@ Call obj.next
 Advance to the next point by calling the special method
 ``next``. Usually that's done implicitly, typically through a loop or
 a consuming function that accepts iterators, including generators.
+
+XX JJ:  More explanation needed here.  It would be a good idea to mention
+        that StopIteration is thrown when a generator has been "used up" if the
+        generator is not being used in a loop.
 
 
 Defining Generators
@@ -572,6 +733,44 @@ yield points, which are marked through the use of the keyword
       yield 2
       yield 3
 
+
+XX JJ:  Perhaps anotherp more useful example:
+
+::
+    
+    >>> def step_to(factor, stop):
+    ...     step = factor
+    ...     start = 0
+    ...     while start <= stop:
+    ...         yield start
+    ...         start += step
+    ...
+    >>> for x in step_to(1, 10):
+    ...     print x
+    ... 
+    0
+    1
+    2
+    3
+    4
+    5
+    6
+    7
+    8
+    9
+    10
+    >>> for x in step_to(2, 10):
+    ...     print x
+    ... 
+    0
+    2
+    4
+    6
+    8
+    10
+    >>> 
+
+
 If the ``yield`` keyword is seen in the scope of a function, it's
 compiled as if it's a generator function.
 
@@ -579,6 +778,48 @@ Unlike other functions, you use the ``return`` statement only to say,
 "I'm done", that is, to exit the generator::
 
   XXX code
+  
+XX JJ:  Let's change the step_to function just a bit to check and ensure
+        that the factor is less than the stopping point.  We'll add a return
+        statement to exit the generator if the factor is gt or equal to the stop.
+::
+    
+        >>> def step_return(factor, stop):
+        ...     step = factor             
+        ...     start = 0                 
+        ...     if factor >= stop:
+        ...         return
+        ...     while start <= stop:
+        ...         yield start
+        ...         start += step
+        ... 
+        >>> for x in step_return(1,10):
+        ...     print x
+        ... 
+        0
+        1
+        2
+        3
+        4
+        5
+        6
+        7
+        8
+        9
+        10
+        >>> for x in step_return(3,10):
+        ...     print x
+        ... 
+        0
+        3
+        6
+        9
+        >>> for x in step_return(3,3):
+        ...     print x
+        ... 
+
+  
+
 
 You can't return an argument::
 
@@ -637,6 +878,8 @@ This is an alternative way to create the generator object. Please note
 this is not a generator function! It's the equivalent to what a
 generator function returns when called.
 
+XX JJ:  Maybe we should say "yields" when called?  
+
 . Creates an unnamed generator. But cover
 this later with respect to generators. Note that generators are not callable objects::
 
@@ -647,6 +890,20 @@ this later with respect to generators. Note that generators are not callable obj
   Traceback (most recent call last):
     File "<stdin>", line 1, in <module>
   TypeError: 'generator' object is not callable
+  
+XX JJ:  Show call to x.next()
+
+::
+    
+    >>> for v in x:
+    ...     print v
+    ... 
+    2
+    4
+    6
+    8
+    >>> 
+
 
 
 
@@ -668,6 +925,9 @@ everything in Java that supports ``java.util.Iterator`` so it supports
 the Python iteration protocol.
 
 Maybe something simple like walking a directory tree?
+
+XX JJ:  I like the walker idea.  Perhaps a different implementation of Frank's from chapter 7?
+
 In conjunction with glob type functionality? And possibly other analysis.
 Maybe process every single file, etc.
 That could be sort of cool, and something I don't think is so easy from Java (no, it's not).
@@ -766,6 +1026,9 @@ examples - certainly need similar coverage.
 
 XXX Might be nice to show how to use this in
 conjunction with parallelism. but that's a later chapter anyway
+
+XX JJ: I think that Coroutines need to be in this book in some form...don't cut them out.  Even
+       if it is just a short section with an example.
 
 
 Advanced Function Usage

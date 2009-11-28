@@ -837,7 +837,7 @@ General Jython Usage
 
 As stated previously in the chapter, there are a number of options when using the Netbeans Python solution.  There are a few different selections that can be made when creating a new Jython project.  You can either choose to create a *Python Project* or *Python Project with Existing Sources*.  These two project types are named quite appropriately as a *Python Project* will create an empty project, and
 
-Once created it is easy to develop and maintain applications and scripts alike.  Moreover, you can debug your application and have Netbeans create tests if you choose to do so.  One of the first nice features you will notice is the syntax coloring in the editor.  There is also testing availab le via 
+Once created it is easy to develop and maintain applications and scripts alike.  Moreover, you can debug your application and have Netbeans create tests if you choose to do so.  One of the first nice features you will notice is the syntax coloring in the editor.  There is also testing available via the debugging 
 
 
 

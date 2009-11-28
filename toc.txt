@@ -1,4 +1,4 @@
-The Definitive Guide to Jython (with Django)
+The Definitive Guide to Jython
 Authors:  Josh Juneau
 	  Frank Wierzbicki
   	  Jim Baker
@@ -121,7 +121,7 @@ Part I:  Jython Basics:  Learning the Language
 
             Summary
 
-      Chapter 4:  Defining Functions and Using Built-Ins (Jim - 08/27/2009) (pages: 25-28)
+      Chapter 4:  Defining Functions and Using Built-Ins (Jim - Not Yet Complete (10-18-2009)) (pages: 25-28)
 
             Function Syntax and Basics
 
@@ -141,7 +141,34 @@ Part I:  Jython Basics:  Learning the Language
 
             Using __future__
 
-      Chapter 5:  Exception Handling and Debugging  (Josh - FD COMPLETE) (pages: 12-15)
+    Chapter 5:  Input and Output  (Josh - FD Complete) (pages: 9)
+
+            Input from Keyboard
+                
+                sys.stdin and raw_input
+ 
+                Obtaining Variables from Jython Environment
+
+            File I/O
+
+	    Pickle
+
+            Output Techniques
+
+            Conclusion
+
+      
+    Chapter 6:  Object Oriented Jython (Victor Ng - FD COMPLETE) (pages: 12-15)
+
+            Using Classes
+
+            Encapsulation and Abstraction
+
+            Inheritance and Overloading
+
+            Closures and Passing Objects
+
+    Chapter 7:  Exception Handling and Debugging  (Josh - FD COMPLETE) (pages: 12-15)
 
             Exception Handling Syntax and Differences with Java
 	        
@@ -159,17 +186,8 @@ Part I:  Jython Basics:  Learning the Language
 
 	    Summary
 
-      Chapter 6:  Object Oriented Jython (Victor Ng - FD COMPLETE) (pages: 12-15)
 
-            Using Classes
-
-            Encapsulation and Abstraction
-
-            Inheritance and Overloading
-
-            Closures and Passing Objects
-
-      Chapter 7:  Modules, Packages, and Reuse (Frank Wierzbicki - FD COMPLETE) (pages: 14)
+    Chapter 8:  Modules, Packages, and Reuse (Frank Wierzbicki - FD COMPLETE) (pages: 14)
 
             Imports for Reuse
 
@@ -223,27 +241,12 @@ Part I:  Jython Basics:  Learning the Language
 
 Part II: Using the Language
 
-      Chapter 8:  Scripting with Jython (Frank Wierzbicki - FD Complete) (pages: 4)
+      Chapter 9:  Scripting with Jython (Frank Wierzbicki - FD Complete) (pages: 4)
 
             Learning the Command Line
             
             Using Modules and Java Libraries 
 
-      Chapter 9:  Input and Output  (Josh - FD Complete) (pages: 9)
-
-            Input from Keyboard
-                
-                sys.stdin and raw_input
- 
-                Obtaining Variables from Jython Environment
-
-            File I/O
-
-	    Pickle
-
-            Output Techniques
-
-            Conclusion
 
       Chapter 10: Java and Jython Integration (Josh - FD Complete) (pages: 24)
 
@@ -377,7 +380,7 @@ Part III: Developing Applications with Jython
       Chapter 16:  GUI Applications (Frank Wierzbicki - FD Complete) (pages: 9-10)
 
 
-      Chapter 17:  Deployment Targets (Josh - 08/20/2009) (pages: 16-17)
+      Chapter 17:  Deployment Targets (Josh - FD Complete) (pages: 16-17)
 
             Application Servers
 
@@ -395,21 +398,21 @@ Part III: Developing Applications with Jython
 
 Part IV:  Strategy and Technique
 
-      Chapter 18:  Testing and Continuous Integration (Leo Soto - 08/17/2009) (pages: 23-25)
+      Chapter 18:  Testing and Continuous Integration (Leo Soto - FD Complete) (pages: 23-25)
 
             Grinder
 
             Push-To-Test TestMaker
 
-      Chapter 19:  Concurrency and Parallelism (Jim - 08/17/2009) (pages: 18-20)
+      Chapter 19:  Concurrency and Parallelism (Jim - Not Yet Complete(10-18-2009)) (pages: 18-20)
 
             High-Level Concurrency
 
             Greenlets 
 
 
-      Appendix A:  Progressive Code Example
+      Appendix A:  Using other tools with Jython
 
       Appendix B:  Jython Cookbook - A compilation of community submitted code examples
 
-      Appendix C:  Using Other Tools with Jython - setuptools, virtualenv, nailgun, and more
+      Appendix C:  Built-in Functions

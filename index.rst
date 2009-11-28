@@ -15,7 +15,7 @@ Python for the Java Platform
     Leo Soto,
     Frank Wierzbicki
 
-:Version: 0.8 of 10/04/2009
+:Version: 0.9 of 10/18/2009
 
 This book is presented in open source and licensed through Creative Commons 3.0.
 You are free to copy, distribute, transmit, and/or adapt the work.  This license
@@ -46,8 +46,7 @@ Notice:  For any reuse or distribution, you must make clear to the others
 the license terms of this work.  The best way to do this is with a direct
 link to this page:  http://creativecommons.org/licenses/by-sa/3.0/
 
-To be printed by Apress Fall 2009 -- 
-<http://www.apress.com/book/view/9781430225270>
+To be printed by Apress Fall 2009 -- http://www.apress.com/book/view/9781430225270
 
  ISBN10: 1-4302-2527-0
 
@@ -64,9 +63,11 @@ Part I:  Jython Basics:  Learning the Language
 .. toctree::
    :maxdepth: 2
    
-   chapter1.rst
+   intro.rst
    chapter2.rst
    chapter3.rst
+   chapter4.rst
+   chapter9.rst
    chapter5.rst
    chapter6.rst
    chapter7.rst
@@ -78,7 +79,6 @@ Part II: Using the Language
    :maxdepth: 2
 
    chapter8.rst
-   chapter9.rst
    chapter10.rst
    chapter11.rst
    chapter12.rst
