@@ -166,6 +166,26 @@ XXX Cancellation, joining, interruption
 Thread Locals
 -------------
 
+The ``threading.local`` class enables a simple way of associating
+objects with any given thread.
+
+Its usage is deceptively simple. Simply instantiate this class -- or a
+subclass, and assign it to a name. (So that part is just like working
+with any other object in Python.) Threads then can share the name, but
+with a twist: each thread will see a different, thread-specific
+version of the object.  This object can have arbitrary attributes
+added to it, and it will not be visible to other threads.
+
+  XXX code
+
+In addition, you can subclass ``threading.local``
+And __slots__ 
+
+In the end, thread locals are an interesting curiousity. They do not
+work well in a task model, because you don't want to associate context
+with a worker thread that will be assigned to arbitrary tasks. This
+just makes for a confused mess.
+
 
 No Global Interpreter Lock
 --------------------------
@@ -186,7 +206,7 @@ occurring on data structures outside of the CPython's
 runtime. Instead, developers typically will use a process-oriented
 model.
 
-Again, Jython does not a GIL, since all Python threads are mapped to
+Again, Jython does not have a GIL, since all Python threads are mapped to
 Java threads and use standard Java garbage collection support (the
 main reason for the GIL). The important ramification here is that you
 can use threads for compute-intensive tasks that are written in Python.
@@ -195,12 +215,12 @@ can use threads for compute-intensive tasks that are written in Python.
 Module Import Lock
 ------------------
 
-Python defines a *module import lock*, which is implemented by
+Python does define a *module import lock*, which is implemented by
 Jython. This lock is acquired whenever an import of any name is
 made. This is true whether the import goes through the import
 statement, the equivalent ``__import__`` builtin, or related
-code. It's important to note that even if the name has already been
-imported, the module import lock is acquired.
+code. It's important to note that even if the corresponding module has
+already been imported, the module import lock will still be acquired.
 
 So don't write code like this in a hot loop, especially in threaded
 code::
@@ -209,21 +229,30 @@ code::
       from foo import a, b
       ...
 
-It may still make sense to defer your imports, just keep in mind that
-thread(s) performing such imports will be forced to run single
-threaded because of this lock.
+It may still make sense to defer your imports. Such deferral can
+decrease the start time of your app. Just keep in mind that thread(s)
+performing such imports will be forced to run single threaded because
+of this lock. So it might make sense for your code to perform deferred
+imports in a background thread::
 
-The module import lock serves an important purpose. Upon the first
-import, the import procedure runs the (implicit) top-level function of
-the module. Even though many modules are often declarative in nature,
-in Python all definitions are done at runtime. Such definitions
+  XXX code demoing this
+
+It may be somewhat contrived, but you could even have these imports be
+scheduled as tasks::
+
+  XXX code
+
+Here's why we need the module import lock. Upon the first import, the
+import procedure runs the (implicit) top-level function of the
+module. Even though many modules are often declarative in nature, in
+Python all definitions are done at runtime. Such definitions
 potentially include further imports (recursive imports). And the
 top-level function can certainly perform much more complex tasks. The
 module import lock simplifies this setup so that it's safely
 published. We will discuss this concept further later in this chapter.
 
-Note that the module import lock is global for the entire Jython
-runtime.
+Note that in the current implementation, the module import lock is
+global for the entire Jython runtime. This may change in the future.
 
 
 Working with Tasks
@@ -232,25 +261,27 @@ Working with Tasks
 It's often best to avoid managing the lifecycle of threads
 directly. Tasks provide a better abstraction: units of work that
 move in turn through being created, submitted,
-started, and completed. Tasks can be cancelled or interrupted.
+started, and completed. Tasks can also be cancelled or interrupted.
 
-Normally you will want to use ``FutureTask``, which implements the
+Normally you will be using ``FutureTask``, which implements the
 ``Future`` interface.
 
 What's nice about this approach is that a ``FutureTask`` is the
 concurrent equivalent of a method or function call. So here's how we
 can do this with a one-shot async function call. This sample code let
-us download a web page in the background.
+us download a web page in the background::
 
   XXX code to download web page
 
-Of course any other task could be done in this fashion, whether it is
-a database query or a computationally intensive task.
+In Jython any other task could be done in this fashion, whether it is
+a database query or a computationally intensive task written in Python.
 
-Up until the ``get`` method on the returned future, your calling code
-can run concurrently with this task. The ``get`` call introduces a
-wait-on dependency and Either the result is returned, or an exception
-is (asynchronously) thrown into the calling code:
+Up until the ``get`` method on the returned future, the caller run
+concurrently with this task. The ``get`` call then introduces a
+wait-on dependency on the task's completion. (So this is like calling
+``join`` on a thread.) Upon completion, either the result is returned,
+or an exception is thrown into the caller. This exception will be one
+of:
 
   * InterruptedException
   * ExecutionException
@@ -307,17 +338,16 @@ to concurrently download a set of web pages::
 some early work on this that's worth tracking, XXX Python futures.)
 
 
-
 Thread Safety
 -------------
 
 Thread safety addresses such questions as:
 
   * Can the unintended interaction of two or more threads corrupt a
-    mutable object? This is especially dangerous for a collection like a
-    list or a dictionary, because such corruption could potentially render the
-    underlying data structure unusable or even produce infinite loops
-    when traversing it.
+    mutable object? This is especially dangerous for a collection like
+    a list or a dictionary, because such corruption could potentially
+    render the underlying data structure unusable or even produce
+    infinite loops when traversing it.
 
   * Can an update get lost? Perhaps the canonical example is
     incrementing a counter. In this case, there can be a data race with
@@ -330,9 +360,9 @@ code that modifies these collections will not corrupt the
 collections. Updates still might get lost.
 
 However, other Java collection objects your code may use may not have
-such no-corruption guarantees. If you need to use ``LinkedHashMap``, so as to
-support an ordered dictionary, you will need to consider thread safety
-if it will be both shared and mutated.
+such no-corruption guarantees. If you need to use ``LinkedHashMap``,
+so as to support an ordered dictionary, you will need to consider
+thread safety if it will be both shared and mutated.
 
 Of course this doesn't apply to immutable objects. Commonly used
 objects like strings, numbers, datetimes, tuples, and frozen sets are
@@ -359,9 +389,11 @@ we can prevent data races, assuming a correct synchronization
 protocol. (This can be a big assumption!)
 
 A ``threading.Lock`` ensures entry by only one thread. (In Jython, but
-unlike CPython, such locks are always recursive.) Other threads have
-to wait until that thread exits the lock. Such explicit locks are
-the simplest and perhaps most portable synchronization to perform.
+unlike CPython, such locks are always reentrant; there's no
+distinction between ``threading.Lock`` and ``threading.RLock``.) Other
+threads have to wait until that thread exits the lock. Such explicit
+locks are the simplest and perhaps most portable synchronization to
+perform.
 
 You should generally manage the entry and exit of such locks through a
 with-statement; failing that, you must use a try-finally to ensure
@@ -401,7 +433,7 @@ block::
   
   # use threading test harness
 
-  # XXX verify this works with methods too, but it should; perhaps
+  # XXX verify this works with decorating methods too, but it should; perhaps
   # rewrite to use just that and avoid the above global
 
 You don't need to explicitly release anything. Even in the the case of
@@ -423,30 +455,29 @@ later release of Jython.) In addition, explicit locks give greater
 flexibility in terms of controlling execution.
 
 The ``threading`` module offers portablity, but it's also
-minimalist. Instead you may want to use the synchronizers in
+minimalist. You may want to use the synchronizers in
 ``Java.util.concurrent``, instead of their wrapped versions in
 ``threading``. In particular, this approach is necessary if you want
-to wait on a lock with a timeout.
+to wait on a lock with a timeout::
 
   XXX code demoing timeout
 
 You can always use factories like ``Collections.synchronizedMap``,
 when applicable, to ensure the underlying object has the desired
-synchronization.
+synchronization::
 
+  XXX code
+  
 XXX Condition variables
 
 There are other mechanisms to synchronize, including exchangers,
 barriers, latches, etc. You can use semaphores to describe scenarios
-where it's possible for multiple threads to enter.
+where it's possible for multiple threads to enter. Or use locks that
+are set up to distinguish reads from writes. There are many
+possibilities.
 
-Or use locks that are set up to distinguish reads from writes.
-
-XXX example
-
-A key question is, what is the granularity of the synchronization?
-
-Use synchronizaton carefully. This code will always eventually deadlock::
+But use synchronizaton carefully. This code will always eventually
+deadlock::
 
   XXX code demonstrating locks take in different orders, using the
   with-statement
@@ -505,22 +536,28 @@ article, the following are atomic operations for Python code:
   * Modifying a dictionary in place (e.g. adding an item, or calling
     the clear method)
 
+Although unstated, this also applies to equivalent ops on the
+builtin set type.
+
 For CPython, this atomicity emerges from combining its Global
 Interpreter Lock (GIL), the Python bytecode virtual machine execution
 loop, and the fact that types like ``dict`` and ``list`` are
-implemented natively in C.
+implemented natively in C and do not release the GIL.
 
 Despite the fact that this is in some sense accidentally emergent,
 it's a useful simplification for the developer. And it's what existing
 Python code expects. So this is what we have implemented in Jython.
 
-XXX ConcurrentHashMap
+In particular, because ``dict`` is a ``ConcurrentHashMap``, we also
+expose the following methods to atomically update dictionaries::
 
-You can use ``setifabsent`` and ``update`` to
-provide for atomic updates of a ``dict``.
+  * ``setifabsent``
 
-In addition, we made the
-corresponding set ops atomic as well.
+  * ``update``
+
+So for example, you can implement a concurrent spanning tree::
+
+  XXX code
 
 It's important to note that iterations are not atomic::
 
@@ -530,27 +567,28 @@ And you can't construct an atomic counter this way either::
 
   XXX code demonstrating unsafe counter
 
-You can get an atomic counter by using a Java class like ``AtomicInteger``::
+But you can get an atomic counter by using a Java class like
+``AtomicInteger``::
 
   XXX code
 
-When in doubt, use synchronization to prevent data races, but of
-course with care of avoiding deadlocks and starvation.
+Atomic operations are not a panacea. You still may have to use
+synchronization to prevent data races. And this has to be done with
+care to avoid deadlocks and starvation.
 
 
 Thread Confinement
 ~~~~~~~~~~~~~~~~~~
 
-Thread confinement is often the best solution to resolve most of the problems
-seen in working with mutable objects. In practice, you probably don't
-need to share a large percentage of the mutable objects used in your
-code. Very simply put, if you don't share -- if you use thread
-confinement -- thread safety issues go away.
+Thread confinement is often the best solution to resolve most of the
+problems seen in working with mutable objects. In practice, you
+probably don't need to share a large percentage of the mutable objects
+used in your code. Very simply put, if you don't share -- if you use
+thread confinement -- thread safety issues go away.
 
 Not all problems can be reduced to using thread confinement. There are
 likely some shared objects in your system, but in practice most can be
 eliminated. And often the shared state is someone else's problem.
-
 
   * Intermediate objects. If you are building up a buffer that is only
     pointed to by a local variable, you don't need to synchronize.
@@ -609,6 +647,50 @@ Timeouts and Cancellations
 
 XXX cover this topic
 
+Thread Interruption
+~~~~~~~~~~~~~~~~~~~
+
+XXX say something about good thead interruption is, compared to just using a while on a variable::
+
+  class DoSomething(Runnable):
+      def __init__(self):
+          cancelled = False
+
+      def run(self):
+          while not self.cancelled:
+              do_stuff()
+
+
+Thread interruption allows for more responsive cancellation. In
+particular, if a a thread is waiting on any synchronizers, like a
+lock, or on file I/O, this action will cause the waited-on method to
+exit with an ``InterruptedException``. Although Python's ``threading``
+module does not itself support interruption, it's available through
+the standard Java API, and it works with any thread created by
+``threading`` -- again, Python threads are simply Java threads in the
+Jython implementation.
+
+This is how it works::
+
+  from java.lang import Thread as JThread # so as to not confuse with threading.Thread
+  
+  while not JThread.currentThread().isInterrupted(): # or alternatively, JThread.isInterrupted(threading.Thread.currentThread())
+      do_stuff()
+
+Interrupting an arbitrary Jython -- or Java -- thread is also
+easy. Simply do the following::
+
+  >>> JThread.interrupt(a_thread)
+
+An easier way to access interruption is through the cancel method
+provided by a ``Future``. We will describe this more in the section on
+:ref:tasks.
+
+Task Cancellation
+~~~~~~~~~~~~~~~~~
+
+XXX
+
 
 Python Memory Model
 ~~~~~~~~~~~~~~~~~~~
@@ -649,6 +731,87 @@ stored in dictionaries, and in Jython, this follows the semantics of a
 Python code sacrifices some performance to keep it
 simpler. We will further discuss the ramifications of this [XXX
 deoptimization].
+
+Java Memory Model and Jython
+----------------------------
+
+What about other objects in Jython?
+
+XXX put this in a more advanced section
+XXX look at the proposed PEP that was written by Jeff Yasskin, not certain if it was circulated to python-dev or not
+
+happens-before relation introduces a partial ordering;
+in particular, you cannot rely on the apparent sequential ordering of code
+
+Ordinarily this should not be an issue in Python code executed by
+Jython. A Python object that has a ``__dict__`` for its attributes is,
+in Jython, represented such that its backed by a
+ConcurrentHashMap. CHMs introduce a happens-before relationship to any
+code reading .
+
+But there are wa
+
+Local variables are susceptible to reordering. Internally in Jython,
+they are stored by indexing into a PyObject[] array, and such accesses
+can be reordered. However, this will not usually be visible to user
+code -- local variables are *almost* thread confined, and the Java
+memory model ensures that any code within that thread will always see
+changes that are sequentially consistent.
+
+However, in Python, it is possible for a local variable to *escape*
+through the frame object, because locals (and their containing frames)
+are introspectable. You can do this via the ``locals`` function. But
+even then it requires a fairly convoluted path. Once again, we need to
+use a mutable object that does not introduce a fence. Arrays work well
+for this purpose::
+
+  A_locals = None
+
+  # thread A
+  def f():
+      global A_locals
+      A_locals = locals()
+      x = zeros('L', 1) # must be a mutable object, a Java array works well
+      y = zeros('L', 1)
+      # write against these variables in some interesting way; maybe y should always be greater than x
+      # in this thread, it will - but not in thread B
+
+  # thread B
+  def g():
+      global A_locals
+      A_x = A_locals['x']
+      A_y = A_locals['y']
+      # now see if we can observe an ordering inconsistent to being sequential
+
+Let's try that again, but not derefencing the local::
+   
+   XXX code
+  
+(Perhaps you can find a shorter path?)
+
+ since locals() : you would need to assign
+the reference to thread ``A``'s local variable to thread ``B``
+
+(In addition, if you were to access the frame's locals through Java,
+using the public methods and fields of ``org.python.core.PyFrame``,
+you can also see out-of-order writes.)
+
+(Note that unnamed local variables are truly thread confined, such as
+the target of a for loop; only when a generator is paused are they in
+any way accessible, and not easily.)
+
+
+ By far the most common case will
+
+The other is
+
+
+
+Safe publication
+Immutability
+
+
+Not final, not volatile. But endowed 
 
 
 
