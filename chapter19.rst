@@ -148,19 +148,20 @@ XXX Cancellation, joining, interruption
     t.start()
 
   Daemon status is inherited by any child threads. Upon JVM shutdown,
-  any daemon threads are simply terminated, without an opportunity to
-  perform cleanup or orderly shutdown.
+  any daemon threads are simply terminated, without an opportunity --
+  or need -- to perform cleanup or orderly shutdown.
 
   Our advice is to not use daemon threads, at least not without
-  thought given to their usage. In particular, it's important to never
-  have daemon threads hold any external resources, like database
-  connections or file handles. Such resources will not be properly
-  closed.
+  serious thought given to their usage. In particular, it's important
+  to never have daemon threads hold any external resources, like
+  database connections or file handles. Such resources will not be
+  properly closed. Additionally, a daemon thread should never make an
+  import attempt.
 
-  The only use case for daemon threads is when they are strictly used
-  to work with in-memory objects, typically for some sort of
-  housekeeping. For example, you might use them to maintain a cache or
-  compute an index.
+  In practice, the only use case for daemon threads is when they are
+  strictly used to work with in-memory objects, typically for some
+  sort of housekeeping. For example, you might use them to maintain a
+  cache or compute an index.
 
 
 Thread Locals
@@ -174,17 +175,17 @@ subclass, and assign it to a name. (So that part is just like working
 with any other object in Python.) Threads then can share the name, but
 with a twist: each thread will see a different, thread-specific
 version of the object.  This object can have arbitrary attributes
-added to it, and it will not be visible to other threads.
+added to it, and it will not be visible to other threads::
 
   XXX code
 
 In addition, you can subclass ``threading.local``
 And __slots__ 
 
-In the end, thread locals are an interesting curiousity. They do not
-work well in a task model, because you don't want to associate context
-with a worker thread that will be assigned to arbitrary tasks. This
-just makes for a confused mess.
+In the end, thread locals are an interesting aside. They do not work
+really at all in a task-oriented model, because you don't want to
+associate context with a worker thread that will be assigned to
+arbitrary tasks. This really would just make for a confused mess.
 
 
 No Global Interpreter Lock
@@ -192,24 +193,25 @@ No Global Interpreter Lock
 
 Jython lacks the global interpreter lock (GIL), which is an
 implementation detail of CPython. For CPython, the GIL means that only
-one thread in a Python program can run Python code, as compiled to
-Python bytecode, at a given time. This restriction also applies to
-much of the supporting runtime as well as extensions modules that do
-not release the GIL. Unfortunately development efforts to remove the
-GIL in CPython have so far only had the effect of slowing down Python
-execution significantly.
+one thread *at a time* can run Python code. This restriction also
+applies to much of the supporting runtime as well as extension modules
+that do not release the GIL. Unfortunately development efforts to
+remove the GIL in CPython have so far only had the effect of slowing
+down Python execution significantly.
 
 The impact of the GIL on CPython programming is that threads are not
 as useful as they are in Jython. Concurrency will only be seen in
-interacting with I/O as well as scenarios where computation is
-occurring on data structures outside of the CPython's
+interacting with I/O as well as scenarios where computation is managed
+by an extension module on data structures outside of the CPython's
 runtime. Instead, developers typically will use a process-oriented
-model.
+model to evade the restrictiveness of the GIL.
 
-Again, Jython does not have a GIL, since all Python threads are mapped to
-Java threads and use standard Java garbage collection support (the
-main reason for the GIL). The important ramification here is that you
-can use threads for compute-intensive tasks that are written in Python.
+Again, Jython does not have the straightjacket of the GIL. This is
+because all Python threads are mapped to Java threads and use standard
+Java garbage collection support (the main reason for the GIL in
+CPython is that it uses a reference counting GC system). The important
+ramification here is that you can use threads for compute-intensive
+tasks that are written in Python.
 
 
 Module Import Lock
@@ -220,7 +222,8 @@ Jython. This lock is acquired whenever an import of any name is
 made. This is true whether the import goes through the import
 statement, the equivalent ``__import__`` builtin, or related
 code. It's important to note that even if the corresponding module has
-already been imported, the module import lock will still be acquired.
+already been imported, the module import lock will still be acquired,
+if only briefly.
 
 So don't write code like this in a hot loop, especially in threaded
 code::
@@ -259,9 +262,9 @@ Working with Tasks
 ------------------
 
 It's often best to avoid managing the lifecycle of threads
-directly. Tasks provide a better abstraction: units of work that
-move in turn through being created, submitted,
-started, and completed. Tasks can also be cancelled or interrupted.
+directly. Tasks provide a better abstraction: units of work that move
+in turn through being created, submitted, started, and
+completed. Tasks can also be cancelled or even interrupted.
 
 Normally you will be using ``FutureTask``, which implements the
 ``Future`` interface.
@@ -343,7 +346,7 @@ Thread Safety
 
 Thread safety addresses such questions as:
 
-  * Can the unintended interaction of two or more threads corrupt a
+  * Can the (unintended) interaction of two or more threads corrupt a
     mutable object? This is especially dangerous for a collection like
     a list or a dictionary, because such corruption could potentially
     render the underlying data structure unusable or even produce
@@ -355,22 +358,21 @@ Thread safety addresses such questions as:
     and then updating with the incremented value.
 
 Jython ensures that its underlying mutable collection types --
-``dict``, ``list``, and ``set`` -- are thread safe. This means that
-code that modifies these collections will not corrupt the
-collections. Updates still might get lost.
+``dict``, ``list``, and ``set`` -- cannot be be corrupted by using
+code. But updates still might get lost in a data race.
 
 However, other Java collection objects your code may use may not have
 such no-corruption guarantees. If you need to use ``LinkedHashMap``,
 so as to support an ordered dictionary, you will need to consider
 thread safety if it will be both shared and mutated.
 
-Of course this doesn't apply to immutable objects. Commonly used
-objects like strings, numbers, datetimes, tuples, and frozen sets are
-immutable. And you can also create your own immutable objects. (Of
+Of course these concerns do not apply to immutable objects. Commonly
+used objects like strings, numbers, datetimes, tuples, and frozen sets
+are immutable. And you can also create your own immutable objects. (Of
 course, this is Python, so it's restricted to either using convention
 or perhaps throwing exceptions, which can be subverted in any event.)
 
-There are a number of strategies in solving thread safety issues. We
+There are a number of other strategies in solving thread safety issues. We
 will look at them as follows:
 
  * Synchronization
@@ -397,7 +399,7 @@ perform.
 
 You should generally manage the entry and exit of such locks through a
 with-statement; failing that, you must use a try-finally to ensure
-that the lock is released.
+that the lock is always released when exiting a block of code.
 
 Here's some example code using the with-statement. The code allocates
 a lock, then shares it amongst some tasks::
@@ -414,12 +416,12 @@ Alternatively, you can do this with try-finally::
 
   XXX try-finally version
 
-Don't do this. It's actually slower than the with-statement. Using the
+But don't do this. It's actually slower than the with-statement. And using the
 with-statement version also results in more idiomatic Python code.
 
 Another possibility is to use the ``synchronize`` module, which is specific to
 Jython. This module provides a``make_synchronized`` decorator
-function, which wraps any callable in Jython with a `synchronized``
+function, which wraps any callable in Jython in a ``synchronized``
 block::
 
   from synchronize import make_synchronized
@@ -436,10 +438,11 @@ block::
   # XXX verify this works with decorating methods too, but it should; perhaps
   # rewrite to use just that and avoid the above global
 
-You don't need to explicitly release anything. Even in the the case of
-an exception, the synchronization lock is always released. If you want
-to synchronize a smaller block of code, you can do it like this,
-through a nested function that is synchronized::
+In this case, you don't need to explicitly release anything. Even in
+the the case of an exception, the synchronization lock is always
+released upon exit from the function. If you want to synchronize a
+smaller block of code, you can do it like this, through a nested
+function that is synchronized::
 
   XXX code with an inner synchronized function
 
@@ -450,9 +453,9 @@ that the JVM can execute more efficiently::
 
   XXX demo two versions with timeit
 
-(But this may change in a
-later release of Jython.) In addition, explicit locks give greater
-flexibility in terms of controlling execution.
+(But this may change in a later release of Jython.) In addition,
+explicit locks give greater flexibility in terms of controlling
+execution.
 
 The ``threading`` module offers portablity, but it's also
 minimalist. You may want to use the synchronizers in
@@ -467,14 +470,9 @@ when applicable, to ensure the underlying object has the desired
 synchronization::
 
   XXX code
-  
-XXX Condition variables
 
-There are other mechanisms to synchronize, including exchangers,
-barriers, latches, etc. You can use semaphores to describe scenarios
-where it's possible for multiple threads to enter. Or use locks that
-are set up to distinguish reads from writes. There are many
-possibilities.
+Deadlocks
+^^^^^^^^^
 
 But use synchronizaton carefully. This code will always eventually
 deadlock::
@@ -491,6 +489,34 @@ Avoiding deadlocks can be done by never acquiring locks such that a
 cycle like that can be created. Bob always allows Alice to go first,
 in the example above. However, this is not always easy to do. Often, a
 more robust strategy is to allow for timeouts.
+
+
+Other Synchronization Objects
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ 
+
+Synchronized Queues
+
+Queue
+First-in, first-out
+
+A number of methods, including join
+
+If you need to implement another policy, such as last-in, first-out or based on a priority, you can use ``java.util.concurrent`` for the appropriate
+
+(These have since been implemented in Python 2.6.)
+
+
+Condition variables
+
+It's important that you carefully consider 
+In particular, there's no guarantee that only one thread will be woken
+
+There are other mechanisms to synchronize, including exchangers,
+barriers, latches, etc. You can use semaphores to describe scenarios
+where it's possible for multiple threads to enter. Or use locks that
+are set up to distinguish reads from writes. There are many
+possibilities.
 
 
 Atomic Operations
