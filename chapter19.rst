@@ -25,12 +25,14 @@ based on threads, which is what today's hardware natively exposes.
 
 This means we have to be concerned with thread safety, which arises as
 an issue because of the existence of mutable objects that are shared
-between threads.  And if you attempt to solve concurrency issues
+between threads. (Mutable state might be avoidable in functional
+programming, but it would be hard to avoid in any but the most trivial
+Python code.) And if you attempt to solve concurrency issues
 through synchronization, you run into other problems. Besides the
 potential performance hit, there are opportunities for deadlock and
 livelock.
 
-.. sidebar::
+.. note::
 
   Implementations of the JVM, like HotSpot, can often avoid the
   overhead of synchronization. We will discuss what's necessary for
@@ -67,21 +69,24 @@ You can also mix and match. Because of the support of tasks in
 How to Choose?
 --------------
 
-One issue that you will have to consider is to much to make your
-concurrent code dependent on the Java platform. Here are our
-recommendations:
+One issue that you will have to consider in writing concurrent code is
+how much to make your implementation dependent on the Java
+platform. Here are our recommendations:
 
   * If you are porting an existing Python code base that uses
-    concurrency, you can use the standard Python ``threading``
-    module. You can also interoperate with Java since Jython threads
+    concurrency, you can just use the standard Python ``threading``
+    module. Such code can still interoperate with Java, because Jython threads
     are always mapped to Java threads.
 
-  * Jython implements ``dict`` and ``set`` by using
-    ``ConcurrentHashMap``; you can just use these collections for high
-    performance concurrency, as we will describe. You can also any use
-    of the collections from ``java.util.concurrent``. So if it fits
-    your app's needs, you may want to consider using such collections
-    as ``CopyOnWriteArrayList`` and ``ConcurrentSkipListMap`` (new in
+  * Jython implements ``dict`` and ``set`` by using Java's
+    ``ConcurrentHashMap``. This means you can just use these standard
+    Python types, and still get high performance concurrency. (They
+    are also atomic like in CPython, as we will describe.) 
+
+  * You can also any use of the collections from
+    ``java.util.concurrent``. So if it fits your app's needs, you may
+    want to consider using such collections as
+    ``CopyOnWriteArrayList`` and ``ConcurrentSkipListMap`` (new in
     Java 6). The `Google Collections Library
     <http://code.google.com/p/google-collections/>`_ is another good
     choice that works well with Jython.
@@ -96,10 +101,10 @@ recommendations:
     discuss.
 
 In practice, using Java's support for higher level primitives should
-not impact the portability so much. Using tasks in particular tends to
-keep all of this well-isolated in your code. And such thread safety
-considerations as thread confinement and safe publication remain the
-same.
+not impact the portability of your code so much. Using tasks in
+particular tends to keep all of this well-isolated. And such thread
+safety considerations as thread confinement and safe publication
+remain the same.
 
 
 Working with Threads
@@ -124,6 +129,7 @@ Here's a simple test harness we might use::
 
 
 Thread Lifecycle
+----------------
 
 
 XXX Cancellation, joining, interruption
@@ -132,29 +138,52 @@ XXX Cancellation, joining, interruption
 
 .. sidebar:: Daemon Threads
 
-  XXX code for daemon threads
+  Daemon threads present an alluring alternative to managing the
+  lifecycle of threads. A thread is set to be a daemon thread before
+  it is started::
 
-  XXX don't, unless strictly in-memory. In particular, never have
-  daemon threads hold any external resources - database connections,
-  file handles, etc.
+    XXX code
+    # create a thread t
+    t.setDaemon(True)
+    t.start()
+
+  Daemon status is inherited by any child threads. Upon JVM shutdown,
+  any daemon threads are simply terminated, without an opportunity to
+  perform cleanup or orderly shutdown.
+
+  Our advice is to not use daemon threads, at least not without
+  thought given to their usage. In particular, it's important to never
+  have daemon threads hold any external resources, like database
+  connections or file handles. Such resources will not be properly
+  closed.
+
+  The only use case for daemon threads is when they are strictly used
+  to work with in-memory objects, typically for some sort of
+  housekeeping. For example, you might use them to maintain a cache or
+  compute an index.
+
+
+Thread Locals
+-------------
 
 
 No Global Interpreter Lock
 --------------------------
 
-Jython lacks the global interpreter lock (GIL), which is implemented
-by CPython. The GIL means that only one thread in a Python program can
-run Python code, as compiled to Python bytecode, at a given time. This
-restriction also applies to much of the supporting runtime as well as
-extensions modules that do not release the GIL. Unfortunately
-development efforts to remove the GIL in CPython have so far had the
-effect of slowing down Python execution.
+Jython lacks the global interpreter lock (GIL), which is an
+implementation detail of CPython. For CPython, the GIL means that only
+one thread in a Python program can run Python code, as compiled to
+Python bytecode, at a given time. This restriction also applies to
+much of the supporting runtime as well as extensions modules that do
+not release the GIL. Unfortunately development efforts to remove the
+GIL in CPython have so far only had the effect of slowing down Python
+execution significantly.
 
-The impact of the GIL on CPython programming is that
-threads are not as useful as they are in Jython. Concurrency will only
-be seen in interacting with I/O as well as scenarios where computation
-is occurring on data structures outside of the CPython's
-runtime. Instead, developers typically will use a process oriented
+The impact of the GIL on CPython programming is that threads are not
+as useful as they are in Jython. Concurrency will only be seen in
+interacting with I/O as well as scenarios where computation is
+occurring on data structures outside of the CPython's
+runtime. Instead, developers typically will use a process-oriented
 model.
 
 Again, Jython does not a GIL, since all Python threads are mapped to
@@ -166,16 +195,35 @@ can use threads for compute-intensive tasks that are written in Python.
 Module Interpreter Lock
 -----------------------
 
-In contrast, Python does define a module intepreter lock. This lock is
-acquired upon the import of a module. Fortunately, redundant imports do not
-perform this acquisition.
+Python defines a *module intepreter lock*, which is implemented by
+Jython. This lock is acquired whenever an import of any name is
+made. This is true whether the import goes through the import
+statement, the equivalent ``__import__`` builtin, or related
+code. It's important to note that even if the name has already been
+imported, the module import lock is acquired.
 
-The module interpreter lock does simplify imports.
+So don't write code like this in a hot loop, especially in threaded
+code::
 
-The reason this is important is that module import runs the top-level
-script of the module. Often such modules are declarative in nature,
-however, all the definitions are done at runtime. Such definitions
-potentially include further imports (recursive imports). 
+  def slow_things_down():
+      from foo import a, b
+      ...
+
+It may still make sense to defer your imports, just keep in mind that
+thread(s) performing such imports will be forced to run single
+threaded because of this lock.
+
+The module import lock serves an important purpose. Upon the first
+import, the import procedure runs the (implicit) top-level function of
+the module. Even though many modules are often declarative in nature,
+in Python all definitions are done at runtime. Such definitions
+potentially include further imports (recursive imports). And the
+top-level function can certainly perform much more complex tasks. The
+module import lock simplifies this setup so that it's safely
+published. We will discuss this concept further later in this chapter.
+
+Note that the Module Interpreter Lock is global for the entire Jython
+runtime.
 
 
 Working with Tasks
@@ -265,8 +313,9 @@ Thread Safety
 
 Thread safety addresses such questions as:
 
-  * Can code corrupt a mutable object, especially a collection like a
-    list or a dictionary? Such corruption could potentially render the
+  * Can the unintended interaction of two or more threads corrupt a
+    mutable object? This is especially dangerous for a collection like a
+    list or a dictionary, because such corruption could potentially render the
     underlying data structure unusable or even produce infinite loops
     when traversing it.
 
@@ -283,10 +332,9 @@ collections. Updates still might get lost.
 However, other Java collection objects your code may use may not have
 such no-corruption guarantees. If you need to use ``LinkedHashMap``, so as to
 support an ordered dictionary, you will need to consider thread safety
-if it will be shared and mutated.
+if it will be both shared and mutated.
 
-Of course this only applies to mutable objects, which also must be
-shared. Remember, not all objects in Python are mutable. Commonly used
+Of course this doesn't apply to immutable objects. Commonly used
 objects like strings, numbers, datetimes, tuples, and frozen sets are
 immutable. And you can also create your own immutable objects. (Of
 course, this is Python, so it's restricted to either using convention
@@ -306,37 +354,36 @@ Synchronization
 ~~~~~~~~~~~~~~~
 
 We use synchronization to control the entry of threads into code
-blocks corresponding to synchronizable resources. Typically you use
-synchronization through explicit locking. Such an approach is also readily
-portable to other Python implementations.
+blocks corresponding to synchronizable resources. Through this control
+we can prevent data races, assuming a correct synchronization
+protocol. (This can be a big assumption!)
 
 A ``threading.Lock`` ensures entry by only one thread. (In Jython, but
 unlike CPython, such locks are always recursive.) Other threads have
-to wait until that thread exits the lock.
+to wait until that thread exits the lock. Such explicit locks are
+the simplest and perhaps most portable synchronization to perform.
 
 You should generally manage the entry and exit of such locks through a
 with-statement; failing that, you must use a try-finally to ensure
 that the lock is released.
 
-Example code using the with-statement::
+Here's some example code using the with-statement. The code allocates
+a lock, then shares it amongst some tasks::
+
+  XXX use task harness
 
   from threading import Lock
 
-  # allocate a lock, share it amongst some tasks
-
-XXX how does this work with an explicit timeout? yikes, can that run
-as fast?
-
+  counter_lock = Lock()
   with counter_lock:
       # XXX contended counter
-      
+    
 Alternatively, you can do this with try-finally::
 
   XXX try-finally version
 
 Don't do this. It's actually slower than the with-statement. Using the
 with-statement version also results in more idiomatic Python code.
-
 
 Another possibility is to use the ``synchronize`` module, which is specific to
 Jython. This module provides a``make_synchronized`` decorator
@@ -379,7 +426,7 @@ The ``threading`` module offers portablity, but it's also
 minimalist. Instead you may want to use the synchronizers in
 ``Java.util.concurrent``, instead of their wrapped versions in
 ``threading``. In particular, this approach is necessary if you want
-to wait with a timeout.
+to wait on a lock with a timeout.
 
   XXX code demoing timeout
 
@@ -404,15 +451,15 @@ Use synchronizaton carefully. This code will always eventually deadlock::
   XXX code demonstrating locks take in different orders, using the
   with-statement
 
-Deadlock results from a cycle -- of any length -- of wait-on
-dependencies: Alice is waiting on Bob, but Bob is waiting on
-Alice. Without a timeout or other change in strategy, this deadlock
-will not be broken. 
+Deadlock results from a cycle of any length of wait-on
+dependencies. For example, Alice is waiting on Bob, but Bob is waiting
+on Alice. Without a timeout or other change in strategy -- Alice just
+gets tired of waiting on Bob! -- this deadlock will not be broken.
 
 Avoiding deadlocks can be done by never acquiring locks such that a
-cycle like that can be created. However, this is not always easy to
-do. A more robust strategy is to allow for timeouts. In addition,
-external interruption can effect the same strategy.
+cycle like that can be created. Bob always allows Alice to go first,
+in the example above. However, this is not always easy to do. Often, a
+more robust strategy is to allow for timeouts.
 
 
 Atomic Operations
@@ -420,21 +467,30 @@ Atomic Operations
 
 XXX what is an atomic operation
 
-Atomic operations are simpler to use than synchronization. Atomic
-operations may use underlying support in the CPU, such as
+An atomic operation is inherently thread safe, because it ensures 
+
+Atomic operations are simpler to use than synchronization. And atomic
+operations will often use underlying support in the CPU, such as
 ``compare-and-swap``. Or they may use locking too. The important thing
 to know is that the lock is not directly visible and it's not possible
 to expand the scope of the synchronization. In particular, callbacks
 and iteration are not feasible.
 
-Python guarantees the atomicity of certain operations, although at
-best it's only informally documented. (Some in fact might argue
-otherwise.)
+  .. sidebar:: Transactions
 
-Fredrik Lundh's article on "Thread Synchronization Methods
-in Python" summarizes the mailing list dicussions and the state of the
-CPython implementation. Quoting his article, the following are atomic
-operations for Python code:
+  Transactions do allow for multiple operations to be combined into an
+  atomic entity. Clojure implements a form of this, software
+  transactional memory. In the future we should expect similar
+  developments like this in other languages, including Python and
+  specifically the Jython implementation.
+
+  XXX reference Nicholas' work?
+
+Python guarantees the atomicity of certain operations, although at
+best it's only informally documented. Fredrik Lundh's article on
+"Thread Synchronization Methods in Python" summarizes the mailing list
+dicussions and the state of the CPython implementation. Quoting his
+article, the following are atomic operations for Python code:
 
   * Reading or replacing a single instance attribute
 
