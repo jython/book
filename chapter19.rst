@@ -192,10 +192,10 @@ main reason for the GIL). The important ramification here is that you
 can use threads for compute-intensive tasks that are written in Python.
 
 
-Module Interpreter Lock
------------------------
+Module Import Lock
+------------------
 
-Python defines a *module intepreter lock*, which is implemented by
+Python defines a *module import lock*, which is implemented by
 Jython. This lock is acquired whenever an import of any name is
 made. This is true whether the import goes through the import
 statement, the equivalent ``__import__`` builtin, or related
@@ -222,7 +222,7 @@ top-level function can certainly perform much more complex tasks. The
 module import lock simplifies this setup so that it's safely
 published. We will discuss this concept further later in this chapter.
 
-Note that the Module Interpreter Lock is global for the entire Jython
+Note that the module import lock is global for the entire Jython
 runtime.
 
 
