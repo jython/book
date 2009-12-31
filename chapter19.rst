@@ -310,12 +310,15 @@ So this results in the following:
 
 XXX rework below
 
-As usual with the ``java.util`` package, and perhaps even more so in
-``java.util.concurrent``, there are an abundance of options. But
-``ExecutorCompletionService`` is probably the most useful. Here's how
-to concurrently download a set of web pages::
+The ``CompletionService`` interface provides a nice abstraction to
+working with futures. The scenario is that instead waiting for all the
+futures to complete, as our code did with ``invokeAll``, or otherwise
+polling them, the completion service will push futures that are ready
+onto a synchronized queue::
 
-  XXX code demonstrating with ExecutorCompletionService - maximize concurrency
+  XXX code
+ 
+This setup enables a natural flow.
 
 
 .. sidebar:: Why Use Tasks Instead of Threads
@@ -696,17 +699,17 @@ the standard Java API, and it works with any thread created by
 ``threading`` -- again, Python threads are simply Java threads in the
 Jython implementation.
 
-This is how it works::
+This is how you can access this functionality::
 
-  from java.lang import Thread as JThread # so as to not confuse with threading.Thread
+  from java.lang import Thread as JavaThread # so as to not confuse with threading.Thread
   
-  while not JThread.currentThread().isInterrupted(): # or alternatively, JThread.isInterrupted(threading.Thread.currentThread())
+  while not JavaThread.currentThread().isInterrupted(): # or alternatively, JThread.isInterrupted(threading.Thread.currentThread())
       do_stuff()
 
 Interrupting an arbitrary Jython -- or Java -- thread is also
 easy. Simply do the following::
 
-  >>> JThread.interrupt(a_thread)
+  >>> JavaThread.interrupt(a_thread)
 
 An easier way to access interruption is through the cancel method
 provided by a ``Future``. We will describe this more in the section on
