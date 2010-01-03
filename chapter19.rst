@@ -66,7 +66,6 @@ You can also mix and match. Because of the support of tasks in
 ``java.util.concurrent``, this is probably the best option.
 
 
-
 How to Choose?
 --------------
 
@@ -518,8 +517,7 @@ more robust strategy is to allow for timeouts.
 
 
 Other Synchronization Objects
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
- 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Synchronized Queues
 
@@ -528,14 +526,17 @@ First-in, first-out
 
 A number of methods, including join
 
-If you need to implement another policy, such as last-in, first-out or based on a priority, you can use ``java.util.concurrent`` for the appropriate
-
-(These have since been implemented in Python 2.6.)
+If you need to implement another policy, such as last-in, first-out or
+based on a priority, you can use the comparable synchronized queues in
+``java.util.concurrent`` as appropriate.  (Note these have since been
+implemented in Python 2.6, so they will be made available when Jython
+2.6 is eventually released.)
 
 
 Condition variables
 
 It's important that you carefully consider 
+
 In particular, there's no guarantee that only one thread will be woken
 
 There are other mechanisms to synchronize, including exchangers,
@@ -597,7 +598,7 @@ loop, and the fact that types like ``dict`` and ``list`` are
 implemented natively in C and do not release the GIL.
 
 Despite the fact that this is in some sense accidentally emergent,
-it's a useful simplification for the developer. And it's what existing
+it is a useful simplification for the developer. And it's what existing
 Python code expects. So this is what we have implemented in Jython.
 
 In particular, because ``dict`` is a ``ConcurrentHashMap``, we also
@@ -624,9 +625,9 @@ But you can get an atomic counter by using a Java class like
 
   XXX code
 
-Atomic operations are not a panacea. You still may have to use
-synchronization to prevent data races. And this has to be done with
-care to avoid deadlocks and starvation.
+Atomic operations are not a panacea. Without transactional support,
+you still may have to use synchronization to prevent data races. And
+this has to be done with care to avoid deadlocks and starvation.
 
 
 Thread Confinement
@@ -635,29 +636,29 @@ Thread Confinement
 Thread confinement is often the best solution to resolve most of the
 problems seen in working with mutable objects. In practice, you
 probably don't need to share a large percentage of the mutable objects
-used in your code. Very simply put, if you don't share -- if you use
-thread confinement -- thread safety issues go away.
+used in your code. Very simply put, if you don't share, then thread safety issues go away.
 
 Not all problems can be reduced to using thread confinement. There are
 likely some shared objects in your system, but in practice most can be
 eliminated. And often the shared state is someone else's problem.
 
-  * Intermediate objects. If you are building up a buffer that is only
-    pointed to by a local variable, you don't need to synchronize.
+  * Intermediate objects don't require sharing. For example, if you
+    are building up a buffer that is only pointed to by a local
+    variable, you don't need to synchronize. It's an easy prescription
+    to follow, so long as you are not trying to keep around these
+    intermediate objects to avoid allocation overhead. Don't do that.
 
-  * Producer-consumer. Handoff through safe publication, such as
-    through some type of blocking queue. (XXX CompletionExecutionService,
-    Queue, etc.) This is
-    generally easy to ensure in Jython.
+  * Producer-consumer. Construct an object in one thread, then hand it
+    off to another thread. You just need to use an appropriate
+    synchronizer object, such as a ``Queue``.
 
-  * Containers. The typical database-driven web applications makes for
-    a classic example. With Jython, specifically through ModJy,
-    database connection pools and thread pools are the responsibility
-    of the servlet container, they are not directly
-    observable. (Although you may run into problems if you attempt to
-    share database connections across threads. That is not advisable.)
-
-    Caches and databases then are where you will see shared state.
+  * Application containers. The typical database-driven web
+    applications makes for the classic case. For example, if you are
+    using ModJy, then the database connection pools and thread pools
+    are the responsibility of the servlet container. And they are not
+    directly observable. (But don't do things like share database
+    connections across threads.) Caches and databases then are where
+    you will see shared state.
 
   * Actors. The actor model is another good example. Send and receive
     messages to an actor (effectively an independent thread) and let
@@ -665,7 +666,6 @@ eliminated. And often the shared state is someone else's problem.
     reduces the problem to sharing one mutable object, the message
     queue. The message queue can then ensure any accesses are
     appropriately serialized, so there are no thread safety issues.
-
 
 Unfortunately thread confinement is not without issues in Jython. For
 example, if you use ``StringIO``, you have to pay the cost that this
@@ -675,29 +675,17 @@ library, if a section of code is hot enough, you may want to consider
 rewriting that in Java to ensure no additional synchronization
 overhead.
 
-.. sidebar:: Introspection and Thread Confinement
-
-  Thread confinement is not perfect in Python, because of the
-  possibility of introspecting on frame objects.
-
-  XXX insert from concurrency.rst
-
-  In the end, this is not really an issue from a Pythonic
-  perspective.
-
-  XXX similar considerations apply to any manipulation of an object,
-  the lack of public-private distinctions, etc.
-
-  If you change an object's class, or directly modify its
-  underlying attributes (through ``__dict__``), you have violated that
-  object's contract. Don't do that, at least without understanding the
-  consequences.
+Lastly, thread confinement is not perfect in Python, because of the
+possibility of introspecting on frame objects. This means your code
+can see local variables, and the objects they point to. But this is
+really more of an issue for how optimizable Jython is when run on the
+JVM. It won't cause thread safety issues if you don't exploit this
+possibility. We will discuss this more in the section on the Python
+Memory Model.
 
 
-Timeouts and Cancellations
---------------------------
-
-XXX cover this topic
+Timeouts, Cancellations, and Interruption
+-----------------------------------------
 
 Thread Interruption
 ~~~~~~~~~~~~~~~~~~~
@@ -738,14 +726,9 @@ An easier way to access interruption is through the cancel method
 provided by a ``Future``. We will describe this more in the section on
 :ref:tasks.
 
-Task Cancellation
-~~~~~~~~~~~~~~~~~
 
-XXX
-
-
-Python Memory Model
-~~~~~~~~~~~~~~~~~~~
+Python Memory Model and Safe Publication
+----------------------------------------
 
 Reasoning about concurrency in Python is easier than in Java. This is
 because the memory model is not as surprising to our conventional
@@ -760,7 +743,6 @@ synchronizes-with
 
 http://java.sun.com/docs/books/jls/third_edition/html/memory.html
 
-
 Although such reordering is not visible within a given thread, it is
 certainly visible to other threads. Of course, this only applies to
 changes made to non-local objects.
@@ -770,9 +752,6 @@ Java developers can
 In particular, the volatile keyword is used to control happens-before.
 
 And thereby construct a memory fence - no reordering is possible around this fence.
-
-
-
 
 The fundamental thing to know about Python is that setting any
 attribute in Python introduces a volatile write; and getting any
@@ -816,6 +795,20 @@ are introspectable. You can do this via the ``locals`` function. But
 even then it requires a fairly convoluted path. Once again, we need to
 use a mutable object that does not introduce a fence. Arrays work well
 for this purpose::
+
+  XXX insert from concurrency.rst
+
+  In the end, this is not really an issue from a Pythonic
+  perspective.
+
+  XXX similar considerations apply to any manipulation of an object,
+  the lack of public-private distinctions, etc.
+
+  If you change an object's class, or directly modify its
+  underlying attributes (through ``__dict__``), you have violated that
+  object's contract. Don't do that, at least without understanding the
+  consequences.
+
 
   A_locals = None
 
