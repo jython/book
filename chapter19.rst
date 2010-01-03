@@ -45,29 +45,25 @@ argument. Useful concurrent systems have been written on the JVM, and
 that includes apps written in Jython. Key success factors in writing
 such code include:
 
-XXX i don't like this prescription, we need to rework
+ * Keep the concurrency simple.
 
- * Keep the concurrency simple. Avoid heterogeneity by using tasks,
-   which then are mapped to threads.
+ * Use tasks, which can be mapped to a thread pool.
 
- * Avoid unnecessary sharing of mutable objects.
+ * Use immutable objects where possible.
 
- * Simplify sharing. Queues and related objects -- like
-   synchronization barriers -- provide a structured mechanism to hand
-   over objects between threads.
+ * Avoid unnecessary sharing of mutable objects. 
 
-Generally you will want to use Python's standard threading support,
-through the ``threading`` module. If you are coming from Java, you
-will recognize this API, since it is substantially based on
-Java's. Alternatively you can go directly against the
-``java.util.concurrent`` package.
+ * Minimize sharing of mutable objects. Queues and related objects --
+   like synchronization barriers -- provide a structured mechanism to
+   hand over objects between threads. This can enable a design where
+   an object is visible to only one thread when its state changes.
 
-You can also mix and match. Because of the support of tasks in
-``java.util.concurrent``, this is probably the best option.
+ * Code defensively. Make it possible to cancel or interrupt
+   tasks. Use timeouts.
 
 
-How to Choose?
---------------
+Java or Python APIs?
+--------------------
 
 One issue that you will have to consider in writing concurrent code is
 how much to make your implementation dependent on the Java
@@ -75,8 +71,10 @@ platform. Here are our recommendations:
 
   * If you are porting an existing Python code base that uses
     concurrency, you can just use the standard Python ``threading``
-    module. Such code can still interoperate with Java, because Jython threads
-    are always mapped to Java threads.
+    module. Such code can still interoperate with Java, because Jython
+    threads are always mapped to Java threads. (If you are coming from
+    Java, you will recognize this API, since it is substantially based
+    on Java's.)
 
   * Jython implements ``dict`` and ``set`` by using Java's
     ``ConcurrentHashMap``. This means you can just use these standard
@@ -106,6 +104,8 @@ particular tends to keep all of this well-isolated. And such thread
 safety considerations as thread confinement and safe publication
 remain the same.
 
+Lastly, remember you can always mix and match.
+
 
 Working with Threads
 --------------------
@@ -131,10 +131,49 @@ Here's a simple test harness we might use::
 Thread Lifecycle
 ----------------
 
-
 XXX Cancellation, joining, interruption
 
+Timeouts, Cancellations, and Interruption
+-----------------------------------------
 
+Thread Interruption
+~~~~~~~~~~~~~~~~~~~
+
+XXX say something about good thead interruption is, compared to just using a while on a variable::
+
+  class DoSomething(Runnable):
+      def __init__(self):
+          cancelled = False
+
+      def run(self):
+          while not self.cancelled:
+              do_stuff()
+
+
+Thread interruption allows for more responsive cancellation. In
+particular, if a a thread is waiting on any synchronizers, like a
+lock, or on file I/O, this action will cause the waited-on method to
+exit with an ``InterruptedException``. Although Python's ``threading``
+module does not itself support interruption, it's available through
+the standard Java API, and it works with any thread created by
+``threading`` -- again, Python threads are simply Java threads in the
+Jython implementation.
+
+This is how you can access this functionality::
+
+  from java.lang import Thread as JThread # so as to not confuse with threading.Thread
+  
+  while not JThread.currentThread().isInterrupted(): 
+      do_stuff()
+
+Interrupting an arbitrary Jython -- or Java -- thread is also
+easy. Simply do the following::
+
+  >>> JavaThread.interrupt(a_thread)
+
+An easier way to access interruption is through the cancel method
+provided by a ``Future``. We will describe this more in the section on
+:ref:tasks.
 
 .. sidebar:: Daemon Threads
 
@@ -497,7 +536,7 @@ synchronization::
   XXX code
 
 Deadlocks
-^^^^^^^^^
+~~~~~~~~~
 
 But use synchronizaton carefully. This code will always eventually
 deadlock::
@@ -677,54 +716,13 @@ overhead.
 
 Lastly, thread confinement is not perfect in Python, because of the
 possibility of introspecting on frame objects. This means your code
-can see local variables, and the objects they point to. But this is
-really more of an issue for how optimizable Jython is when run on the
-JVM. It won't cause thread safety issues if you don't exploit this
-possibility. We will discuss this more in the section on the Python
-Memory Model.
+can see local variables in other threads, and the objects they point
+to. But this is really more of an issue for how optimizable Jython is
+when run on the JVM. It won't cause thread safety issues if you don't
+exploit this loophole. We will discuss this more in the section on the
+Python Memory Model.
 
 
-Timeouts, Cancellations, and Interruption
------------------------------------------
-
-Thread Interruption
-~~~~~~~~~~~~~~~~~~~
-
-XXX say something about good thead interruption is, compared to just using a while on a variable::
-
-  class DoSomething(Runnable):
-      def __init__(self):
-          cancelled = False
-
-      def run(self):
-          while not self.cancelled:
-              do_stuff()
-
-
-Thread interruption allows for more responsive cancellation. In
-particular, if a a thread is waiting on any synchronizers, like a
-lock, or on file I/O, this action will cause the waited-on method to
-exit with an ``InterruptedException``. Although Python's ``threading``
-module does not itself support interruption, it's available through
-the standard Java API, and it works with any thread created by
-``threading`` -- again, Python threads are simply Java threads in the
-Jython implementation.
-
-This is how you can access this functionality::
-
-  from java.lang import Thread as JavaThread # so as to not confuse with threading.Thread
-  
-  while not JavaThread.currentThread().isInterrupted(): # or alternatively, JThread.isInterrupted(threading.Thread.currentThread())
-      do_stuff()
-
-Interrupting an arbitrary Jython -- or Java -- thread is also
-easy. Simply do the following::
-
-  >>> JavaThread.interrupt(a_thread)
-
-An easier way to access interruption is through the cancel method
-provided by a ``Future``. We will describe this more in the section on
-:ref:tasks.
 
 
 Python Memory Model and Safe Publication
