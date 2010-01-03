@@ -201,8 +201,8 @@ down Python execution significantly.
 
 The impact of the GIL on CPython programming is that threads are not
 as useful as they are in Jython. Concurrency will only be seen in
-interacting with I/O as well as scenarios where computation is managed
-by an extension module on data structures outside of the CPython's
+interacting with I/O as well as scenarios where computation is performed
+by an extension module on data structures managed outside of CPython's
 runtime. Instead, developers typically will use a process-oriented
 model to evade the restrictiveness of the GIL.
 
@@ -261,18 +261,31 @@ global for the entire Jython runtime. This may change in the future.
 Working with Tasks
 ------------------
 
-It's often best to avoid managing the lifecycle of threads
-directly. Tasks provide a better abstraction: units of work that move
-in turn through being created, submitted, started, and
-completed. Tasks can also be cancelled or even interrupted.
+It's usually best to avoid managing the lifecycle of threads
+directly. Instead, the task model often provides a better
+abstraction. 
 
-Normally you will be using ``FutureTask``, which implements the
-``Future`` interface.
+*Tasks* describe the asynchronous computation to be
+performed. Although there are other options, the object you ``submit``
+to be executed should implement Java's ``Callable`` interface (a
+``call`` method without arguments), as this best maps into working
+with a Python method or function. Tasks move through the states of
+being created, submitted (to an executor), started, and
+completed. Tasks can also be cancelled or interrupted.
 
-What's nice about this approach is that a ``FutureTask`` is the
-concurrent equivalent of a method or function call. So here's how we
-can do this with a one-shot async function call. This sample code let
-us download a web page in the background::
+*Executors* run tasks using a set of threads. This might be one thread,
+a thread pool, or as many threads as necessary to run all currently
+submitted tasks concurrently. The specific choice comprises the
+executor policy. But generally you want to use a thread pool so as to
+control the degree of concurrency.
+
+*Futures* allow code to access the result of a computation -- or an
+exception, if thrown -- in a task only at the point when it's
+needed. Up until that point, the using code can run concurrently with
+that task. If it's not ready, a wait-on dependency is introduced.
+
+Given this, here's how we can do this with a one-shot async function
+call. This sample code let us download a web page in the background::
 
   XXX code to download web page
 
@@ -282,9 +295,9 @@ a database query or a computationally intensive task written in Python.
 Up until the ``get`` method on the returned future, the caller run
 concurrently with this task. The ``get`` call then introduces a
 wait-on dependency on the task's completion. (So this is like calling
-``join`` on a thread.) Upon completion, either the result is returned,
-or an exception is thrown into the caller. This exception will be one
-of:
+``join`` on the supporting thread.) Upon completion, either the result
+is returned, or an exception is thrown into the caller. This exception
+will be one of:
 
   * InterruptedException
   * ExecutionException
@@ -292,56 +305,39 @@ of:
 (This pushing of the exception into the asynchronous caller is thus
 similar to how a coroutine works.)
 
-Actually mapping tasks against underlying threads is done through a
-Java execution service. Generally you want to use a thread pool to
-control the degree of concurrency.
-
-So this results in the following:
-
-  * Use a thread pool through a Java execution service. There are a
-    number of execution services available, each specialized for a
-    given purpose.
-
-  * Work with ``FutureTask`` objects, which provide a more useful
-    abstraction of both joining on a thread and getting the result.
-
-
-  XXX code with Futures - problem is taking them in the order of completion
-
-XXX rework below
-
 The ``CompletionService`` interface provides a nice abstraction to
 working with futures. The scenario is that instead waiting for all the
 futures to complete, as our code did with ``invokeAll``, or otherwise
-polling them, the completion service will push futures that are ready
-onto a synchronized queue::
+polling them, the completion service will push futures as they are
+completed onto a synchronized queue. This queue can then be consumed,
+by consumers running in one or more threads::
 
   XXX code
  
 This setup enables a natural flow.
 
+XXX
+Although it may be tempting to then schedule everything through the
+completion service's queue, there are limits. For example, if you're
+writing a scalable web spider, you would want to externalize this work
+queue. But for simple manangement, it would certainly suffice.
+
 
 .. sidebar:: Why Use Tasks Instead of Threads
 
-  A common practice we see in code in the wild is the addition of
+  A common practice seen in a lot of production code is the addition of
   threading in a haphazard fashion:
 
-   * Heterogeneous threads. Perhaps you have one thread that updates
-     from the database. And another that rebuilds an index. What
-     happens when you have multiple tables you're reading?
+   * Heterogeneous threads. Perhaps you have one thread that queries
+     the database. And another that rebuilds an associated index. What
+     happens when you need to add another query?
 
    * Dependencies are managed through a variety of channels, instead
-     of being formally structured.
+     of being formally structured. a rats' nest of timers and threads synchronizing
 
-  You want to avoid a rats' nest of timers and threads synchronizing
-  on each other. This is a very bad habit, because it limits
-  scalability.
-
-  Instead use tasks, with explicit wait-on dependencies and time
-  scheduling. 
-
-(Alternatively you might want to wrap such execution service. There is
-some early work on this that's worth tracking, XXX Python futures.)
+  It's certainly possible to make this sort of setup work. But using
+  tasks, with explicit wait-on dependencies and time scheduling, makes
+  it far simpler to build a simple, scalable system.
 
 
 Thread Safety
