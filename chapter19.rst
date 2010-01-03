@@ -2,26 +2,27 @@ Chapter 19:  Concurrency
 ========================
 
 Supporting concurrency is increasingly important. In the past,
-mainstream concurrent programming generally meant ensuring that code
-interacting with relatively slow network, disk, database, and other
-I/O did not unduly slow things down. Exploiting parallelism was
-typically only seen in such domains as scientific computing with apps
-running on supercomputers.
+mainstream concurrent programming generally meant ensuring that the
+code interacting with relatively slow network, disk, database, and
+other I/O resources did not unduly slow things down. Exploiting
+parallelism was typically only seen in such domains as scientific
+computing with apps running on supercomputers.
 
 But there are new factors at work now. The semiconductor industry
 continues to work feverishly to uphold Moore's Law of exponential
 increase in chip density. Chip designers used to apply this bounty to
 speeding up an individual CPU. But for a variety of reasons, this old
 approach no longer works as well. So now chip designers are cramming
-chips with more CPUs and hardware threads. Speeding up execution now
-means harnessing the parallelism of the hardware, and it's our job as
+chips with more CPUs and hardware threads. Speeding up execution means
+harnessing the parallelism of the hardware. And it is now our job as
 software developers to do that work.
 
-The Java platform is arguably the most robust environment for running
-concurrent code today, and it can be readily be used from Jython.  The
-problem remains that writing concurrent code is not easy. This
-difficulty is especially true with respect to a concurrency model
-based on threads, which is what today's hardware natively exposes.
+The Java platform can help out here. The Java platform is arguably the
+most robust environment for running concurrent code today, and this
+functionality can be readily be used from Jython.  The problem remains
+that writing concurrent code is still not easy. This difficulty is
+especially true with respect to a concurrency model based on threads,
+which is what today's hardware natively exposes.
 
 This means we have to be concerned with thread safety, which arises as
 an issue because of the existence of mutable objects that are shared
@@ -300,13 +301,28 @@ is returned, or an exception is thrown into the caller. This exception
 will be one of:
 
   * InterruptedException
-  * ExecutionException
+
+  * ExecutionException. Your code can retrieve the underlying
+    exception with the ``cause`` attribute.
 
 (This pushing of the exception into the asynchronous caller is thus
-similar to how a coroutine works.)
+similar to how a coroutine works when ``send`` is called on it.)
+
+Now let's multiplex the downloads of several web pages over a thread
+pool::
+
+ XXX code
+
+Shutting down a thread pool should be as simple as calling the
+``shutdown`` method on the pool. However, you may need to take in
+account this can happen during extraordinary times in your
+code. Here's the Jython version of a robust shutdown function, as
+provided in the standard Java docs::
+
+  XXX code
 
 The ``CompletionService`` interface provides a nice abstraction to
-working with futures. The scenario is that instead waiting for all the
+working with futures. The scenario is that instead of waiting for all the
 futures to complete, as our code did with ``invokeAll``, or otherwise
 polling them, the completion service will push futures as they are
 completed onto a synchronized queue. This queue can then be consumed,
@@ -325,19 +341,21 @@ queue. But for simple manangement, it would certainly suffice.
 
 .. sidebar:: Why Use Tasks Instead of Threads
 
-  A common practice seen in a lot of production code is the addition of
-  threading in a haphazard fashion:
+  A common practice too often seen in production code is the addition
+  of threading in a haphazard fashion:
 
    * Heterogeneous threads. Perhaps you have one thread that queries
      the database. And another that rebuilds an associated index. What
      happens when you need to add another query?
 
    * Dependencies are managed through a variety of channels, instead
-     of being formally structured. a rats' nest of timers and threads synchronizing
+     of being formally structured. This can result in a rats' nest of
+     threads synchronizing on a variety of objects, often with timers
+     and other event sources thrown in the mix.
 
-  It's certainly possible to make this sort of setup work. But using
-  tasks, with explicit wait-on dependencies and time scheduling, makes
-  it far simpler to build a simple, scalable system.
+  It's certainly possible to make this sort of setup work. Just debug
+  away. But using tasks, with explicit wait-on dependencies and time
+  scheduling, makes it far simpler to build a simple, scalable system.
 
 
 Thread Safety
@@ -360,16 +378,25 @@ Jython ensures that its underlying mutable collection types --
 ``dict``, ``list``, and ``set`` -- cannot be be corrupted by using
 code. But updates still might get lost in a data race.
 
-However, other Java collection objects your code may use may not have
-such no-corruption guarantees. If you need to use ``LinkedHashMap``,
-so as to support an ordered dictionary, you will need to consider
-thread safety if it will be both shared and mutated.
+However, other Java collection objects that your code might use would
+typically not have such no-corruption guarantees. If you need to use
+``LinkedHashMap``, so as to support an ordered dictionary, you will
+need to consider thread safety if it will be both shared and mutated.
 
-Of course these concerns do not apply to immutable objects. Commonly
-used objects like strings, numbers, datetimes, tuples, and frozen sets
-are immutable. And you can also create your own immutable objects. (Of
-course, this is Python, so it's restricted to either using convention
-or perhaps throwing exceptions, which can be subverted in any event.)
+Here's a simple test harness you can use to test some aspects of the
+thread safety of your code::
+
+  XXX code
+
+The idea is to to apply a sequence of operations that perform an
+operation, then reverse it. One step forward, one step back. The net
+result should be right where you started, and in the case of a
+collection, how it started.
+
+Of course these concerns do not apply at all to immutable
+objects. Commonly used objects like strings, numbers, datetimes,
+tuples, and frozen sets are immutable. And you can create your own
+immutable objects too.
 
 There are a number of other strategies in solving thread safety issues. We
 will look at them as follows:
@@ -750,8 +777,8 @@ And thereby construct a memory fence - no reordering is possible around this fen
 The fundamental thing to know about Python is that setting any
 attribute in Python introduces a volatile write; and getting any
 attribute is a volatile read. This is because Python attributes are
-stored in dictionaries, and in Jython, this follows the semantics of a
-``ConcurrentHashMap``; ``get`` and ``set`` (``put`` in Java) are volatile.
+stored in dictionaries, and in Jython, this follows the semantics of the backing
+``ConcurrentHashMap``. So ``get`` and ``set`` are volatile.
 
 Python code sacrifices some performance to keep it
 simpler. We will further discuss the ramifications of this [XXX
@@ -885,62 +912,3 @@ simply requiring a callable, as well as any desired
 dependencies. Basically support a simple wrapper around futures seems
 to be the best idea. Then we can also get dependencies. And have timed
 submits too.
-
-
-Executors
-~~~~~~~~~
-
-fixed thread pool
-timed execution
-etc.
-
-XXX What about something that dynamically adjusts based on load?
-
-Futures
-~~~~~~~
-
-Putting it together
-~~~~~~~~~~~~~~~~~~~
-
-
-
-
-Other Concurrency APIs
-----------------------
-
-This chapter only represents some of what you can do with concurrency
-in Jython.
-
-Other current possibilities include:
-
-  * The ``futures`` module (http://code.google.com/p/pythonfutures/). 
-
-  * Generalized coroutine support. Work is ongoing on the da Vinci
-    machine, an experimental branch of the Hotspot JVM, to directly
-    support coroutines. Unlike standard Python coroutines, this will
-    enable direct control of the scheduling (supports nested
-    coroutines), instead of yielding to a *trampoline*.
-
-  * Actors. Very closely related to coroutine support.
-
-  * In addition, other concurrent programming APIs can also be used,
-    such as Terracotta. 
-
-XXX maybe look at the new TC API support
-
-.. sidebar::
-  
-  Note there are other models of concurrency that don't directly
-  expose threads to users, or make them easier to use. 
-
-  
-
-  X10
-
-  In particular,
-  the Lisp dialect Clojure, a JVM language provides some exciting
-  options.
-
-  XXX Transactional memory, agents, etc.
-
-
