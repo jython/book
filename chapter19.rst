@@ -6,7 +6,7 @@ mainstream concurrent programming generally meant ensuring that the
 code interacting with relatively slow network, disk, database, and
 other I/O resources did not unduly slow things down. Exploiting
 parallelism was typically only seen in such domains as scientific
-computing with apps running on supercomputers.
+computing with the apps running on supercomputers.
 
 But there are new factors at work now. The semiconductor industry
 continues to work feverishly to uphold Moore's Law of exponential
@@ -207,19 +207,44 @@ Thread Locals
 -------------
 
 The ``threading.local`` class enables a simple way of associating
-objects with any given thread.
+objects with a given thread.
 
-Its usage is deceptively simple. Simply instantiate this class -- or a
-subclass, and assign it to a name. (So that part is just like working
-with any other object in Python.) Threads then can share the name, but
-with a twist: each thread will see a different, thread-specific
-version of the object.  This object can have arbitrary attributes
-added to it, and it will not be visible to other threads::
+Its usage is deceptively simple. Simply create an instance of
+``threading.local``, or a subclass, and assign it to a variable or
+other name. This variable could be global, or part of some other
+namespace. So far, this is just like working with any other object in
+Python.
+
+Threads then can share the variable, but with a twist: each thread
+will see a different, thread-specific version of the object.  This
+object can have arbitrary attributes added to it, each of which will
+not be visible to other threads::
 
   XXX code
 
-In addition, you can subclass ``threading.local``
-And __slots__ 
+Other options include subclassing ``threading.local``. As usual, this
+allows you to define defaults and specify a more nuanced properties
+model. But one unique, and potentially useful, aspect is that any
+attributes specified in ``__slots__`` will be *shared* across threads.
+
+However, there's a big problem when working with thread
+locals. Usually they don't make sense because threads are not the
+right scope. An object or a function is, especially through a
+closure. If you are using thread locals, you are implicitly adopting a
+model where threads are partitioning the work. But then you are
+binding the given piece of work to a thread. This makes using a thread
+pool problematic, because you have to clean up after the thread.
+
+ .. sidebar:: Jython's ``ThreadState`` Problem
+
+  In fact, we see this very problem in the Jython runtime. A certain
+  amount of context needs to be made available to execute Python
+  code. In the past, we would look this ``ThreadState`` up from the
+  thread. This may have been faster in the past, but it now slows
+  things down, and unnecessarily limits what a given thread can do.  A
+  future refactoring of Jython will likely remove the use of
+  ``ThreadState`` completely, simultaneously speeding and cleaning
+  things up.
 
 In the end, thread locals are an interesting aside. They do not work
 really at all in a task-oriented model, because you don't want to
@@ -675,11 +700,12 @@ Thread Confinement
 Thread confinement is often the best solution to resolve most of the
 problems seen in working with mutable objects. In practice, you
 probably don't need to share a large percentage of the mutable objects
-used in your code. Very simply put, if you don't share, then thread safety issues go away.
+used in your code. Very simply put, if you don't share, then thread
+safety issues go away.
 
 Not all problems can be reduced to using thread confinement. There are
 likely some shared objects in your system, but in practice most can be
-eliminated. And often the shared state is someone else's problem.
+eliminated. And often the shared state is someone else's problem:
 
   * Intermediate objects don't require sharing. For example, if you
     are building up a buffer that is only pointed to by a local
