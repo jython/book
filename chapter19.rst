@@ -169,7 +169,7 @@ This is how you can access this functionality::
 Interrupting an arbitrary Jython -- or Java -- thread is also
 easy. Simply do the following::
 
-  >>> JavaThread.interrupt(a_thread)
+  >>> JThread.interrupt(a_thread)
 
 An easier way to access interruption is through the cancel method
 provided by a ``Future``. We will describe this more in the section on
@@ -249,7 +249,8 @@ pool problematic, because you have to clean up after the thread.
 In the end, thread locals are an interesting aside. They do not work
 really at all in a task-oriented model, because you don't want to
 associate context with a worker thread that will be assigned to
-arbitrary tasks. This really would just make for a confused mess.
+arbitrary tasks. This really would just make for a confused mess. But
+they might be useful in certain cases; just remember these caveats.
 
 
 No Global Interpreter Lock
@@ -749,62 +750,41 @@ exploit this loophole. We will discuss this more in the section on the
 Python Memory Model.
 
 
-
-
 Python Memory Model and Safe Publication
 ----------------------------------------
 
 Reasoning about concurrency in Python is easier than in Java. This is
 because the memory model is not as surprising to our conventional
-reasoning about how programs operate.
+reasoning about how programs operate. This does mean that Python code
+sacrifices some performance to keep it simpler.
 
-Here's why. In order to maximize performance, it's allowed for a CPU
-to arbitrarily re-order the operations performed by Java code, subject
-to two constraints:
+Here's why. In order to maximize Java performance, it's allowed for a
+CPU to arbitrarily re-order the operations performed by Java code.
+Although such reordering is not visible within a given thread, the
+problem is that it's visible to other threads. (Of course, this
+visibility only applies to changes made to non-local objects; thread
+confinement still applies.)
 
-happens-before
-synchronizes-with
+In particular, this means you cannot rely on the apparent sequential
+ordering of Java code when looking at two or more threads.
 
-http://java.sun.com/docs/books/jls/third_edition/html/memory.html
+Reordering is subject to these two constraints on the JVM: http://java.sun.com/docs/books/jls/third_edition/html/memory.html
 
-Although such reordering is not visible within a given thread, it is
-certainly visible to other threads. Of course, this only applies to
-changes made to non-local objects.
+  * happens-before - 
+    The *volatile* keyword is used to control
+    happens-before in Java code. By using volatile in our code, we are
+    able to construct a memory fence - no reordering is possible
+    around this fence.
 
-Java developers can 
+  * synchronizes-with -
 
-In particular, the volatile keyword is used to control happens-before.
-
-And thereby construct a memory fence - no reordering is possible around this fence.
-
-The fundamental thing to know about Python is that setting any
+So that's the story with Java. The fundamental thing to know about
+Python, and what we have implemented in Jython, is that setting any
 attribute in Python introduces a volatile write; and getting any
 attribute is a volatile read. This is because Python attributes are
-stored in dictionaries, and in Jython, this follows the semantics of the backing
-``ConcurrentHashMap``. So ``get`` and ``set`` are volatile.
-
-Python code sacrifices some performance to keep it
-simpler. We will further discuss the ramifications of this [XXX
-deoptimization].
-
-Java Memory Model and Jython
-----------------------------
-
-What about other objects in Jython?
-
-XXX put this in a more advanced section
-XXX look at the proposed PEP that was written by Jeff Yasskin, not certain if it was circulated to python-dev or not
-
-happens-before relation introduces a partial ordering;
-in particular, you cannot rely on the apparent sequential ordering of code
-
-Ordinarily this should not be an issue in Python code executed by
-Jython. A Python object that has a ``__dict__`` for its attributes is,
-in Jython, represented such that its backed by a
-ConcurrentHashMap. CHMs introduce a happens-before relationship to any
-code reading .
-
-But there are wa
+stored in dictionaries, and in Jython, this follows the semantics of
+the backing ``ConcurrentHashMap``. So ``get`` and ``set`` are
+volatile.
 
 Local variables are susceptible to reordering. Internally in Jython,
 they are stored by indexing into a PyObject[] array, and such accesses
@@ -819,19 +799,6 @@ are introspectable. You can do this via the ``locals`` function. But
 even then it requires a fairly convoluted path. Once again, we need to
 use a mutable object that does not introduce a fence. Arrays work well
 for this purpose::
-
-  XXX insert from concurrency.rst
-
-  In the end, this is not really an issue from a Pythonic
-  perspective.
-
-  XXX similar considerations apply to any manipulation of an object,
-  the lack of public-private distinctions, etc.
-
-  If you change an object's class, or directly modify its
-  underlying attributes (through ``__dict__``), you have violated that
-  object's contract. Don't do that, at least without understanding the
-  consequences.
 
 
   A_locals = None
@@ -852,36 +819,20 @@ for this purpose::
       A_y = A_locals['y']
       # now see if we can observe an ordering inconsistent to being sequential
 
-Let's try that again, but not derefencing the local::
-   
-   XXX code
-  
-(Perhaps you can find a shorter path?)
-
- since locals() : you would need to assign
-the reference to thread ``A``'s local variable to thread ``B``
+(Note that unnamed local variables are truly thread confined, such as
+the target of a for loop; only when a generator is paused are they in
+any way accessible, and not easily.)
 
 (In addition, if you were to access the frame's locals through Java,
 using the public methods and fields of ``org.python.core.PyFrame``,
 you can also see out-of-order writes.)
 
-(Note that unnamed local variables are truly thread confined, such as
-the target of a for loop; only when a generator is paused are they in
-any way accessible, and not easily.)
-
-
- By far the most common case will
-
-The other is
-
-
-
-Safe publication
-Immutability
-
-
-Not final, not volatile. But endowed 
-
+In the end, this is not really an issue from a Pythonic perspective.
+Similar considerations apply to any manipulation of an object, the
+lack of public-private distinctions, etc.  If you change an object's
+class, or directly modify its underlying attributes (through
+``__dict__``), you have violated that object's contract. Don't do
+that, at least without understanding the consequences.
 
 
 Safe publication
@@ -889,43 +840,6 @@ Safe publication
 
 Related to thread confinement. Construction.
 
-Note this is not perfect.
-
 create, initialize an object within a thread before publishing it
 which means, is it visible before hand
 
-In practice, this is not seen so much in Python code, because most
-such references would usually be to variables (attributes) at a module
-scope. But Python specifies that there's a module import lock [XXX
-reference the specific docs on this] - all module imports are single
-threaded!  (Note this only applies to the actual first-time loading of
-a module, if you are simply importing a name in, a lock is not
-entered.)
-
-XXX check how that applies to different instances of ``PySystemState``
--- could be potentially relaxed for that.
-
-
-
-
-
-
-
-XXX introduce simple test harness for running a number of threads - we
-will explain more about how it works in the section on :ref:``threading``.
-
-XXX shouldn't this be in the context of a thread pool instead?
-creating threads is a bad idea. Let's get people out of this
-habit. (Even if it's good for simple testing.)
-
-XXX can we make it so that a pure Python thread pool (to be described
-later) or one based on Java can be used exactly the same way -
-basically make it pluggable. Yes, that would be ideal. Especiall if we
-can show how to write a threaded style test harness too.
-
-XXX yes, I think this makes the most sense - it will significantly
-improve the quality of the presentation. And it can be simplified by
-simply requiring a callable, as well as any desired
-dependencies. Basically support a simple wrapper around futures seems
-to be the best idea. Then we can also get dependencies. And have timed
-submits too.
