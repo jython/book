@@ -240,11 +240,11 @@ pool problematic, because you have to clean up after the thread.
   In fact, we see this very problem in the Jython runtime. A certain
   amount of context needs to be made available to execute Python
   code. In the past, we would look this ``ThreadState`` up from the
-  thread. This may have been faster in the past, but it now slows
-  things down, and unnecessarily limits what a given thread can do.  A
-  future refactoring of Jython will likely remove the use of
-  ``ThreadState`` completely, simultaneously speeding and cleaning
-  things up.
+  thread. Historically, this may have been in fact faster in the past,
+  but it now slows things down, and unnecessarily limits what a given
+  thread can do.  A future refactoring of Jython will likely remove
+  the use of ``ThreadState`` completely, simultaneously speeding and
+  cleaning things up.
 
 In the end, thread locals are an interesting aside. They do not work
 really at all in a task-oriented model, because you don't want to
@@ -470,6 +470,8 @@ will look at them as follows:
  * Atomicity
 
  * Thread Confinement
+
+ * Safe Publication
 
 
 Synchronization
@@ -749,14 +751,23 @@ when run on the JVM. It won't cause thread safety issues if you don't
 exploit this loophole. We will discuss this more in the section on the
 Python Memory Model.
 
+Safe Publication
+~~~~~~~~~~~~~~~~
 
-Python Memory Model and Safe Publication
-----------------------------------------
+Related to thread confinement. Construction.
+
+create, initialize an object within a thread before publishing it
+which means, is it visible before hand
+
+
+
+Python Memory Model
+-------------------
 
 Reasoning about concurrency in Python is easier than in Java. This is
 because the memory model is not as surprising to our conventional
-reasoning about how programs operate. This does mean that Python code
-sacrifices some performance to keep it simpler.
+reasoning about how programs operate. However, this also means that
+Python code sacrifices significant performance to keep it simpler.
 
 Here's why. In order to maximize Java performance, it's allowed for a
 CPU to arbitrarily re-order the operations performed by Java code.
@@ -780,18 +791,18 @@ Reordering is subject to these two constraints on the JVM: http://java.sun.com/d
 
 So that's the story with Java. The fundamental thing to know about
 Python, and what we have implemented in Jython, is that setting any
-attribute in Python introduces a volatile write; and getting any
+attribute in Python is a volatile write; and getting any
 attribute is a volatile read. This is because Python attributes are
 stored in dictionaries, and in Jython, this follows the semantics of
 the backing ``ConcurrentHashMap``. So ``get`` and ``set`` are
 volatile.
 
-Local variables are susceptible to reordering. Internally in Jython,
-they are stored by indexing into a PyObject[] array, and such accesses
-can be reordered. However, this will not usually be visible to user
-code -- local variables are *almost* thread confined, and the Java
-memory model ensures that any code within that thread will always see
-changes that are sequentially consistent.
+In contrast, local variables are susceptible to reordering. Internally
+in Jython, they are stored by indexing into a ``PyObject[]`` array,
+and such accesses can be reordered. However, this will not usually be
+visible to user code -- local variables are *almost* thread confined,
+and the Java memory model ensures that any code within that thread
+will always see changes that are sequentially consistent.
 
 However, in Python, it is possible for a local variable to *escape*
 through the frame object, because locals (and their containing frames)
@@ -799,7 +810,6 @@ are introspectable. You can do this via the ``locals`` function. But
 even then it requires a fairly convoluted path. Once again, we need to
 use a mutable object that does not introduce a fence. Arrays work well
 for this purpose::
-
 
   A_locals = None
 
@@ -819,13 +829,13 @@ for this purpose::
       A_y = A_locals['y']
       # now see if we can observe an ordering inconsistent to being sequential
 
-(Note that unnamed local variables are truly thread confined, such as
-the target of a for loop; only when a generator is paused are they in
-any way accessible, and not easily.)
-
-(In addition, if you were to access the frame's locals through Java,
+In addition, if you were to access the frame's locals through Java,
 using the public methods and fields of ``org.python.core.PyFrame``,
-you can also see out-of-order writes.)
+you can also see out-of-order writes.
+
+Note that unnamed local variables are truly thread confined, such as
+the target of a for loop; only when a generator is paused are they in
+any way accessible, and even so, not easily.
 
 In the end, this is not really an issue from a Pythonic perspective.
 Similar considerations apply to any manipulation of an object, the
@@ -834,12 +844,4 @@ class, or directly modify its underlying attributes (through
 ``__dict__``), you have violated that object's contract. Don't do
 that, at least without understanding the consequences.
 
-
-Safe publication
-~~~~~~~~~~~~~~~~
-
-Related to thread confinement. Construction.
-
-create, initialize an object within a thread before publishing it
-which means, is it visible before hand
 
