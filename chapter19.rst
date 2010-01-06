@@ -627,16 +627,6 @@ to know is that the lock is not directly visible and it's not possible
 to expand the scope of the synchronization. In particular, callbacks
 and iteration are not feasible.
 
-  .. sidebar:: Transactions
-
-  Transactions do allow for multiple operations to be combined into an
-  atomic entity. Clojure implements a form of this, software
-  transactional memory. In the future we should expect similar
-  developments like this in other languages, including Python and
-  specifically the Jython implementation.
-
-  XXX reference Nicholas' work?
-
 Python guarantees the atomicity of certain operations, although at
 best it's only informally documented. Fredrik Lundh's article on
 "Thread Synchronization Methods in Python" summarizes the mailing list
@@ -751,15 +741,6 @@ when run on the JVM. It won't cause thread safety issues if you don't
 exploit this loophole. We will discuss this more in the section on the
 Python Memory Model.
 
-Safe Publication
-~~~~~~~~~~~~~~~~
-
-Related to thread confinement. Construction.
-
-create, initialize an object within a thread before publishing it
-which means, is it visible before hand
-
-
 
 Python Memory Model
 -------------------
@@ -770,26 +751,21 @@ reasoning about how programs operate. However, this also means that
 Python code sacrifices significant performance to keep it simpler.
 
 Here's why. In order to maximize Java performance, it's allowed for a
-CPU to arbitrarily re-order the operations performed by Java code.
+CPU to arbitrarily re-order the operations performed by Java code,
+subject to the constraints imposed by *happens-before* and
+*synchronizes-with* relationships. (The published `Java memory model
+<http://java.sun.com/docs/books/jls/third_edition/html/memory.html>`_
+goes into more details on these constraints.)
+
 Although such reordering is not visible within a given thread, the
-problem is that it's visible to other threads. (Of course, this
+problem is that it's visible to other threads. Of course, this
 visibility only applies to changes made to non-local objects; thread
-confinement still applies.)
+confinement still applies.
 
 In particular, this means you cannot rely on the apparent sequential
 ordering of Java code when looking at two or more threads.
 
-Reordering is subject to these two constraints on the JVM: http://java.sun.com/docs/books/jls/third_edition/html/memory.html
-
-  * happens-before - 
-    The *volatile* keyword is used to control
-    happens-before in Java code. By using volatile in our code, we are
-    able to construct a memory fence - no reordering is possible
-    around this fence.
-
-  * synchronizes-with -
-
-So that's the story with Java. The fundamental thing to know about
+Python is different. The fundamental thing to know about
 Python, and what we have implemented in Jython, is that setting any
 attribute in Python is a volatile write; and getting any
 attribute is a volatile read. This is because Python attributes are
@@ -797,51 +773,17 @@ stored in dictionaries, and in Jython, this follows the semantics of
 the backing ``ConcurrentHashMap``. So ``get`` and ``set`` are
 volatile.
 
-In contrast, local variables are susceptible to reordering. Internally
-in Jython, they are stored by indexing into a ``PyObject[]`` array,
-and such accesses can be reordered. However, this will not usually be
-visible to user code -- local variables are *almost* thread confined,
-and the Java memory model ensures that any code within that thread
-will always see changes that are sequentially consistent.
+So this means that Python code has sequential consistency. Execution
+follows the ordering of statements in the code. There are no surprises
+here.
 
-However, in Python, it is possible for a local variable to *escape*
-through the frame object, because locals (and their containing frames)
-are introspectable. You can do this via the ``locals`` function. But
-even then it requires a fairly convoluted path. Once again, we need to
-use a mutable object that does not introduce a fence. Arrays work well
-for this purpose::
+And this means that *safe publication* is pretty much trivial in
+Python, when compared to Java. Safe publication means the thread safe
+association of an object with a name. Because this is always a
+memory-fenced operation in Python, your code simply needs to ensure
+that the object itself is built in a thread-safe fashion; then publish
+it all at once by setting the appropriate variable to this object.
 
-  A_locals = None
-
-  # thread A
-  def f():
-      global A_locals
-      A_locals = locals()
-      x = zeros('L', 1) # must be a mutable object, a Java array works well
-      y = zeros('L', 1)
-      # write against these variables in some interesting way; maybe y should always be greater than x
-      # in this thread, it will - but not in thread B
-
-  # thread B
-  def g():
-      global A_locals
-      A_x = A_locals['x']
-      A_y = A_locals['y']
-      # now see if we can observe an ordering inconsistent to being sequential
-
-In addition, if you were to access the frame's locals through Java,
-using the public methods and fields of ``org.python.core.PyFrame``,
-you can also see out-of-order writes.
-
-Note that unnamed local variables are truly thread confined, such as
-the target of a for loop; only when a generator is paused are they in
-any way accessible, and even so, not easily.
-
-In the end, this is not really an issue from a Pythonic perspective.
-Similar considerations apply to any manipulation of an object, the
-lack of public-private distinctions, etc.  If you change an object's
-class, or directly modify its underlying attributes (through
-``__dict__``), you have violated that object's contract. Don't do
-that, at least without understanding the consequences.
-
-
+If you need to create module-level objects -- singletons -- then you
+should do this in the top-level script of the module so that the
+module import lock is in effect.
