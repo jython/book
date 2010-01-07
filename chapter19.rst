@@ -586,12 +586,25 @@ more robust strategy is to allow for timeouts.
 Other Synchronization Objects
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Synchronized Queues
+The ``Queue`` module implements a first-in, first-out synchronized
+queue. (Synchronized queues are also called blocking queues, and
+that's how they are described in ``java.util.concurrent``.) Such
+queues represent a thread-safe way to send objects from one or more
+producing threads to one or more consuming threads.
 
-Queue
-First-in, first-out
+For example, here's a standard way to implement a task queue in
+Python. This allows you to distribute work to a thread pool.  Rather
+than put in a tuple that describes the work to the consuming thread,
+it's probably best to encapsulate. The easiest way to do this is to
+define a ``__call__`` method. For compatibility with Java, you can
+alias that to ``call`` too::
 
-A number of methods, including join
+  XXX code, using call and task_done/join
+
+Often, you will define a poision object to shut down the queue. This
+will allow any consuming, but waiting threads to immediately shut
+down. (Or use Java's support for executors to get an off-the-shelf
+solution.)
 
 If you need to implement another policy, such as last-in, first-out or
 based on a priority, you can use the comparable synchronized queues in
@@ -599,12 +612,22 @@ based on a priority, you can use the comparable synchronized queues in
 implemented in Python 2.6, so they will be made available when Jython
 2.6 is eventually released.)
 
+``Condition`` objects allow for one thread to ``notify`` another thread
+that's waiting on a condition to wake up; ``notifyAll`` is used to
+wake up all such threads. Along with ``Queue``, this is probably the
+most versatile of the synchronizing objects for real usage.
 
-Condition variables
+``Condition`` objects are always associated with a ``Lock``. You use
+them like this::
 
-It's important that you carefully consider 
+  XXX code - wait/notify
 
-In particular, there's no guarantee that only one thread will be woken
+For example, here's how we actually implement a ``Queue`` in
+Jython. We can't use a standard Java blocking queue, because the
+requirement of being able to join on the queue when there's no more
+work to be performed requires a third condition variable::
+
+  XXX code
 
 There are other mechanisms to synchronize, including exchangers,
 barriers, latches, etc. You can use semaphores to describe scenarios
