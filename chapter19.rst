@@ -639,16 +639,17 @@ possibilities.
 Atomic Operations
 ~~~~~~~~~~~~~~~~~
 
-XXX what is an atomic operation
+An atomic operation is inherently thread safe. Data races and object
+corruption do not occur. And it's not possible for other threads to
+see an inconsistent view.
 
-An atomic operation is inherently thread safe, because it ensures 
-
-Atomic operations are simpler to use than synchronization. And atomic
-operations will often use underlying support in the CPU, such as
-``compare-and-swap``. Or they may use locking too. The important thing
-to know is that the lock is not directly visible and it's not possible
-to expand the scope of the synchronization. In particular, callbacks
-and iteration are not feasible.
+Atomic operations are therefore simpler to use than
+synchronization. In addition, atomic operations will often use
+underlying support in the CPU, such as a ``compare-and-swap``
+instruction. Or they may use locking too. The important thing to know
+is that the lock is not directly visible. Also, if synchronization is
+used, it's not possible to expand the scope of the synchronization. In
+particular, callbacks and iteration are not feasible.
 
 Python guarantees the atomicity of certain operations, although at
 best it's only informally documented. Fredrik Lundh's article on
@@ -687,10 +688,6 @@ expose the following methods to atomically update dictionaries::
   * ``setifabsent``
 
   * ``update``
-
-So for example, you can implement a concurrent spanning tree::
-
-  XXX code
 
 It's important to note that iterations are not atomic::
 
