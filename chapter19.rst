@@ -110,16 +110,25 @@ Lastly, remember you can always mix and match.
 Working with Threads
 --------------------
 
-Creating threads is easy, perhaps too easy::
+Creating threads is easy, perhaps too easy. This example downloads a
+web page concurrently::
 
   XXX thread creation code
 
-The runnable function can be a regular function, or an object that is
+The target function can be a regular function, or an object that is
 callable (implements ``__call__``)::
 
   XXX sample code with __call__
 
-To wait for a thread to complete, call ``join`` on it::
+Be careful not to inadvertently invoke the function; ``target`` takes
+a reference to the function object (typically a name). Calling the
+function instead creates an amusing bug where your target function
+runs now, so everything looks fine at first. But no concurrency is
+happening, because the function call is being performed within the
+invoking thread.
+
+To wait for a thread to complete, call ``join`` on it. This enables
+working with the the concurrent result::
 
   XXX code
 
@@ -207,13 +216,11 @@ Thread Locals
 -------------
 
 The ``threading.local`` class enables a simple way of associating
-objects with a given thread.
-
-Its usage is deceptively simple. Simply create an instance of
-``threading.local``, or a subclass, and assign it to a variable or
-other name. This variable could be global, or part of some other
-namespace. So far, this is just like working with any other object in
-Python.
+objects with a given thread.  Its usage is deceptively simple. Simply
+create an instance of ``threading.local``, or a subclass, and assign
+it to a variable or other name. This variable could be global, or part
+of some other namespace. So far, this is just like working with any
+other object in Python.
 
 Threads then can share the variable, but with a twist: each thread
 will see a different, thread-specific version of the object.  This
@@ -246,11 +253,25 @@ pool problematic, because you have to clean up after the thread.
   the use of ``ThreadState`` completely, simultaneously speeding and
   cleaning things up.
 
+Having said they, thread locals might be useful in certain cases. One
+common scenario is one where your code is being called by a component
+that you didn't write. You may need to access a thread-local
+singleton. And of course, if you are using code whose architecture
+mandates thread locals, it's just something you will have to work
+with.
+
+But often this is unnecessary. Your code may be different, but Python
+gives you good tools to avoid action at a distance. You can use
+closures, decorators, even sometimes selectively monkey patching
+modules. Take advantage of the fact that Python is a dynamic language,
+with strong support for metaprogramming. And remember that the Jython
+implementation makes that accessible when working with even
+recalcitrant Java code.
+
 In the end, thread locals are an interesting aside. They do not work
-really at all in a task-oriented model, because you don't want to
-associate context with a worker thread that will be assigned to
-arbitrary tasks. This really would just make for a confused mess. But
-they might be useful in certain cases; just remember these caveats.
+well in a task-oriented model, because you don't want to associate
+context with a worker thread that will be assigned to arbitrary
+tasks. Without a lot of care, this can make for a confused mess.
 
 
 No Global Interpreter Lock
@@ -294,7 +315,7 @@ So don't write code like this in a hot loop, especially in threaded
 code::
 
   def slow_things_down():
-      from foo import a, b
+      from foo import bar, baz
       ...
 
 It may still make sense to defer your imports. Such deferral can
@@ -807,3 +828,10 @@ it all at once by setting the appropriate variable to this object.
 If you need to create module-level objects -- singletons -- then you
 should do this in the top-level script of the module so that the
 module import lock is in effect.
+
+
+Conclusion
+----------
+
+XXX various recommendations
+summarize some stuff, especially around safe publication
