@@ -115,20 +115,21 @@ web page concurrently::
 
   XXX thread creation code
 
-The target function can be a regular function, or an object that is
-callable (implements ``__call__``)::
-
-  XXX sample code with __call__
-
 Be careful not to inadvertently invoke the function; ``target`` takes
-a reference to the function object (typically a name). Calling the
-function instead creates an amusing bug where your target function
-runs now, so everything looks fine at first. But no concurrency is
-happening, because the function call is being performed within the
-invoking thread.
+a reference to the function object (typically a name if a normal
+function). Calling the function instead creates an amusing bug where
+your target function runs now, so everything looks fine at first. But
+no concurrency is happening, because the function call is being
+performed within the invoking thread.
+
+The target function can be a regular function, or an object that is
+callable (implements ``__call__``). This later example of course makes
+it harder to see that the target is a function object::
+
+  XXX sample code with __call__ - 
 
 To wait for a thread to complete, call ``join`` on it. This enables
-working with the the concurrent result::
+working with the concurrent result::
 
   XXX code
 
@@ -136,17 +137,6 @@ Here's a simple test harness we might use::
 
   XXX a test harness
 
-
-Thread Lifecycle
-----------------
-
-XXX Cancellation, joining, interruption
-
-Timeouts, Cancellations, and Interruption
------------------------------------------
-
-Thread Interruption
-~~~~~~~~~~~~~~~~~~~
 
 XXX say something about good thead interruption is, compared to just using a while on a variable::
 
@@ -158,19 +148,19 @@ XXX say something about good thead interruption is, compared to just using a whi
           while not self.cancelled:
               do_stuff()
 
-
 Thread interruption allows for more responsive cancellation. In
 particular, if a a thread is waiting on any synchronizers, like a
 lock, or on file I/O, this action will cause the waited-on method to
 exit with an ``InterruptedException``. Although Python's ``threading``
 module does not itself support interruption, it's available through
 the standard Java API, and it works with any thread created by
-``threading`` -- again, Python threads are simply Java threads in the
+``threading`` -- again, Python threads simply wrap Java threads in the
 Jython implementation.
 
 This is how you can access this functionality::
 
-  from java.lang import Thread as JThread # so as to not confuse with threading.Thread
+  from java.lang import Thread as JThread
+  # avoid naming conflict with threading.Thread
   
   while not JThread.currentThread().isInterrupted(): 
       do_stuff()
@@ -190,7 +180,6 @@ provided by a ``Future``. We will describe this more in the section on
   lifecycle of threads. A thread is set to be a daemon thread before
   it is started::
 
-    XXX code
     # create a thread t
     t.setDaemon(True)
     t.start()
@@ -199,17 +188,24 @@ provided by a ``Future``. We will describe this more in the section on
   any daemon threads are simply terminated, without an opportunity --
   or need -- to perform cleanup or orderly shutdown.
 
-  Our advice is to not use daemon threads, at least not without
-  serious thought given to their usage. In particular, it's important
-  to never have daemon threads hold any external resources, like
-  database connections or file handles. Such resources will not be
-  properly closed. Additionally, a daemon thread should never make an
-  import attempt.
+  This lack of cleanup means it's important that daemon threads never
+  hold any external resources, such as database connections or file
+  handles. Any such resource will not be properly closed upon a JVM
+  exit. For similar reasons, a daemon thread should never make an import
+  attempt, as this can interfere with Jython's orderly shutdown.
 
-  In practice, the only use case for daemon threads is when they are
-  strictly used to work with in-memory objects, typically for some
-  sort of housekeeping. For example, you might use them to maintain a
-  cache or compute an index.
+  In production, the only use case for daemon threads is when
+  they are strictly used to work with in-memory objects, typically for
+  some sort of housekeeping. For example, you might use them to
+  maintain a cache or compute an index.
+
+  Having said that, daemon threads are certainly convenient when
+  playing around with some ideas. Often lifecycle management for a
+  program is using "Control-C" to terminate. Under that scenario,
+  daemon threads don't get in the way.
+
+  Our advice then is to not use daemon threads, at least not without
+  serious thought given to their usage. 
 
 
 Thread Locals
@@ -265,7 +261,7 @@ gives you good tools to avoid action at a distance. You can use
 closures, decorators, even sometimes selectively monkey patching
 modules. Take advantage of the fact that Python is a dynamic language,
 with strong support for metaprogramming. And remember that the Jython
-implementation makes that accessible when working with even
+implementation makes these techniques accessible when working with even
 recalcitrant Java code.
 
 In the end, thread locals are an interesting aside. They do not work
