@@ -173,12 +173,13 @@ working with the concurrent result::
 Thread Locals
 -------------
 
-The ``threading.local`` class enables a simple way of associating
-objects with a given thread.  Its usage is deceptively simple. Simply
-create an instance of ``threading.local``, or a subclass, and assign
-it to a variable or other name. This variable could be global, or part
-of some other namespace. So far, this is just like working with any
-other object in Python.
+The ``threading.local`` class enables a letting each thread have its
+own instances of some objects in an otherwise shared environment. Its
+usage is deceptively simple. Simply create an instance of
+``threading.local``, or a subclass, and assign it to a variable or
+other name. This variable could be global, or part of some other
+namespace. So far, this is just like working with any other object in
+Python.
 
 Threads then can share the variable, but with a twist: each thread
 will see a different, thread-specific version of the object.  This
@@ -374,7 +375,6 @@ by consumers running in one or more threads::
  
 This setup enables a natural flow.
 
-XXX
 Although it may be tempting to then schedule everything through the
 completion service's queue, there are limits. For example, if you're
 writing a scalable web spider, you would want to externalize this work
@@ -417,8 +417,8 @@ Thread safety addresses such questions as:
     and then updating with the incremented value.
 
 Jython ensures that its underlying mutable collection types --
-``dict``, ``list``, and ``set`` -- cannot be be corrupted by using
-code. But updates still might get lost in a data race.
+``dict``, ``list``, and ``set`` -- cannot be corrupted. But updates
+still might get lost in a data race.
 
 However, other Java collection objects that your code might use would
 typically not have such no-corruption guarantees. If you need to use
@@ -464,7 +464,7 @@ Synchronization
 ~~~~~~~~~~~~~~~
 
 We use synchronization to control the entry of threads into code
-blocks corresponding to synchronizable resources. Through this control
+blocks corresponding to synchronized resources. Through this control
 we can prevent data races, assuming a correct synchronization
 protocol. (This can be a big assumption!)
 
@@ -696,7 +696,7 @@ eliminated. And often the shared state is someone else's problem:
 
   * Application containers. The typical database-driven web
     applications makes for the classic case. For example, if you are
-    using ModJy, then the database connection pools and thread pools
+    using modjy, then the database connection pools and thread pools
     are the responsibility of the servlet container. And they are not
     directly observable. (But don't do things like share database
     connections across threads.) Caches and databases then are where
@@ -791,10 +791,12 @@ Remember, Python variables are always volatile, unlike Java. There are
 no problems with using a ``cancelled`` flag like this.
 
 Thread interruption allows for even more responsive cancellation. In
-particular, if a a thread is waiting on such synchronizers as a
-condition variable or on file I/O, this action will cause the
+particular, if a a thread is waiting on most any synchronizers, such
+as a condition variable or on file I/O, this action will cause the
 waited-on method to exit with an ``InterruptedException``.
-(Unfortunately this excludes most usage of locks.)
+(Unfortunately lock acquistion, except under certain cases such as
+using ``lockInterruptibly`` on the underlying Java lock, is not
+interruptible.)
 
 Although Python's ``threading`` module does not itself support
 interruption, it is available through the standard Java thread
