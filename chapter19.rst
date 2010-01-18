@@ -133,82 +133,6 @@ working with the concurrent result::
 
   XXX code
 
-
- 
-XXX say something about good thead interruption is, compared to just using a while on a variable::
-
-  class DoSomething(Runnable):
-      def __init__(self):
-          cancelled = False
-
-      def run(self):
-          while not self.cancelled:
-              do_stuff()
-
-Thread interruption allows for more responsive cancellation. In
-particular, if a a thread is waiting on such synchronizers as a
-condition variable or on file I/O, this action will cause the
-waited-on method to exit with an ``InterruptedException``.
-(Unfortunately this excludes most usage of locks.)
-
-Although Python's ``threading`` module does not itself support
-interruption, it is available through the standard Java thread
-API. First, let's import this class. We will rename it to ``JThread``
-so it doesn't conflict with Python's version::
-
-  from java.lang import Thread as JThread
-
-As we have seen, you can use Java threads as if they are Python
-threads. So logically you should be able to do the converse: use
-Python threads as if they are Jave threads. Therefore it would be nice
-to make calls like ``JThread.interrupt(obj)``.
-
-  .. note:
-  
-  Incidentally, this formulation, instead of ``obj.interrupt()``,
-  looks like a static method on a class, as long as we pass in the
-  object as the first argument. This adaptation is a good use of
-  Python's explicit self.
-
-But there's a problem here. As of the latest released version (Jython
-2.5.1), we forgot to include an appropriate ``__tojava__`` method on
-the ``Thread`` class! So this looks like you can't do this trick after
-all.
-
-Or can you? What if you didn't have to wait until we fix this bug?
-You could explore the source code
-or look at the class with ``dir``. One possibility would be to use the
-nominally private ``_thread`` attribute on the ``Thread``
-object. After all ``_thread`` is the attribute for the underlying Java
-thread. Yes, this is an implementation detail, but it's probably fine
-to use. It's not so likely to change.
-
-But we can do even better. We can *monkey patch* the ``Thread`` class
-such that it has an appropriate ``__tojava__`` method, but only if it
-doesn't exist. So this patching is likely to work with a future
-version of Jython because we are going to fix this missing method
-before we change its implementation and remove ``_thread``.
-
-So here's how we can monkey patch, following a recipe of
-Guido van Rossum::
-
-  .. literalinclude:: src/chapter19/monkeypatch.py
-
-This ``monkeypatch_method`` decorator allows us to add a method to a
-class after the fact. (This is what Ruby developers call *opening* a
-class.) Use this power with care. But again, you shouldn't worry too
-much when you keep such fixes to a minimum, especially when it's
-essentially a bug fix like this one. In our case, we will use a
-variant, the ``monkeypatch_method_if_not_set`` decorator.
-
-Putting it all together, we have this code::
-
-  .. literalinclude:: src/chapter19/interrupt.py
-
-Lastly, an easier way to access interruption is through the ``cancel``
-method provided by a ``Future``. We will describe this more in the
-section on :ref:tasks.
-
 .. sidebar:: Daemon Threads
 
   Daemon threads present an alluring alternative to managing the
@@ -239,7 +163,8 @@ section on :ref:tasks.
   program is to use "Control-C" to terminate. Unlike regular threads,
   running daemon threads won't get in the way and prevent JVM
   shutdown. Likewise, a latter example demonstrating deadlock uses
-  daemon threads to enable the code shutdown.
+  daemon threads to enable shutdown without waiting on these
+  deadlocked threads.
 
   With that in mind, it's generally best not use daemon threads. At
   the very least, serious thought should be given to their usage.
@@ -500,20 +425,21 @@ typically not have such no-corruption guarantees. If you need to use
 ``LinkedHashMap``, so as to support an ordered dictionary, you will
 need to consider thread safety if it will be both shared and mutated.
 
-Here's a simple test harness we will use in our examples. ``ThreadSafetyTestCase`` subclasses
-``unittest.TestCase``, adding a new method ``assertContended``::
+Here's a simple test harness we will use in our
+examples. ``ThreadSafetyTestCase`` subclasses ``unittest.TestCase``,
+adding a new method ``assertContended``::
 
   .. literalinclude:: src/chapter19/threadsafety.py
 
 This new method runs a target function and asserts that all threads
 properly terminate. Then the testing code needs to check for any other
-invariants. For example, we use this idea in Jython to test that
-certain operations on the ``list`` type are atomic.
+invariants. 
 
-The idea is to to apply a sequence of operations that perform an
-operation, then reverse it. One step forward, one step back. The net
-result should be right where you started, an empty list, which is what
-the test code asserts::
+For example, we use this idea in Jython to test that certain
+operations on the ``list`` type are atomic. The idea is to to apply a
+sequence of operations that perform an operation, then reverse it. One
+step forward, one step back. The net result should be right where you
+started, an empty list, which is what the test code asserts::
 
   .. literalinclude:: src/chapter19/test_list.py
 
@@ -623,7 +549,7 @@ Avoiding deadlocks can be done by never acquiring locks such that a
 cycle like that can be created. If we rewrote the example so that
 locks are acquired in the same order (Bob always allows Alice to go
 first), there would be no deadlocks. However, this ordering is not
-always easy to do. Often, a more robust strategy is to allow for
+always so easy to do. Often, a more robust strategy is to allow for
 timeouts.
 
 
@@ -661,11 +587,10 @@ that's waiting on a condition to wake up; ``notifyAll`` is used to
 wake up all such threads. Along with ``Queue``, this is probably the
 most versatile of the synchronizing objects for real usage.
 
-``Condition`` objects are always associated with a ``Lock``. You use
-them like this. Your code needs to bracket waiting and notifying the
-condition by acquiring a lock, then finally (as always!) releasing
-it. As usual, this is easiest done in the context of the
-with-statement::
+``Condition`` objects are always associated with a ``Lock``. Your code
+needs to bracket waiting and notifying the condition by acquiring the
+corresponding lock, then finally (as always!) releasing it. As usual,
+this is easiest done in the context of the with-statement::
 
   .. literalinclude:: src/chapter19/condition.py
 
@@ -681,7 +606,8 @@ There are other mechanisms to synchronize, including exchangers,
 barriers, latches, etc. You can use semaphores to describe scenarios
 where it's possible for multiple threads to enter. Or use locks that
 are set up to distinguish reads from writes. There are many
-possibilities.
+possibilities for the Java platform. In our experience, Jython should
+be able to work with any of them.
 
 
 Atomic Operations
@@ -845,6 +771,92 @@ it all at once by setting the appropriate variable to this object.
 If you need to create module-level objects -- singletons -- then you
 should do this in the top-level script of the module so that the
 module import lock is in effect.
+
+
+Interruption
+------------
+
+Long-threading threads should provide some opportunity for
+cancellation. The typicl pattern is something like this::
+
+  class DoSomething(Runnable):
+      def __init__(self):
+          cancelled = False
+
+      def run(self):
+          while not self.cancelled:
+              do_stuff()
+
+Remember, Python variables are always volatile, unlike Java. There are
+no problems with using a ``cancelled`` flag like this.
+
+Thread interruption allows for even more responsive cancellation. In
+particular, if a a thread is waiting on such synchronizers as a
+condition variable or on file I/O, this action will cause the
+waited-on method to exit with an ``InterruptedException``.
+(Unfortunately this excludes most usage of locks.)
+
+Although Python's ``threading`` module does not itself support
+interruption, it is available through the standard Java thread
+API. First, let's import this class. We will rename it to ``JThread``
+so it doesn't conflict with Python's version::
+
+  from java.lang import Thread as JThread
+
+As we have seen, you can use Java threads as if they are Python
+threads. So logically you should be able to do the converse: use
+Python threads as if they are Jave threads. Therefore it would be nice
+to make calls like ``JThread.interrupt(obj)``.
+
+  .. note:
+  
+  Incidentally, this formulation, instead of ``obj.interrupt()``,
+  looks like a static method on a class, as long as we pass in the
+  object as the first argument. This adaptation is a good use of
+  Python's explicit self.
+
+But there's a problem here. As of the latest released version (Jython
+2.5.1), we forgot to include an appropriate ``__tojava__`` method on
+the ``Thread`` class! So this looks like you can't do this trick after
+all.
+
+Or can you? What if you didn't have to wait until we fix this bug?
+You could explore the source code -- or look at the class with
+``dir``. One possibility would be to use the nominally private
+``_thread`` attribute on the ``Thread`` object. After all ``_thread``
+is the attribute for the underlying Java thread. Yes, this is an
+implementation detail, but it's probably fine to use. It's not so
+likely to change.
+
+But we can do even better. We can *monkey patch* the ``Thread`` class
+such that it has an appropriate ``__tojava__`` method, but only if it
+doesn't exist. So this patching is likely to work with a future
+version of Jython because we are going to fix this missing method
+before we even consider changing its implementation and removing
+``_thread``.
+
+So here's how we can monkey patch, following a recipe of
+Guido van Rossum::
+
+  .. literalinclude:: src/chapter19/monkeypatch.py
+
+This ``monkeypatch_method`` decorator allows us to add a method to a
+class after the fact. (This is what Ruby developers call *opening* a
+class.) Use this power with care. But again, you shouldn't worry too
+much when you keep such fixes to a minimum, especially when it's
+essentially a bug fix like this one. In our case, we will use a
+variant, the ``monkeypatch_method_if_not_set`` decorator, to ensure we
+only patch if it has not been fixed by a later version.
+
+Putting it all together, we have this code::
+
+  .. literalinclude:: src/chapter19/interrupt.py
+
+(It does rely on the use of ``threading.Condition`` to have something
+to wait on. We will talk about condition variables later.)
+
+Lastly, you could simply access interruption through the ``cancel``
+method provided by a ``Future``. No need to monkey patch!
 
 
 Conclusion
