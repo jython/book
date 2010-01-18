@@ -143,6 +143,8 @@ idea in Jython to test the atomicity of our ``list``
 implementation. This is what it looks like for testing that ``append``
 and ``remove`` work atomically (more on that later)::
 
+  .. literalinclude:: src/chapter19/test_list.py
+ 
 XXX say something about good thead interruption is, compared to just using a while on a variable::
 
   class DoSomething(Runnable):
