@@ -242,9 +242,11 @@ section on :ref:tasks.
   maintain a cache or compute an index.
 
   Having said that, daemon threads are certainly convenient when
-  playing around with some ideas. Maybe your lifecycle management of a 
+  playing around with some ideas. Maybe your lifecycle management of a
   program is to use "Control-C" to terminate. Unlike regular threads,
-  running daemon threads won't get in the way and prevent JVM shutdown.
+  running daemon threads won't get in the way and prevent JVM
+  shutdown. Likewise, a latter example demonstrating deadlock uses
+  daemon threads to enable the code shutdown.
 
   With that in mind, it's generally best not use daemon threads. At
   the very least, serious thought should be given to their usage.
@@ -362,12 +364,11 @@ performing such imports will be forced to run single threaded because
 of this lock. So it might make sense for your code to perform deferred
 imports in a background thread::
 
-  XXX code demoing this
+  .. literalinclude:: src/chapter19/background_import.py
 
-It may be somewhat contrived, but you could even have these imports be
-scheduled as tasks::
-
-  XXX code
+So as you can see, you need to do at least two imports of the a given
+module; one in the background thread; the other in the actual place(s)
+where the module's namespace is being used.
 
 Here's why we need the module import lock. Upon the first import, the
 import procedure runs the (implicit) top-level function of the
