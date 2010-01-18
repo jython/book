@@ -564,25 +564,38 @@ Alternatively, you can do this with try-finally::
   .. literalinclude:: src/chapter19/test_synchronized.py
      :pyobject: LockTestCase.test_try_finally_lock
 
-But don't do this. It's actually slower than the with-statement. And using the
-with-statement version also results in more idiomatic Python code.
+But don't do this. It's actually slower than the with-statement. And
+using the with-statement version also results in more idiomatic Python
+code.
 
-Another possibility is to use the ``synchronize`` module, which is specific to
-Jython. This module provides a``make_synchronized`` decorator
-function, which wraps any callable in Jython in a ``synchronized``
-block::
+Another possibility is to use the ``synchronize`` module, which is
+specific to Jython. This module provides a``make_synchronized``
+decorator function, which wraps any callable in Jython in a
+``synchronized`` block::
 
   .. literalinclude:: src/chapter19/test_synchronized.py
 
 In this case, you don't need to explicitly release anything. Even in
 the the case of an exception, the synchronization lock is always
-released upon exit from the function.
+released upon exit from the function. Again, this version is also
+slower than the with-statement form, and it doesn't use explicit locks.
 
-Howver, you probably want to use an explicit ``Lock`` instead of the
-``make_synchronized`` decorator. Jython's current runtime (as of
-2.5.1) executes code using the with-statement to a form that the JVM
-can execute more efficiently. In addition, explicit locks give greater
-flexibility in terms of controlling execution.
+  .. sidebar: Synchronization and the with-statement
+
+  Jython's current runtime (as of 2.5.1) can execute the
+  with-statement form more efficiently through both runtime support
+  and how this statement is compiled. The reason is that most JVMs can
+  perform analysis on a chunk of code (the *compilation unit*,
+  including any inlining) to avoid synchronization overhead, so long
+  as two conditions are met. First, the chunk contains both the lock
+  and unlock. And second, the chunk is not too long for the JVM to
+  perform its analysis. The with-statement's semantics make it
+  relatively easy for us to do that when working with built-in types
+  like ``threading.Lock``, while avoiding the overhead of Java runtime
+  reflection.
+
+  In the future, support of the new ``invokedynamic`` bytecode should
+  collapse these performance differences.
 
 The ``threading`` module offers portablity, but it's also
 minimalist. You may want to use the synchronizers in
@@ -607,9 +620,11 @@ on Alice. Without a timeout or other change in strategy -- Alice just
 gets tired of waiting on Bob! -- this deadlock will not be broken.
 
 Avoiding deadlocks can be done by never acquiring locks such that a
-cycle like that can be created. Bob always allows Alice to go first,
-in the example above. However, this is not always easy to do. Often, a
-more robust strategy is to allow for timeouts.
+cycle like that can be created. If we rewrote the example so that
+locks are acquired in the same order (Bob always allows Alice to go
+first), there would be no deadlocks. However, this ordering is not
+always easy to do. Often, a more robust strategy is to allow for
+timeouts.
 
 
 Other Synchronization Objects
