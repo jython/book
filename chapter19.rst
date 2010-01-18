@@ -324,20 +324,20 @@ exception, if thrown -- in a task only at the point when it's
 needed. Up until that point, the using code can run concurrently with
 that task. If it's not ready, a wait-on dependency is introduced.
 
-Given this, here's how we can do this with a one-shot async function
-call. This sample code let us download a web page in the background::
+We are going to look at how we can use this functionality by using the
+example of downloading web pages. We will wrap this up so it's easy to
+work with, tracking the state of the download, as well as any timing
+information::
 
-  XXX code to download web page
+  .. literalinclude:: src/chapter19/downloader.py
 
 In Jython any other task could be done in this fashion, whether it is
-a database query or a computationally intensive task written in Python.
+a database query or a computationally intensive task written in
+Python. It just needs to support the ``Callable`` interface.
 
-Up until the ``get`` method on the returned future, the caller run
-concurrently with this task. The ``get`` call then introduces a
-wait-on dependency on the task's completion. (So this is like calling
-``join`` on the supporting thread.) Upon completion, either the result
-is returned, or an exception is thrown into the caller. This exception
-will be one of:
+Next, we need to create the futures. Upon completion of a future,
+either the result is returned, or an exception is thrown into the
+caller. This exception will be one of:
 
   * InterruptedException
 
@@ -347,18 +347,24 @@ will be one of:
 (This pushing of the exception into the asynchronous caller is thus
 similar to how a coroutine works when ``send`` is called on it.)
 
-Now let's multiplex the downloads of several web pages over a thread
-pool::
+Now we have what we need to multiplex the downloads of several web
+pages over a thread pool::
 
- XXX code
+ .. literalinclude:: src/chapter19/test_futures.py
+
+Up until the ``get`` method on the returned future, the caller run
+concurrently with this task. The ``get`` call then introduces a
+wait-on dependency on the task's completion. (So this is like calling
+``join`` on the supporting thread.) 
 
 Shutting down a thread pool should be as simple as calling the
 ``shutdown`` method on the pool. However, you may need to take in
 account this shutdown can happen during extraordinary times in your
-code. Here's the Jython version of a robust shutdown function, as
-provided in the standard Java docs::
+code. Here's the Jython version of a robust shutdown function,
+``shutdown_and_await_termination``, as provided in the standard Java
+docs::
 
-  XXX code
+  .. literalinclude:: src/chapter19/shutdown.py
 
 The ``CompletionService`` interface provides a nice abstraction to
 working with futures. The scenario is that instead of waiting for all the
@@ -367,15 +373,13 @@ polling them, the completion service will push futures as they are
 completed onto a synchronized queue. This queue can then be consumed,
 by consumers running in one or more threads::
 
-  XXX code
+  .. literalinclude:: src/chapter19/test_completion.py
  
-This setup enables a natural flow.
-
-Although it may be tempting to then schedule everything through the
-completion service's queue, there are limits. For example, if you're
-writing a scalable web spider, you would want to externalize this work
-queue. But for simple manangement, it would certainly suffice.
-
+This setup enables a natural flow. Although it may be tempting to then
+schedule everything through the completion service's queue, there are
+limits. For example, if you're writing a scalable web spider, you
+would want to externalize this work queue. But for simple manangement,
+it would certainly suffice.
 
 .. sidebar:: Why Use Tasks Instead of Threads
 
