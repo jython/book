@@ -113,7 +113,7 @@ Working with Threads
 Creating threads is easy, perhaps too easy. This example downloads a
 web page concurrently::
 
-  XXX thread creation code
+  .. literalinclude:: src/chapter19/test_thread_creation.py
 
 Be careful not to inadvertently invoke the function; ``target`` takes
 a reference to the function object (typically a name if a normal
@@ -127,9 +127,9 @@ callable (implements ``__call__``). This later case can make it harder
 to see that the target is a function object!
 
 To wait for a thread to complete, call ``join`` on it. This enables
-working with the concurrent result::
-
-  XXX code
+working with the concurrent result. The only problem is getting the
+result. As we will see, publishing results into variables is safe in
+Jython, but it's not the nicest way either.
 
 .. sidebar:: Daemon Threads
 
