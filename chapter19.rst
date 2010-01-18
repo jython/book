@@ -133,17 +133,7 @@ working with the concurrent result::
 
   XXX code
 
-Here's a simple test harness we might use. It creates a variation on
-``unittest.TestCase`` with a new method ``assertContended``::
 
-  .. literalinclude:: src/chapter19/threadsafety.py
-
-The idea is that you want to exercise some structure . So we use this
-idea in Jython to test the atomicity of our ``list``
-implementation. This is what it looks like for testing that ``append``
-and ``remove`` work atomically (more on that later)::
-
-  .. literalinclude:: src/chapter19/test_list.py
  
 XXX say something about good thead interruption is, compared to just using a while on a variable::
 
@@ -180,12 +170,13 @@ to make calls like ``JThread.interrupt(obj)``.
   object as the first argument. This adaptation is a good use of
   Python's explicit self.
 
-But there's a problem here. As of Jython 2.5.1, we forgot to include
-an appropriate ``__tojava__`` method on the ``Thread`` class! So this
-looks like you can't do this trick after all.
+But there's a problem here. As of the latest released version (Jython
+2.5.1), we forgot to include an appropriate ``__tojava__`` method on
+the ``Thread`` class! So this looks like you can't do this trick after
+all.
 
 Or can you? What if you didn't have to wait until we fix this bug?
-Dynamic languages are... dynamic.  You could explore the source code
+You could explore the source code
 or look at the class with ``dir``. One possibility would be to use the
 nominally private ``_thread`` attribute on the ``Thread``
 object. After all ``_thread`` is the attribute for the underlying Java
@@ -196,7 +187,7 @@ But we can do even better. We can *monkey patch* the ``Thread`` class
 such that it has an appropriate ``__tojava__`` method, but only if it
 doesn't exist. So this patching is likely to work with a future
 version of Jython because we are going to fix this missing method
-before we change its implementation!
+before we change its implementation and remove ``_thread``.
 
 So here's how we can monkey patch, following a recipe of
 Guido van Rossum::
@@ -356,7 +347,7 @@ if only briefly.
 So don't write code like this in a hot loop, especially in threaded
 code::
 
-  def slow_things_down():
+  def slow_things_way_down():
       from foo import bar, baz
       ...
 
@@ -509,16 +500,20 @@ typically not have such no-corruption guarantees. If you need to use
 ``LinkedHashMap``, so as to support an ordered dictionary, you will
 need to consider thread safety if it will be both shared and mutated.
 
-Here's a simple test harness you can use to test some aspects of the
-thread safety of your code::
+Here's a simple test harness we will use in our examples. ``ThreadSafetyTestCase`` subclasses
+``unittest.TestCase``, adding a new method ``assertContended``::
 
-  .. literalinclude:: src/chapter19/test_harness.py
+  .. literalinclude:: src/chapter19/threadsafety.py
+
+This new method runs a target function and asserts that all threads
+properly terminate. Then the testing code needs to check for any other
+invariants. For example, we use this idea in Jython to test that
+certain operations on the ``list`` type are atomic.
 
 The idea is to to apply a sequence of operations that perform an
 operation, then reverse it. One step forward, one step back. The net
-result should be right where you started, and in the case of a
-collection, how it started. Here's how we can test ``append`` and
-``remove`` on a ``list``::
+result should be right where you started, an empty list, which is what
+the test code asserts::
 
   .. literalinclude:: src/chapter19/test_list.py
 
@@ -527,8 +522,8 @@ objects. Commonly used objects like strings, numbers, datetimes,
 tuples, and frozen sets are immutable. And you can create your own
 immutable objects too.
 
-There are a number of other strategies in solving thread safety issues. We
-will look at them as follows:
+There are a number of other strategies in solving thread safety
+issues. We will look at them as follows:
 
  * Synchronization
 
@@ -561,17 +556,13 @@ that the lock is always released when exiting a block of code.
 Here's some example code using the with-statement. The code allocates
 a lock, then shares it amongst some tasks::
 
-  XXX use task harness
-
-  from threading import Lock
-
-  counter_lock = Lock()
-  with counter_lock:
-      # XXX contended counter
+  .. literalinclude:: src/chapter19/test_synchronized.py
+     :pyobject: LockTestCase.test_with_lock
     
 Alternatively, you can do this with try-finally::
 
-  XXX try-finally version
+  .. literalinclude:: src/chapter19/test_synchronized.py
+     :pyobject: LockTestCase.test_try_finally_lock
 
 But don't do this. It's actually slower than the with-statement. And using the
 with-statement version also results in more idiomatic Python code.
@@ -589,14 +580,9 @@ released upon exit from the function.
 
 Howver, you probably want to use an explicit ``Lock`` instead of the
 ``make_synchronized`` decorator. Jython's current runtime (as of
-2.5.1) executes code using the with-statement to a form
-that the JVM can execute more efficiently::
-
-  XXX demo two versions with timeit
-
-(But this may change in a later release of Jython.) In addition,
-explicit locks give greater flexibility in terms of controlling
-execution.
+2.5.1) executes code using the with-statement to a form that the JVM
+can execute more efficiently. In addition, explicit locks give greater
+flexibility in terms of controlling execution.
 
 The ``threading`` module offers portablity, but it's also
 minimalist. You may want to use the synchronizers in
@@ -736,18 +722,8 @@ expose the following methods to atomically update dictionaries::
 
   * ``update``
 
-It's important to note that iterations are not atomic::
-
-  .. literalinclude:: src/chapter19/unsafe_iteration.py
-
-And you can't construct an atomic counter this way either::
-
-  .. literalinclude:: src/chapter19/unsafe_counter.py
-
-But you can get an atomic counter by using a Java class like
-``AtomicInteger``::
-
-  .. literalinclude:: src/chapter19/atomic_integer.py
+It's important to note that iterations are not atomic, even on a
+``ConcurrentHashMap``.
 
 Atomic operations are useful, but they are pretty limited too. Often,
 you still need to use synchronization to prevent data races. And this
