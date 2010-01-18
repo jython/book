@@ -119,8 +119,8 @@ Be careful not to inadvertently invoke the function; ``target`` takes
 a reference to the function object (typically a name if a normal
 function). Calling the function instead creates an amusing bug where
 your target function runs now, so everything looks fine at first. But
-no concurrency is happening, because the function call is being
-performed within the invoking thread.
+no concurrency is happening, because the function call is actually being
+run by the invoking thread, not this new thread.
 
 The target function can be a regular function, or an object that is
 callable (implements ``__call__``). This later example of course makes
@@ -136,7 +136,7 @@ working with the concurrent result::
 Here's a simple test harness we might use. It creates a variation on
 ``unittest.TestCase`` with a new method ``assertContended``::
 
-  .. literalinclude:: src/chapter19/test_harness.py
+  .. literalinclude:: src/chapter19/threadsafety.py
 
 The idea is that you want to exercise some structure . So we use this
 idea in Jython to test the atomicity of our ``list``
