@@ -133,10 +133,15 @@ working with the concurrent result::
 
   XXX code
 
-Here's a simple test harness we might use::
+Here's a simple test harness we might use. It creates a variation on
+``unittest.TestCase`` with a new method ``assertContended``::
 
-  XXX a test harness
+  .. literalinclude:: src/chapter19/test_harness.py
 
+The idea is that you want to exercise some structure . So we use this
+idea in Jython to test the atomicity of our ``list``
+implementation. This is what it looks like for testing that ``append``
+and ``remove`` work atomically (more on that later)::
 
 XXX say something about good thead interruption is, compared to just using a while on a variable::
 
@@ -149,28 +154,48 @@ XXX say something about good thead interruption is, compared to just using a whi
               do_stuff()
 
 Thread interruption allows for more responsive cancellation. In
-particular, if a a thread is waiting on any synchronizers, like a
-lock, or on file I/O, this action will cause the waited-on method to
-exit with an ``InterruptedException``. Although Python's ``threading``
-module does not itself support interruption, it's available through
-the standard Java API, and it works with any thread created by
-``threading`` -- again, Python threads simply wrap Java threads in the
-Jython implementation.
+particular, if a a thread is waiting on such synchronizers as a
+condition variable or on file I/O, this action will cause the
+waited-on method to exit with an ``InterruptedException``.
+(Unfortunately this excludes most usage of locks.)
 
-This is how you can access this functionality::
+Although Python's ``threading`` module does not itself support
+interruption, it is available through the standard Java API, and it
+can interrupt any thread created by ``threading``.
 
-  from java.lang import Thread as JThread
-  # avoid naming conflict with threading.Thread
-  
-  while not JThread.currentThread().isInterrupted(): 
-      do_stuff()
+XXX do stuff with JThread.interrupt(obj), instead of obj.interrupt() -
+can use a formulation that looks like a static method on a class, as
+long as we pass in the object as the first argument. (This adaptation
+is a good use of Python's explicit self.)
 
-Interrupting an arbitrary Jython -- or Java -- thread is also
-easy. Simply do the following::
+But there's a problem here. As of 2.5.1, we forgot to include an
+appropriate ``__tojava__`` method on ``Thread``! Now it would be nice
+if you didn't have to wait until we fix this bug. So it would be
+reasonable if, after looking around the source or exploring with
+``dir``, you were to use the ``_thread`` attribute on the ``Thread``
+object. After all ``_thread`` is the attribute for the underlying Java
+thread. Yes, this is an implementation detail, but it's probably fine
+to use. It's not so likely to change.
 
-  >>> JThread.interrupt(a_thread)
+Still, we can do better. We can *monkey patch* the ``Thread`` class
+such that it has an appropriate ``__tojava__`` method, but only if it
+doesn't exist. Here's how we can just that, following a recipe of
+Guido van Rossum::
 
-An easier way to access interruption is through the cancel method
+  .. literalinclude:: src/chapter19/monkeypatch.py
+
+The decorator allows us to add a method to a class after the
+fact. (This is what Ruby developers call *opening* a class.) Use this
+power with care. But again, you shouldn't worry too much when you keep
+such fixes to a minimum, especially when it's essentially a bug fix
+like this one. In our case, we will use the variant
+``monkeypatch_method_if_not_set`` decorator.
+
+Putting it all together, we have this code::
+
+  .. literalinclude:: src/chapter19/interrupt.py
+
+Lastly, an easier way to access interruption is through the cancel method
 provided by a ``Future``. We will describe this more in the section on
 :ref:tasks.
 
@@ -200,12 +225,12 @@ provided by a ``Future``. We will describe this more in the section on
   maintain a cache or compute an index.
 
   Having said that, daemon threads are certainly convenient when
-  playing around with some ideas. Often lifecycle management for a
-  program is using "Control-C" to terminate. Under that scenario,
-  daemon threads don't get in the way.
+  playing around with some ideas. Maybe your lifecycle management of a 
+  program is to use "Control-C" to terminate. Unlike regular threads,
+  running daemon threads won't get in the way and prevent JVM shutdown.
 
-  Our advice then is to not use daemon threads, at least not without
-  serious thought given to their usage. 
+  With that in mind, it's generally best not use daemon threads. At
+  the very least, serious thought should be given to their usage.
 
 
 Thread Locals
@@ -277,9 +302,9 @@ Jython lacks the global interpreter lock (GIL), which is an
 implementation detail of CPython. For CPython, the GIL means that only
 one thread *at a time* can run Python code. This restriction also
 applies to much of the supporting runtime as well as extension modules
-that do not release the GIL. Unfortunately development efforts to
+that do not release the GIL. (Unfortunately development efforts to
 remove the GIL in CPython have so far only had the effect of slowing
-down Python execution significantly.
+down Python execution significantly.)
 
 The impact of the GIL on CPython programming is that threads are not
 as useful as they are in Jython. Concurrency will only be seen in
@@ -291,7 +316,7 @@ model to evade the restrictiveness of the GIL.
 Again, Jython does not have the straightjacket of the GIL. This is
 because all Python threads are mapped to Java threads and use standard
 Java garbage collection support (the main reason for the GIL in
-CPython is that it uses a reference counting GC system). The important
+CPython is because of the reference counting GC system). The important
 ramification here is that you can use threads for compute-intensive
 tasks that are written in Python.
 
@@ -299,7 +324,7 @@ tasks that are written in Python.
 Module Import Lock
 ------------------
 
-Python does define a *module import lock*, which is implemented by
+Python does, however, define a *module import lock*, which is implemented by
 Jython. This lock is acquired whenever an import of any name is
 made. This is true whether the import goes through the import
 statement, the equivalent ``__import__`` builtin, or related
@@ -396,7 +421,7 @@ pool::
 
 Shutting down a thread pool should be as simple as calling the
 ``shutdown`` method on the pool. However, you may need to take in
-account this can happen during extraordinary times in your
+account this shutdown can happen during extraordinary times in your
 code. Here's the Jython version of a robust shutdown function, as
 provided in the standard Java docs::
 
@@ -467,12 +492,15 @@ need to consider thread safety if it will be both shared and mutated.
 Here's a simple test harness you can use to test some aspects of the
 thread safety of your code::
 
-  XXX code
+  .. literalinclude:: src/chapter19/test_harness.py
 
 The idea is to to apply a sequence of operations that perform an
 operation, then reverse it. One step forward, one step back. The net
 result should be right where you started, and in the case of a
-collection, how it started.
+collection, how it started. Here's how we can test ``append`` and
+``remove`` on a ``list``::
+
+  .. literalinclude:: src/chapter19/test_list.py
 
 Of course these concerns do not apply at all to immutable
 objects. Commonly used objects like strings, numbers, datetimes,
@@ -586,8 +614,7 @@ Deadlocks
 But use synchronizaton carefully. This code will always eventually
 deadlock::
 
-  XXX code demonstrating locks take in different orders, using the
-  with-statement
+  .. literalinclude:: src/chapter19/deadlock.py
 
 Deadlock results from a cycle of any length of wait-on
 dependencies. For example, Alice is waiting on Bob, but Bob is waiting
@@ -616,7 +643,7 @@ it's probably best to encapsulate. The easiest way to do this is to
 define a ``__call__`` method. For compatibility with Java, you can
 alias that to ``call`` too::
 
-  XXX code, using call and task_done/join
+  .. literalinclude:: src/chapter19/worker.py
 
 Often, you will define a poision object to shut down the queue. This
 will allow any consuming, but waiting threads to immediately shut
@@ -635,16 +662,20 @@ wake up all such threads. Along with ``Queue``, this is probably the
 most versatile of the synchronizing objects for real usage.
 
 ``Condition`` objects are always associated with a ``Lock``. You use
-them like this::
+them like this. Your code needs to bracket waiting and notifying the
+condition by acquiring a lock, then finally (as always!) releasing
+it. As usual, this is easiest done in the context of the
+with-statement::
 
-  XXX code - wait/notify
+  .. literalinclude:: src/chapter19/condition.py
 
-For example, here's how we actually implement a ``Queue`` in
-Jython. We can't use a standard Java blocking queue, because the
-requirement of being able to join on the queue when there's no more
-work to be performed requires a third condition variable::
+For example, here's how we actually implement a ``Queue`` in the
+standard library of Jython (just modified here to use the
+with-statement). We can't use a standard Java blocking queue, because
+the requirement of being able to join on the queue when there's no
+more work to be performed requires a third condition variable::
 
-  XXX code
+  .. literalinclude:: src/chapter19/Queue.py
 
 There are other mechanisms to synchronize, including exchangers,
 barriers, latches, etc. You can use semaphores to describe scenarios
@@ -688,15 +719,15 @@ article, the following are atomic operations for Python code:
     the clear method)
 
 Although unstated, this also applies to equivalent ops on the
-builtin set type.
+builtin ``set`` type.
 
 For CPython, this atomicity emerges from combining its Global
 Interpreter Lock (GIL), the Python bytecode virtual machine execution
 loop, and the fact that types like ``dict`` and ``list`` are
 implemented natively in C and do not release the GIL.
 
-Despite the fact that this is in some sense accidentally emergent,
-it is a useful simplification for the developer. And it's what existing
+Despite the fact that this is in some sense accidentally emergent, it
+is a useful simplification for the developer. And it's what existing
 Python code expects. So this is what we have implemented in Jython.
 
 In particular, because ``dict`` is a ``ConcurrentHashMap``, we also
@@ -708,20 +739,20 @@ expose the following methods to atomically update dictionaries::
 
 It's important to note that iterations are not atomic::
 
-  XXX maybe show this with iterating over basic data types
+  .. literalinclude:: src/chapter19/unsafe_iteration.py
 
 And you can't construct an atomic counter this way either::
 
-  XXX code demonstrating unsafe counter
+  .. literalinclude:: src/chapter19/unsafe_counter.py
 
 But you can get an atomic counter by using a Java class like
 ``AtomicInteger``::
 
-  XXX code
+  .. literalinclude:: src/chapter19/atomic_integer.py
 
-Atomic operations are not a panacea. Without transactional support,
-you still may have to use synchronization to prevent data races. And
-this has to be done with care to avoid deadlocks and starvation.
+Atomic operations are useful, but they are pretty limited too. Often,
+you still need to use synchronization to prevent data races. And this
+has to be done with care to avoid deadlocks and starvation.
 
 
 Thread Confinement
