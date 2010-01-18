@@ -123,10 +123,8 @@ no concurrency is happening, because the function call is actually being
 run by the invoking thread, not this new thread.
 
 The target function can be a regular function, or an object that is
-callable (implements ``__call__``). This later example of course makes
-it harder to see that the target is a function object::
-
-  XXX sample code with __call__ - 
+callable (implements ``__call__``). This later case can make it harder
+to see that the target is a function object!
 
 To wait for a thread to complete, call ``join`` on it. This enables
 working with the concurrent result::
@@ -184,9 +182,7 @@ Python.
 Threads then can share the variable, but with a twist: each thread
 will see a different, thread-specific version of the object.  This
 object can have arbitrary attributes added to it, each of which will
-not be visible to other threads::
-
-  XXX code
+not be visible to other threads.
 
 Other options include subclassing ``threading.local``. As usual, this
 allows you to define defaults and specify a more nuanced properties
@@ -562,19 +558,10 @@ that's how they are described in ``java.util.concurrent``.) Such
 queues represent a thread-safe way to send objects from one or more
 producing threads to one or more consuming threads.
 
-For example, here's a standard way to implement a task queue in
-Python. This allows you to distribute work to a thread pool.  Rather
-than put in a tuple that describes the work to the consuming thread,
-it's probably best to encapsulate. The easiest way to do this is to
-define a ``__call__`` method. For compatibility with Java, you can
-alias that to ``call`` too::
-
-  .. literalinclude:: src/chapter19/worker.py
-
 Often, you will define a poision object to shut down the queue. This
 will allow any consuming, but waiting threads to immediately shut
-down. (Or use Java's support for executors to get an off-the-shelf
-solution.)
+down. Or just use Java's support for executors to get an off-the-shelf
+solution.
 
 If you need to implement another policy, such as last-in, first-out or
 based on a priority, you can use the comparable synchronized queues in
@@ -864,5 +851,15 @@ method provided by a ``Future``. No need to monkey patch!
 Conclusion
 ----------
 
-XXX various recommendations
-summarize some stuff, especially around safe publication
+Jython can fully take advantage of the underlying Java platform's
+support for concurrency. You can also use the standard Python
+threading constructs, which in most cases just wrap the corresponding
+Java functionality. The standard mutable Python collection types have
+been implemented in Jython with concurrency in mind. And Python's
+sequential consistency removes some potential bugs.
+
+But concurrent programming is still not easy to get right, either in
+Python or in Java. You should consider higher-level concurrency
+primitives, such as tasks. And you should be disciplined in how your
+code shares mutable state.
+
