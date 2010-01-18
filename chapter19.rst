@@ -581,27 +581,11 @@ Jython. This module provides a``make_synchronized`` decorator
 function, which wraps any callable in Jython in a ``synchronized``
 block::
 
-  from synchronize import make_synchronized
-
-  counter = 0
-
-  @make_synchronized
-  def increment_counter():
-      global counter
-      counter += 1
-  
-  # use threading test harness
-
-  # XXX verify this works with decorating methods too, but it should; perhaps
-  # rewrite to use just that and avoid the above global
+  .. literalinclude:: src/chapter19/test_synchronized.py
 
 In this case, you don't need to explicitly release anything. Even in
 the the case of an exception, the synchronization lock is always
-released upon exit from the function. If you want to synchronize a
-smaller block of code, you can do it like this, through a nested
-function that is synchronized::
-
-  XXX code with an inner synchronized function
+released upon exit from the function.
 
 Howver, you probably want to use an explicit ``Lock`` instead of the
 ``make_synchronized`` decorator. Jython's current runtime (as of
@@ -618,15 +602,10 @@ The ``threading`` module offers portablity, but it's also
 minimalist. You may want to use the synchronizers in
 ``Java.util.concurrent``, instead of their wrapped versions in
 ``threading``. In particular, this approach is necessary if you want
-to wait on a lock with a timeout::
+to wait on a lock with a timeout. And you may want to use factories
+like ``Collections.synchronizedMap``, when applicable, to ensure the
+underlying Java object has the desired synchronization.
 
-  XXX code demoing timeout
-
-You can always use factories like ``Collections.synchronizedMap``,
-when applicable, to ensure the underlying object has the desired
-synchronization::
-
-  XXX code
 
 Deadlocks
 ~~~~~~~~~

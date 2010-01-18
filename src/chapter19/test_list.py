@@ -16,8 +16,8 @@ class ListThreadSafety(ThreadSafetyTestCase):
                 lst.append(ct)
                 time.sleep(0.0001)
                 lst.remove(ct)
-        self.assertContended(tester, lst, [])
-
+        self.assertContended(tester)
+        self.assertEqual(lst, [])
 
 
 if __name__ == '__main__':
