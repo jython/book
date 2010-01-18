@@ -160,44 +160,61 @@ waited-on method to exit with an ``InterruptedException``.
 (Unfortunately this excludes most usage of locks.)
 
 Although Python's ``threading`` module does not itself support
-interruption, it is available through the standard Java API, and it
-can interrupt any thread created by ``threading``.
+interruption, it is available through the standard Java thread
+API. First, let's import this class. We will rename it to ``JThread``
+so it doesn't conflict with Python's version::
 
-XXX do stuff with JThread.interrupt(obj), instead of obj.interrupt() -
-can use a formulation that looks like a static method on a class, as
-long as we pass in the object as the first argument. (This adaptation
-is a good use of Python's explicit self.)
+  from java.lang import Thread as JThread
 
-But there's a problem here. As of 2.5.1, we forgot to include an
-appropriate ``__tojava__`` method on ``Thread``! Now it would be nice
-if you didn't have to wait until we fix this bug. So it would be
-reasonable if, after looking around the source or exploring with
-``dir``, you were to use the ``_thread`` attribute on the ``Thread``
+As we have seen, you can use Java threads as if they are Python
+threads. So logically you should be able to do the converse: use
+Python threads as if they are Jave threads. Therefore it would be nice
+to make calls like ``JThread.interrupt(obj)``.
+
+  .. note:
+  
+  Incidentally, this formulation, instead of ``obj.interrupt()``,
+  looks like a static method on a class, as long as we pass in the
+  object as the first argument. This adaptation is a good use of
+  Python's explicit self.
+
+But there's a problem here. As of Jython 2.5.1, we forgot to include
+an appropriate ``__tojava__`` method on the ``Thread`` class! So this
+looks like you can't do this trick after all.
+
+Or can you? What if you didn't have to wait until we fix this bug?
+Dynamic languages are... dynamic.  You could explore the source code
+or look at the class with ``dir``. One possibility would be to use the
+nominally private ``_thread`` attribute on the ``Thread``
 object. After all ``_thread`` is the attribute for the underlying Java
 thread. Yes, this is an implementation detail, but it's probably fine
 to use. It's not so likely to change.
 
-Still, we can do better. We can *monkey patch* the ``Thread`` class
+But we can do even better. We can *monkey patch* the ``Thread`` class
 such that it has an appropriate ``__tojava__`` method, but only if it
-doesn't exist. Here's how we can just that, following a recipe of
+doesn't exist. So this patching is likely to work with a future
+version of Jython because we are going to fix this missing method
+before we change its implementation!
+
+So here's how we can monkey patch, following a recipe of
 Guido van Rossum::
 
   .. literalinclude:: src/chapter19/monkeypatch.py
 
-The decorator allows us to add a method to a class after the
-fact. (This is what Ruby developers call *opening* a class.) Use this
-power with care. But again, you shouldn't worry too much when you keep
-such fixes to a minimum, especially when it's essentially a bug fix
-like this one. In our case, we will use the variant
-``monkeypatch_method_if_not_set`` decorator.
+This ``monkeypatch_method`` decorator allows us to add a method to a
+class after the fact. (This is what Ruby developers call *opening* a
+class.) Use this power with care. But again, you shouldn't worry too
+much when you keep such fixes to a minimum, especially when it's
+essentially a bug fix like this one. In our case, we will use a
+variant, the ``monkeypatch_method_if_not_set`` decorator.
 
 Putting it all together, we have this code::
 
   .. literalinclude:: src/chapter19/interrupt.py
 
-Lastly, an easier way to access interruption is through the cancel method
-provided by a ``Future``. We will describe this more in the section on
-:ref:tasks.
+Lastly, an easier way to access interruption is through the ``cancel``
+method provided by a ``Future``. We will describe this more in the
+section on :ref:tasks.
 
 .. sidebar:: Daemon Threads
 
