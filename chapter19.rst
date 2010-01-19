@@ -482,12 +482,12 @@ that the lock is always released when exiting a block of code.
 Here's some example code using the with-statement. The code allocates
 a lock, then shares it amongst some tasks::
 
-  .. literalinclude:: src/chapter19/test_synchronized.py
+  .. literalinclude:: src/chapter19/test_lock.py
      :pyobject: LockTestCase.test_with_lock
     
 Alternatively, you can do this with try-finally::
 
-  .. literalinclude:: src/chapter19/test_synchronized.py
+  .. literalinclude:: src/chapter19/test_lock.py
      :pyobject: LockTestCase.test_try_finally_lock
 
 But don't do this. It's actually slower than the with-statement. And
