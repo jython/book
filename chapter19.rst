@@ -581,9 +581,7 @@ most versatile of the synchronizing objects for real usage.
 ``Condition`` objects are always associated with a ``Lock``. Your code
 needs to bracket waiting and notifying the condition by acquiring the
 corresponding lock, then finally (as always!) releasing it. As usual,
-this is easiest done in the context of the with-statement::
-
-  .. literalinclude:: src/chapter19/condition.py
+this is easiest done in the context of the with-statement.
 
 For example, here's how we actually implement a ``Queue`` in the
 standard library of Jython (just modified here to use the
