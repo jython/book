@@ -1,0 +1,13 @@
+*.class
+*.war
+*.pyc
+*.lock
+*.cache
+*.egg-info/
+data/templates/
+/.#
+
+# sphinx-related patterns:
+source/
+build/
+Makefile
