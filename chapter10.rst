@@ -233,7 +233,7 @@ Let’s take a look at the same example from above and apply the loosely coupled
 	    }
 
 
-	   public static Object createObject(Object interfaceType, String moduleName){
+	   public Object createObject(Object interfaceType, String moduleName){
 	       Object javaInt = null;
 	       PythonInterpreter interpreter = new PythonInterpreter();
 	       interpreter.exec("from " + moduleName + " import " + moduleName);
