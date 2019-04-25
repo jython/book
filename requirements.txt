@@ -1,0 +1,10 @@
+Pygments==2.2.0 
+setuptools==28.8.0 
+docutils==0.13.1 
+mock==1.0.1 
+alabaster>=0.7,<0.8,!=0.7.5 
+commonmark==0.5.4 
+sphinx==1.5.3 
+sphinx-rtd-theme<0.3 
+readthedocs-sphinx-ext<0.6
+
