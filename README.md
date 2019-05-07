@@ -7,6 +7,11 @@ This is an open reference book on the Jython language, an implementation of Pyth
 
 This book is formatted for and available at https://jython.readthedocs.io/en/latest/
 
+## License and Contributions
+
+This book is licensed under CC-BY-SA http://creativecommons.org/licenses/by-sa/3.0/ . Contributions in the form of pull requests are welcome, and are covered by the same license under the "inbound=outbound" part of the github terms of service https://help.github.com/en/articles/github-terms-of-service#6-contributions-under-repository-license . More detail on the open book license can be found in the book index and preamble (index.rst).
+
+
 
 ## Version History
 
