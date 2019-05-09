@@ -2,7 +2,7 @@
 
 
 extensions = []
-templates_path = ['/home/docs/checkouts/readthedocs.org/readthedocs/templates/sphinx', 'templates', '_templates', '.templates']
+templates_path = ['_templates']
 source_suffix = ['.rst']		
 master_doc = 'index'
 project = u'jython'
