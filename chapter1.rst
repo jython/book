@@ -31,7 +31,7 @@ This book will reference the Python language in sections regarding the language 
 
 
 
-Developers from all languages and backgrounds will benefit from this book.  Whether you are interested in learning Python from for the first time or discovering Jython techniques and advanced concepts, this book is a good fit for any developer.  Java developers and those who are new to the Python language will find specific interest in reading through Part I of this book as it will teach the Python language from the basics to more advanced concepts.  Seasoned Python developers will probably find more interest in Part II and Part III as they focus more on the Jython implementation specifics.  Often times in this reference, you will see Java code compared with Python code.  
+Developers from all languages and backgrounds will benefit from this book.  Whether you are interested in learning Python from for the first time or discovering Jython techniques and advanced concepts, this book is a good fit for any developer.  Java developers and those who are new to the Python language will find specific interest in reading through Part I of this book as it will teach the Python language from the basics to more advanced concepts.  Seasoned Python developers will probably find more interest in Part II and Part III as they focus more on the Jython implementation specifics.  Often times in this reference, you will see Java code compared with Python code.
 
 
 
@@ -57,15 +57,15 @@ You can initiate the Jython installer by simply double-clicking on the JAR file.
 
 
 
-In order to run Jython, you will need to invoke the jython.bat executable file on Windows or the jython.sh file on *NIX machines and Mac OS X.  That being said, you’ll have to traverse into the directory that you’ve installed Jython where you will find the file.  It would be best to place this directory within your PATH environment variable on either Windows, *NIX, or OS X machines so that you can fire up Jython from within any directory on your machine.  Once you’ve done this then you should be able to open up a terminal or command prompt and issue type “jython” then hit enter to invoke the interactive interpreter.  This is where our journey begins!  The Jython interactive interpreter is a great place to evaluate code and learn the language.  It is a real-time testing environment that allows you to type code and instantly see the result.  As you are reading through this chapter, I recommend you open up the Jython interpreter and follow along with the code examples.
+In order to run Jython, you will need to invoke the jython.bat executable file on Windows or the jython.sh file on \*NIX machines and Mac OS X.  That being said, you’ll have to traverse into the directory that you’ve installed Jython where you will find the file.  It would be best to place this directory within your PATH environment variable on either Windows, \*NIX, or OS X machines so that you can fire up Jython from within any directory on your machine.  Once you’ve done this then you should be able to open up a terminal or command prompt and issue type “jython” then hit enter to invoke the interactive interpreter.  This is where our journey begins!  The Jython interactive interpreter is a great place to evaluate code and learn the language.  It is a real-time testing environment that allows you to type code and instantly see the result.  As you are reading through this chapter, I recommend you open up the Jython interpreter and follow along with the code examples.
 
 Identifiers and Declaring Variables
 ===================================
 
-::
 
 
-Every programming language needs to contain the ability to capture or calculate values and store them.  Python is no exception, and doing so is quite easy.  Defining variables in Python is very similar to other languages such as Java, but there are a few differences that you need to note.  
+
+Every programming language needs to contain the ability to capture or calculate values and store them.  Python is no exception, and doing so is quite easy.  Defining variables in Python is very similar to other languages such as Java, but there are a few differences that you need to note.
 
 
 
@@ -77,7 +77,7 @@ To define a variable in the Python language, you simply name it using an identif
 
 
 
-Once declared, a variable is untyped and can take any value.  This is one difference between using a statically typed language such as Java, and using dynamic languages like Python.  In Java, you need to declare the type of variable which you are creating, and you do not in Python.  It may not sound like very much at first, but this ability can lead to some extraordinary results.  Consider the following, lets define a value ‘x’ below and we’ll give it a value of zero.  
+Once declared, a variable is untyped and can take any value.  This is one difference between using a statically typed language such as Java, and using dynamic languages like Python.  In Java, you need to declare the type of variable which you are creating, and you do not in Python.  It may not sound like very much at first, but this ability can lead to some extraordinary results.  Consider the following, lets define a value ‘x’ below and we’ll give it a value of zero.
 
 *Java - Declare Variable* ::
 
@@ -85,15 +85,15 @@ Once declared, a variable is untyped and can take any value.  This is one differ
 
 
 *Python - Declare Variable* ::
-   
+
     x = 0
-    
-    
+
+
 As you see, we did not have to give a type to this variable.  We simply name it and assign a value.  You can also see that in Python there is no need to end the declaration with a semicolon.  Since we do not need to declare a type for the variable, we can change it to a different value and type later in the program.
 
 
 
-	x = ‘Hello Jython’
+   x = 'Hello Jython'
 
 
 We’ve just changed the value of the variable ‘x’ from a numeric value to a String without any consequences.  This is a key to the dynamic language philosophy...change should not be difficult, but rather easy to integrate.
@@ -103,21 +103,21 @@ We’ve just changed the value of the variable ‘x’ from a numeric value to a
 Let us take what we know so far and apply it to some simple calculations.  Based upon the definition of a variable in Python, we can assign an integer value to a variable, and change it to a float at a later point.  For instance:
 
 
-	>>> x = 6
-	>>> y = 3.14
-	>>> x = x * y
-	>>> print x
-	18.84
+   >>> x = 6
+   >>> y = 3.14
+   >>> x = x * y
+   >>> print x
+   18.84
 
 In the previous example we’ve demonstrated that we can dynamically change the type of any given variable by simply performing a calculation upon it.  In other languages, we would have had to begin by assigning a float type to the ‘x’ variable so that we could later change it’s value to a float.  Not here, Python allows us to bypass type constriction and gives us an easy way to do it.
 
 Reserved Words
 ==============
 
-::
 
 
-There are a few more rules to creating identifiers that we must follow in order to adhere to the Python language standard.  Certain words are not to be used as identifiers as the Python language reserves them for performing a specific role within our programs.  These words which cannot be used are known as reserved words.  If we try to use one of these reserved words as an identifier, we will see a SyntaxError thrown as Python wants these reserved words as it’s own.  
+
+There are a few more rules to creating identifiers that we must follow in order to adhere to the Python language standard.  Certain words are not to be used as identifiers as the Python language reserves them for performing a specific role within our programs.  These words which cannot be used are known as reserved words.  If we try to use one of these reserved words as an identifier, we will see a SyntaxError thrown as Python wants these reserved words as it’s own.
 
 There are no symbols allowed in identifiers.  Yes, that means the Perl developers will have to get used to defining variables without the $.
 
@@ -128,11 +128,11 @@ The complete listing of reserved words is as follows:
 ========  =========  =======  =======  ==========
 Words
 ========  =========  =======  =======  ==========
-and       assert     break    class    continue  
-def       del        elif     else     except    
+and       assert     break    class    continue
+def       del        elif     else     except
 exec      finally    for      from     global
 if        or         pass     print    raise
-return    try        while    with     yield              
+return    try        while    with     yield
 ========  =========  =======  =======  ==========
 
 Table 1-1. Reserved  Words. The following lists all of the Python language reserved words
@@ -140,100 +140,100 @@ Table 1-1. Reserved  Words. The following lists all of the Python language reser
 
 Coding Structure
 ----------------
- 
+
 Another key factor in which Python differs from other languages is it’s coding structure.  Back in the day, we had to develop programs based upon a very strict structure such that certain pieces must begin and end within certain punctuations.  Python uses positioning and code must adhere to an ordered structure.  Unlike languages such as Java that use brackets to open or close a code block, Python uses spacing as to make code easier to read and also limit unnecessary symbols in your code.  It strictly enforces ordered and organized code, but it lets the programmer define the rules.
 
-Python ensures that each block of code adheres to its defined spacing strategy in a consistent manner.  What is the defined spacing strategy?  You decide.  As long as the first line of a code block is out-dented by at least one space, the rest of the block can maintain a consistent indentation, which makes code easy to read.  Many argue that it is the structuring technique that Python adheres to which makes them so easy to read.  No doubt, adhering to a standard spacing throughout an application makes for organization.  As a matter of fact, the Python standard spacing technique is to use four spaces for indentation.  If you adhere to these standards then your code will be easy to read and maintain in the future. 
- 
+Python ensures that each block of code adheres to its defined spacing strategy in a consistent manner.  What is the defined spacing strategy?  You decide.  As long as the first line of a code block is out-dented by at least one space, the rest of the block can maintain a consistent indentation, which makes code easy to read.  Many argue that it is the structuring technique that Python adheres to which makes them so easy to read.  No doubt, adhering to a standard spacing throughout an application makes for organization.  As a matter of fact, the Python standard spacing technique is to use four spaces for indentation.  If you adhere to these standards then your code will be easy to read and maintain in the future.
+
 For instance, let’s jump ahead and look at a simple ‘if’ statement.  Although you may not yet be familiar with this construct, I think you will agree that it is easy to determine the outcome.  Take a look at the following block of code written in Java first, and then we’ll compare it to the Python equivalent.
 
-Java if-statement
 
+*Java if-statement* ::
 
         x = 100;
-        
-        if(x > 0){                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              
-            System.out.println(“Wow, this is Java”);                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
-        } else {                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
-            System.out.println(“Java likes curly braces”);                                                                                                                                                                                                                                                                                                                                                                                                                                                                      
+
+        if(x > 0){
+            System.out.println("Wow, this is Java");
+        } else {
+            System.out.println("Java likes curly braces");
         }
 
 
 Now, let’s look at a similar block of code written in Python.
 
-Python if-statement
+*Python if-statement* ::
 
-        x = 100                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 
-        if x > 0:                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               
-            print ‘Wow, this is elegant’                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
-        else:                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   
-            print ‘Organization is the key’                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     
-
-
+        x = 100
+        if x > 0:
+            print 'Wow, this is elegant'
+        else:
+            print 'Organization is the key'
 
 
-Okay, my example is cheesy but we will go through it nonetheless as it is demonstrating a couple of key points to the Python language.  As you see, the program evaluates if the value of the variable ‘x’ is greater than zero.  If so, it will print ‘Wow, this is elegant’.  Otherwise, it will print ‘Organization is the key’.  Look at the indentation which is used within the ‘if’ block.  This particular block of code uses four spaces to indent the ‘print’ statement from the initial line of the block.  Likewise, the ‘else’ jumps back to the first space of the line and its corresponding implementation is also indented by four spaces.  This technique must be adhered to throughout an entire Python application.  By doing so we gain a couple of major benefits:  Easy-to-read code, and no need to use curly braces.  Most other programming languages such as Java use a bracket “[“ or curly brace “{“ to open and close a block of code.  There is no need to do so when using Python as the spacing takes care of this for you.  Less code = easier to read and maintain.  
+
+
+Okay, my example is cheesy but we will go through it nonetheless as it is demonstrating a couple of key points to the Python language.  As you see, the program evaluates if the value of the variable ‘x’ is greater than zero.  If so, it will print ‘Wow, this is elegant’.  Otherwise, it will print ‘Organization is the key’.  Look at the indentation which is used within the ‘if’ block.  This particular block of code uses four spaces to indent the ‘print’ statement from the initial line of the block.  Likewise, the ‘else’ jumps back to the first space of the line and its corresponding implementation is also indented by four spaces.  This technique must be adhered to throughout an entire Python application.  By doing so we gain a couple of major benefits:  Easy-to-read code, and no need to use curly braces.  Most other programming languages such as Java use a bracket “[“ or curly brace “{“ to open and close a block of code.  There is no need to do so when using Python as the spacing takes care of this for you.  Less code = easier to read and maintain.
 
 Operators
 ---------
 
-The operators that are used by Python are very similar to those used in other languages...straightforward and easy to use.  As with any other language, you have your normal operators such as +, -, *, and / which are available for performing calculations.  As you can see from the examples below, there is no special trick to using any of these operators.
+The operators that are used by Python are very similar to those used in other languages...straightforward and easy to use.  As with any other language, you have your normal operators such as +, -, \*, and / which are available for performing calculations.  As you can see from the examples below, there is no special trick to using any of these operators.
 
-Example 1:  Performing Integer based operations
+*Example 1:  Performing Integer based operations* ::
 
->>> x = 9                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               
->>> y = 2                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               
->>> x + y                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               
-11                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      
->>> x - y                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               
-7                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       
->>> x * y                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               
-18                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      
->>> x / y                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               
-4                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       
+   >>> x = 9
+   >>> y = 2
+   >>> x + y
+   11
+   >>> x - y
+   7
+   >>> x * y
+   18
+   >>> x / y
+   4
 
 Perhaps the most important thing to note with calculations is that if you are performing calculations based on integer values then you will receive a rounded result.  If you are performing calculations based upon floats then you will receive float results, etc.
 
-Example 2:  Performing float based operations
+*Example 2:  Performing float based operations* ::
 
->>> x = 9.0                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             
->>> y = 2.0                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             
->>> x + y                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               
-11.0                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    
->>> x - y                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               
-7.0                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     
->>> x * y                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               
-18.0                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    
->>> x / y                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               
-4.5                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     
+   >>> x = 9.0
+   >>> y = 2.0
+   >>> x + y
+   11.0
+   >>> x - y
+   7.0
+   >>> x * y
+   18.0
+   >>> x / y
+   4.5
 
-It is important to note this distinction because as you can see from the differences in the results of the division (/) operations in examples 1 and 2, we have rounding on the integer values and not on the float.  A good rule of thumb is that if your application requires precise calculations to be defined, then it is best to use float values for all of your numeric variables, or else you will run into a rounding issue.                                                                                  
+It is important to note this distinction because as you can see from the differences in the results of the division (/) operations in examples 1 and 2, we have rounding on the integer values and not on the float.  A good rule of thumb is that if your application requires precise calculations to be defined, then it is best to use float values for all of your numeric variables, or else you will run into a rounding issue.
 
 Expressions
 -----------
 
 Expressions are just what they sound like...they are a piece of Python code that produces a value.  For example, if we wish to assign a particular value to a variable then we would use an expression.  Similarly, if I wish to perform a calculation based upon two variables or numeric values then I am performing a expression.
 
-Examples of Expressions                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 
+*Examples of Expressions* ::
 
->>> x = 9                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               
->>> y = 2                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               
->>> z = 9 * 2                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           
->>> x + y                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               
->>> x - y                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               
->>> x * y                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               
->>> x / y                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               
+   >>> x = 9
+   >>> y = 2
+   >>> z = 9 * 2
+   >>> x + y
+   >>> x - y
+   >>> x * y
+   >>> x / y
 
-The examples of expressions that are shown above are very simplistic.  Expressions can be made to be very complex and perform powerful computations.  They can be combined together to produce complex results.                                                                                                                                                                                                                                                                                                         
+The examples of expressions that are shown above are very simplistic.  Expressions can be made to be very complex and perform powerful computations.  They can be combined together to produce complex results.
 
 
 
 Statements
 ----------
 
-When we refer to statements, we are really referring to a line of code that does something.  There are several statements that can be issued in Python that ultimately define the different constructs available for use within an application.  In this section, we will take a tour of statement keywords and learn how they can be used.                                                                                                                                                                             
+When we refer to statements, we are really referring to a line of code that does something.  There are several statements that can be issued in Python that ultimately define the different constructs available for use within an application.  In this section, we will take a tour of statement keywords and learn how they can be used.
 
-Let’s start out by listing each of these different statement keywords, and then we will go into more detail about how to use each of them with different examples.  I will not cover each statement keyword in this chapter as some of them are better left for later in the chapter or the book, but you should have a good idea of how to code an action which performs a task after reading through this section.  While this section will provide implementation details about the different statements, you should refer to later chapters to find advance uses of these features.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 
+Let’s start out by listing each of these different statement keywords, and then we will go into more detail about how to use each of them with different examples.  I will not cover each statement keyword in this chapter as some of them are better left for later in the chapter or the book, but you should have a good idea of how to code an action which performs a task after reading through this section.  While this section will provide implementation details about the different statements, you should refer to later chapters to find advance uses of these features.
 
 Table 1-1. Statement Keywords
 
@@ -254,35 +254,35 @@ If - Else Statement
 -------------------
 
 
-The if statement simply performs a comparison on two or more values and provides a logical outcome based upon that evaluation.  If statements are quite often used for branching code into one direction or another based upon certain values which have been calculated or provided in the code.  
+The if statement simply performs a comparison on two or more values and provides a logical outcome based upon that evaluation.  If statements are quite often used for branching code into one direction or another based upon certain values which have been calculated or provided in the code.
 
 
-For instance, the statement will compare the values and return a boolean result, namely True or False.  A corresponding action is then taken based upon the outcome of the boolean result.  Pseudocode would be as follows:
+For instance, the statement will compare the values and return a boolean result, namely True or False.  A corresponding action is then taken based upon the outcome of the boolean result.  Pseudocode would be as follows::
 
 
-	if True:
-	    perform an action
-	else:
-	    perform another action
+   if True:
+       perform an action
+   else:
+       perform another action
 
 
 Any number of *if/else* statements can be linked together in order to create a logical code branch, if you wish to use more than one else statement then all but the last else statements must be *elif* instead...and the last would be *else*.  Note that each expression must be indented with the conditional statement out-dented and the resulting operation indented.  Remember, a consistent indentation must be followed throughout the course of the program.  The if statement is a good example of how well the consistent use of indention helps readability of a program.  If you are coding in Java for example, you can space the code however you’d like as long as you use the curly braces to enclose the statement.  This can lead to code that is very hard to read…the indentation which Python requires really shines through here.
 
+::
 
-
-	>>> if x == y:
-	...     print 'x is equal to y'
-	... elif x > y:
-	...     print 'x is greater than y'
-	... else:
-	...     print 'x is less than y'
-	... 
-	x is greater than y
+   >>> if x == y:
+   ...     print 'x is equal to y'
+   ... elif x > y:
+   ...     print 'x is greater than y'
+   ... else:
+   ...     print 'x is less than y'
+   ...
+   x is greater than y
 
 
 While the code is simple, it demonstrates that using an *if* statement can result in branching code logic.
 
-There are also some statements in Python which assist in logic flow.  These statements can be placed within an if statement or a loop (discussed in chapter 2) which will cause the logic of the statement to go in one direction or the other.  
+There are also some statements in Python which assist in logic flow.  These statements can be placed within an if statement or a loop (discussed in chapter 2) which will cause the logic of the statement to go in one direction or the other.
 
 
 
@@ -291,24 +291,26 @@ pass Statement
 
 Another useful statement for while working within loops is the *pass* statement.  Often times we have the need to use a placeholder value in an application in order to simply pass through an area without performing any tasks when an area of code requires an implementation.  The pass statement simply does nothing.  An example for it’s usage would be when you have a block of code which you’d like to bypass for debugging purposes.  It can also be used as a placeholder for a block of code which has not yet been implemented.
 
-        while False:
-	    pass
+::
+
+   while False:
+       pass
 
 
 def Statement
 -------------
 
-This is one of those statements that will become second nature for usage throughout any Python programmer's life.  The *def* statement is used to define a function in an application.  While we will not get into functions in this chapter, I will show you an example of this statement's usage.  
+This is one of those statements that will become second nature for usage throughout any Python programmer's life.  The *def* statement is used to define a function in an application.  While we will not get into functions in this chapter, I will show you an example of this statement's usage.
 
 ::
 
 
-	def myFunctionName(parameterList):
-	    implementation
-::
+   def myFunctionName(parameterList):
+       implementation
 
 
-The pseudocode above demonstrates how one would use the *def* statement.  
+
+The pseudocode above demonstrates how one would use the *def* statement.
 
 print Statement
 ---------------
@@ -321,11 +323,11 @@ In the Java language, we need to make a call to the System library in order to p
 
 Java Print Output Example ::
 
-	public void inspectValue(String val){
-	    if (val == null){
-	        System.out.println(“The value you have entered is not valid, please try again”;
-	    } else {
-	        System.out.println(	“The value you have entered is valid”);
+   public void inspectValue(String val){
+       if (val == null){
+           System.out.println("The value you have entered is not valid, please try again";
+       } else {
+           System.out.println("The value you have entered is valid");
 
 
 Python Print Output Example ::
@@ -341,7 +343,7 @@ As you can see from the example above, printing a line of text in Python is very
 
     myValue = 'I love programming in Jython'
     print myValue
-    
+
     >>> I love programming in Jython
 
 
@@ -350,7 +352,7 @@ Once again, very straight forward in terms of printing values of variables.  Sim
     print 'I like programming in Java, but ' + myValue
 
     >>> I like programming in Java, but I love programming in Jython
-    
+
 This is great and all, but really not useful if you'd like to properly format your text or work with int values.  After all, the Jython parser is treating the (+) operator as a concatenation operator in this case...not as an addition operator.  If you try to append a numeric value to a String you will end up with an error. ::
 
     z = 10
@@ -363,7 +365,7 @@ This is great and all, but really not useful if you'd like to properly format yo
 
 As you can see from the example, Python does not like this trick very much.  So in order to perform this task correctly we will need to use some of the aforementioned Python formatting options.  This is easy and powerful to do, and it allows one to place any content or value into a print statement.  Before you see an example, let's take a look at some of the formatting operators and how to choose the one that you need.
 
-%s - String 
+%s - String
 %d - Decimal
 %f   - Float
 
@@ -377,7 +379,7 @@ In the pseudocode above (if we can really have pseudocode for print statements),
     >>> floatValue = 3.998
     >>> decimalValue = 5
     >>> print 'Here is a test of the print statement using the values: %d, %s, and %f' % (decimalValue, stringValue, floatValue)
-    
+
     Here is a test of the print statement using the values: 5, hello world, and 3.998000
 
 As you can see this is quite easy to use and very flexible.  The next example shows that we also have the option of using expressions as opposed to variables within our statement. ::
@@ -391,8 +393,8 @@ As you can see this is quite easy to use and very flexible.  The next example sh
 Another useful feature of the print statement is that it can be used for debugging purposes .  If we simply need to find out the value of a variable during processing then it is easy to display using the *print* statement.  Often times, using this technique can really assist in debugging and writing your code.
 
 
-try-except-finally 
--------------------
+try-except-finally
+------------------
 
 The *try-except-finally* is the supported method for performing error handling within a Python application.  The idea is that we try to run a piece of code and if it fails then it is caught and the error is handled in a proper fashion.  We all know that if someone is using a program that displays an ugly long error message, it is not usually appreciated.  Using the *try-except-finally* statement to properly catch and handle our errors can mitigate an ugly program dump.
 
@@ -409,13 +411,13 @@ To begin, let's work with defining a generic *try-except-finally* example in whi
 ::
 
 
-	try:
-	    implementation that may throw an error
-	except Exception:
-	    handle the error which was thrown
-	finally:
-	    perform some cleanup…called everytime
-::
+   try:
+       implementation that may throw an error
+   except Exception:
+       handle the error which was thrown
+   finally:
+       perform some cleanup…called everytime
+
 
 
 To augment this example, we'll go ahead and define a simple function which takes two parameters and returns the value of the first parameter divided by the second.  In order to demonstrate the *try-except-finally*, we'll throw one around the print statement in order to catch the programmer's mistake gracefully.
@@ -423,17 +425,17 @@ To augment this example, we'll go ahead and define a simple function which takes
 ::
 
 
-	>>> def myFunction(x,y):
-	...     try:
-	...         print 	x / y
-	...     except Exception:
-	...         print 'An error has been caught by the program'
-	...     finally:
-	...         print 'Perform some cleanup'
+   >>> def myFunction(x,y):
+   ...     try:
+   ...         print x / y
+   ...     except Exception:
+   ...         print 'An error has been caught by the program'
+   ...     finally:
+   ...         print 'Perform some cleanup'
 
-	>>> myFunction(0,0)
-	An error has been caught by the program
-	Perform some cleanup
+   >>> myFunction(0,0)
+   An error has been caught by the program
+   Perform some cleanup
 
 
 
@@ -442,16 +444,16 @@ We can see that by throwing the *try-except-finally* statement around the errone
 ::
 
 
-	>>> def myFunction(x,y):
-	...     try:
-	...         print x / y
-	...     except Exception, err:
-	...         print 'The following error has been caught: %s' %(err)
+   >>> def myFunction(x,y):
+   ...     try:
+   ...         print x / y
+   ...     except Exception, err:
+   ...         print 'The following error has been caught: %s' %(err)
 
-	>>> myFunction(4,2)
-	2
-	>>> myFunction(0,0)
-	The following error has been caught: integer division or modulo by zero
+   >>> myFunction(4,2)
+   2
+   >>> myFunction(0,0)
+   The following error has been caught: integer division or modulo by zero
 
 
 
@@ -482,22 +484,22 @@ The raise statement is used to throw or “raise” an exception in Python.  You
 ::
 
 
-	>>> raise NameError
-	Traceback (most recent call last):
-	  File "<stdin>", line 1, in <module>
-	NameError
-::
+   >>> raise NameError
+   Traceback (most recent call last):
+     File "<stdin>", line 1, in <module>
+   NameError
+
 
 
 If you wish to specify your own message within a raise then you can do so by raising a generic Exception, and then specifying your message on the statement as follows.
 
 
 
-	>>> raise Exception	(‘	Custom Exception	’)
-	Traceback (most recent call last):
-	  File "<stdin>", line 1, in <module>
-	Exception: Custom Exception
-::
+   >>> raise Exception('Custom Exception')
+   Traceback (most recent call last):
+       File "<stdin>", line 1, in <module>
+       Exception: Custom Exception
+
 
 
 import Statement
@@ -513,16 +515,16 @@ There are a couple of different ways in which this statement can be used.  It ca
 ::
 
 
-	#  Import a class named TipCalculator which is contained within 
-	#  a module named TipCalculator.py
+   #  Import a class named TipCalculator which is contained within
+   #  a module named TipCalculator.py
 
-	import TipCalculator
+   import TipCalculator
 
 
 
-	#  Import a function tipCalculator from within a module called ExternalModule.py
+   #  Import a function tipCalculator from within a module called ExternalModule.py
 
-	from ExternalModule import tipCalculator
+   from ExternalModule import tipCalculator
 
 Other Python Statements
 -----------------------
@@ -563,40 +565,41 @@ The *while* loop construct is used in order to iterate through code based upon a
 ::
 
 
-	 while 	True
-	    perform operation
+    while True
+       perform operation
+
 The loop begins with the declaration of the *while* and conditional expression, and it ends once the conditional has been met.  Keep in mind that we need to indent each of the lines of code that exist within the *while* loop.  This not only helps the code to maintain readability, but it also allows Python to do away with the curly braces!
 
 
 
 ::
 
-	int x = 9;
-	int y = 2;
-	int z = x – y;
-	while (y < x){
-	    System.out.println(“y is “ + z + “ less than	 x”);
-	    y = y++;
-	}
+   int x = 9;
+   int y = 2;
+   int z = x – y;
+   while (y < x){
+       System.out.println("y is " + z + " less than x");
+       y = y++;
+   }
 
-Now, let’s see the same code written in Python. 
+Now, let’s see the same code written in Python.
 
 
 
-	>>> x = 9
-	>>> y = 2
-	>>> while y < x:
-	...     print 'y is %d less than x' % (x-y)
-	...     y = y + 1
-	... 
-	y is 7 less than x
-	y is 6 less than x
-	y is 5 less than x
-	y is 4 less than x
-	y is 3 less than x
-	y is 2 less than x
-	y is 1 less than x
-::
+   >>> x = 9
+   >>> y = 2
+   >>> while y < x:
+   ...     print 'y is %d less than x' % (x-y)
+   ...     y = y + 1
+   ...
+   y is 7 less than x
+   y is 6 less than x
+   y is 5 less than x
+   y is 4 less than x
+   y is 3 less than x
+   y is 2 less than x
+   y is 1 less than x
+
 
 
 In the example above, you can see that the conditional *y < x* is evaluated each time the loop passes.  Along the way, we increment the value of *y* by one each time we iterate, so that eventually *y* is no longer < than *x* and the loop ends.
@@ -606,7 +609,7 @@ In the example above, you can see that the conditional *y < x* is evaluated each
 For Loop
 --------
 
-We will lightly touch upon *for* loops in this chapter, but you can delve deeper into the topic in chapter two or three when lists, dictionaries, tuples, and ranges are discussed.  For now, you should know that a *for* loop is used to iterate through a defined set of values.  *For* loops are very useful for performing iteration through values because this is a concept which is used in just about any application.  For instance, if you retrieve a list of database values, you can use a *for* loop to iterate through them and print each one out.  
+We will lightly touch upon *for* loops in this chapter, but you can delve deeper into the topic in chapter two or three when lists, dictionaries, tuples, and ranges are discussed.  For now, you should know that a *for* loop is used to iterate through a defined set of values.  *For* loops are very useful for performing iteration through values because this is a concept which is used in just about any application.  For instance, if you retrieve a list of database values, you can use a *for* loop to iterate through them and print each one out.
 
 
 
@@ -615,36 +618,37 @@ The pseudocode to *for* loop logic is as follows:
 ::
 
 
-	 for each value in this defined set:
-	     perform operation
+    for each value in this defined set:
+        perform operation
+
 As you can see with the pseudocode, I’ve indented in a similar fashion to the way in which the other expression constructs are indented.  This uniform indentation practice is consistent throughout the Python programming language.  We’ll compare the for loop in Java to the Python syntax below so that you can see how the latter makes code more concise.
 
 
 
 ::
 
-	for (x = 0; x <= 10; x++){
-	    System.out.println(x);
-	}
-::
+   for (x = 0; x <= 10; x++){
+       System.out.println(x);
+   }
+
 
 
 Now, the same code implemented in Python:
 
-	>>> for x in range(10):
-	...     print x
-	... 
-	0
-	1
-	2
-	3
-	4
-	5
-	6
-	7
-	8
-	9
-::
+   >>> for x in range(10):
+   ...     print x
+   ...
+   0
+   1
+   2
+   3
+   4
+   5
+   6
+   7
+   8
+   9
+
 
 
 In the above example, we use a construct which has not yet been discussed.  A range is  a built-in function for Python which simply provides a range from one particular value to another.  In the example, we pass the value 10 into the range which gives us all values between 0 and 10.  We see this in the resulting print out after the expression.
@@ -663,25 +667,25 @@ The *continue* statement is to be used when you are within a looping construct, 
 ::
 
 
-	>>> x = 10
-	>>> while x >= 0:
-	...     if x == 0:
-	...         continue
-	...     else:
-	...         print "x is currently equal to ", x
-	...         x = x - 1
-	... 
-	x is currently equal to  10
-	x is currently equal to  9
-	x is currently equal to  8
-	x is currently equal to  7
-	x is currently equal to  6
-	x is currently equal to  5
-	x is currently equal to  4
-	x is currently equal to  3
-	x is currently equal to  2
-	x is currently equal to  1
-::
+   >>> x = 10
+   >>> while x >= 0:
+   ...     if x == 0:
+   ...         continue
+   ...     else:
+   ...         print "x is currently equal to ", x
+   ...         x = x - 1
+   ...
+   x is currently equal to  10
+   x is currently equal to  9
+   x is currently equal to  8
+   x is currently equal to  7
+   x is currently equal to  6
+   x is currently equal to  5
+   x is currently equal to  4
+   x is currently equal to  3
+   x is currently equal to  2
+   x is currently equal to  1
+
 
 
 In the example above, the x variable decreased by one each time the loop iterates.  On the final pass, as the x is equal to 0 we do not display a message.  Why is this example useful?  It’s not really…only to give you an understanding of the context in which the continue statement would be used.
@@ -696,25 +700,25 @@ Much like the *continue* statement, the *break* statement can be used inside of 
 ::
 
 
-	x = 10
-        while x >= 0:
-	     if x == 0:
-	         print "x is now equal to zero!"
-	         break
-	     else:
-	         if x % 2 == 0: 
-	            print x
-	     x = x – 1
+   x = 10
+   while x >= 0:
+       if x == 0:
+           print "x is now equal to zero!"
+           break
+       else:
+           if x % 2 == 0:
+               print x
+       x = x – 1
 
-	Results:
+   Results:
 
-	10
-	8
-	6
-	4
-	2
-	x is now equal to zero!
-        
+   10
+   8
+   6
+   4
+   2
+   x is now equal to zero!
+
 
 Documenting Code
 ================
@@ -725,47 +729,47 @@ Code documentation, an annoyingly important part of every application developer�
 
 Sometimes we wish to document an entire function or class, and other times we wish to document only a line or two.  Whatever the case, Python provides a way to do it in a rather unobtrusive manner.  Much like many of the other programming languages that exist today, we can begin a comment on any part of any code line.  We can also comment spanning multiple lines if we wish.  Just on a personal note, I rather like the Python documentation symbol (#) or hash, as it provides for clear-cut readability.  There are not many places in code that you will use the (#) symbol unless you are trying to perform some documentation.  Many other languages use symbols such as (/) which can make code harder to read as those symbols are evident in many other non-documenting pieces of code.  Okay, it is time to get off my soap box on Python and get down to business.
 
-In order to document a line of code, you simply start the document or comment with a (#) symbol.  This symbol can be placed anywhere on the line and whatever follows it is ignored by the Python compiler and treated as a comment or documentation.  Whatever precedes the symbol will be parsed as expected.  
+In order to document a line of code, you simply start the document or comment with a (#) symbol.  This symbol can be placed anywhere on the line and whatever follows it is ignored by the Python compiler and treated as a comment or documentation.  Whatever precedes the symbol will be parsed as expected.
 
 ::
 
 
-	>>> # This is a line of documentation
-	>>> x = 0  # This is also documentation        
-	>>> y = 20
-	>>> print x + y
-	20
+   >>> # This is a line of documentation
+   >>> x = 0  # This is also documentation
+   >>> y = 20
+   >>> print x + y
+   20
 
 As you can see, the Python parser ignores everything after the #, so we can easily document or comment as needed.
 
 
 
 One can easily document multiple lines of code using the # symbol as well by placing the hash at the start of each line.
-It nicely marks a particular block as documentation.  However, Python also provides a multi-line comment using the triple-quote (‘’’)
+It nicely marks a particular block as documentation.  However, Python also provides a multi-line comment using the triple-quote (`'''`)
 designation at the beginning and end of a comment.  This type of multi-line comment is also referred to as a doc string and it is only
 to be used at the start of a module, class, or function.  Let’s take a look at these two instances of multi-line documentation in the examples that follow. ::
 
-        
-        # This function is used in order to provide the square
-	# of any value which is passed in.  The result will be 
-	# passed back to the calling code.
-	def square_val(value):
-	    return value * value
-	... 
-	>>> print square_val(3)
-	9
+
+   # This function is used in order to provide the square
+   # of any value which is passed in.  The result will be
+   # passed back to the calling code.
+   def square_val(value):
+       return value * value
+   ...
+   >>> print square_val(3)
+   9
 
 
-	def tip_calc(value, pct):
-	    ''' This function is used as a tip calculator based on a percentage
-	       which is passed in as well as the value of the total amount.  In
-	       this function, the first parameter is to be the total amount of a  
-	       bill for which we will calculate the tip based upon the second 
-	       parameter as a percentage '''
-	    return value * (pct * .01)
-	...
-	>>> print tip_calc(75,15)
-	11.25
+   def tip_calc(value, pct):
+       ''' This function is used as a tip calculator based on a percentage
+          which is passed in as well as the value of the total amount.  In
+          this function, the first parameter is to be the total amount of a
+          bill for which we will calculate the tip based upon the second
+          parameter as a percentage '''
+       return value * (pct * .01)
+   ...
+   >>> print tip_calc(75,15)
+   11.25
 
 
 Okay, as we can see, both of the documentation methods above can be used to get the task of documenting or comment code done.
@@ -778,12 +782,12 @@ does, we can call the tip_calc.__doc__ function and the multi-line comment will 
 finding out what code does without actually visiting the code itself. ::
 
 
-	>>> print tip_calc.__doc__
-	 This function is used as a tip calculator based on a percentage
-	       which is passed in as well as the value of the total amount.  In
-	       this function, the first parameter is to be the total amount of a  
-	       bill for which we will calculate the tip based upon the second 
-	       parameter as a percentage 
+   >>> print tip_calc.__doc__
+    This function is used as a tip calculator based on a percentage
+          which is passed in as well as the value of the total amount.  In
+          this function, the first parameter is to be the total amount of a
+          bill for which we will calculate the tip based upon the second
+          parameter as a percentage
 
 These examples and short explanations should give you a pretty good feel for the power of documentation that is provided by the Python language.
 As you can see, using the multi-line triple-quote method is very suitable for documenting classes or functions.  Commenting with the # symbol
@@ -818,7 +822,7 @@ constructs were then discussed so that we could begin to use our statements and 
 
 
 Following the language overview, documentation was discussed.  It is an important part of any application, and Python makes it easy to do.
-Not only did we learn how to document lines of code, but also documenting entire blocks of code. 
+Not only did we learn how to document lines of code, but also documenting entire blocks of code.
 Throughout the rest of the book, you will learn more in-depth and advanced uses of the topics that we’ve discussed in this chapter.
 You will also learn concepts and techniques that you’ll be able to utilize in your own programs to make them more powerful and easy to maintain.
 

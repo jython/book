@@ -8,10 +8,10 @@ Constructor functions are used to create objects of a given type.
 
 .. note:: 
 
-  In Python, the type is a constructor function; there's no difference
-  at all in Python. So you can use the ``type`` function, which we
-  will discuss momentarily, to look up the type of an object, then make
-  instances of that same type.
+   In Python, the type is a constructor function; there's no difference
+   at all in Python. So you can use the ``type`` function, which we
+   will discuss momentarily, to look up the type of an object, then make
+   instances of that same type.
 
 First we will look at the constructor functions, which are more
 typically used for conversion. This is because there is generally a
@@ -149,7 +149,7 @@ must be valid Python keywords.
    :exc:`IOError` is raised.  When opening a file, it's preferable to use
    :func:`open` instead of invoking the :class:`file` constructor directly.
 
-   The first two arguments are the same as for ``stdio``'s :cfunc:`fopen`:
+   The first two arguments are the same as for ``stdio``'s :c:func:`fopen`:
    *filename* is the file name to be opened, and *mode* is a string indicating how
    the file is to be opened.
 
@@ -175,14 +175,14 @@ must be valid Python keywords.
    means unbuffered, 1 means line buffered, any other positive value means use a
    buffer of (approximately) that size.  A negative *bufsize* means to use the
    system default, which is usually line buffered for tty devices and fully
-   buffered for other files.  If omitted, the system default is used. [#]_
+   buffered for other files.  If omitted, the system default is used.
 
    Modes ``'r+'``, ``'w+'`` and ``'a+'`` open the file for updating (note that
    ``'w+'`` truncates the file).  Append ``'b'`` to the mode to open the file in
    binary mode, on systems that differentiate between binary and text files; on
    systems that don't have this distinction, adding the ``'b'`` has no effect.
 
-   In addition to the standard :cfunc:`fopen` values *mode* may be ``'U'`` or
+   In addition to the standard :c:func:`fopen` values *mode* may be ``'U'`` or
    ``'rU'``.  Python is usually built with universal newline support; supplying
    ``'U'`` opens the file as a text file, but lines may be terminated by any of the
    following: the Unix end-of-line convention ``'\n'``,  the Macintosh convention
@@ -467,30 +467,30 @@ namespace - __import__, delattr, dir, getattr, locals, globals, hasattr, reload,
 
 getattr
 
-.. sidebar::
-  
-  Java dynamic integration. the supporting special method for getattr
-  is __getattr__. When Jython code is compiled, it actually uses
-  __getattr__ for implementing attribute lookup. So x.y.z is actually
-  compiled to the equivalent chain of
-  x.__getattr__('y').__getattr__('z'). Alternatively for more
-  efficient Java integration, __findattr__ is supported. It returns
-  null instead of throwing an AttributeError if the attribute is not
-  part of a given object. But use __getattr__ if you are going to be
-  chaining method calls together so as to maintain Python exception
-  handling semantics.
+.. note::
 
-  If the given Jython class implements a Java interface (or extends a
-  Java class, but this is the less preferrable case in Jython as it is
-  in Java in general), then Java code that uses such instances can
-  statically bind method lookup.
+   Java dynamic integration. the supporting special method for getattr
+   is __getattr__. When Jython code is compiled, it actually uses
+   __getattr__ for implementing attribute lookup. So x.y.z is actually
+   compiled to the equivalent chain of
+   x.__getattr__('y').__getattr__('z'). Alternatively for more
+   efficient Java integration, __findattr__ is supported. It returns
+   null instead of throwing an AttributeError if the attribute is not
+   part of a given object. But use __getattr__ if you are going to be
+   chaining method calls together so as to maintain Python exception
+   handling semantics.
 
-  [The Clamp project supports an alternate way of exposing Java
-  interfaces, such that the interfaces are created from Jython
-  code. I'm not so certain about this approach as a best practice
-  however. Java interfaces in Java are quite precise with respect to
-  interoperability. Other parts are useful, such as AOT compilation of
-  Java proxies for Jython classes.]
+   If the given Jython class implements a Java interface (or extends a
+   Java class, but this is the less preferrable case in Jython as it is
+   in Java in general), then Java code that uses such instances can
+   statically bind method lookup.
+
+   [The Clamp project supports an alternate way of exposing Java
+   interfaces, such that the interfaces are created from Jython
+   code. I'm not so certain about this approach as a best practice
+   however. Java interfaces in Java are quite precise with respect to
+   interoperability. Other parts are useful, such as AOT compilation of
+   Java proxies for Jython classes.]
 
 
 compile, eval, exec
@@ -806,7 +806,7 @@ Operators
    This function is similar to the :keyword:`exec` statement, but parses a file
    instead of a string.  It is different from the :keyword:`import` statement in
    that it does not use the module administration --- it reads the file
-   unconditionally and does not create a new module. [#]_
+   unconditionally and does not create a new module.
 
    The arguments are a file name and two optional dictionaries.  The file is parsed
    and evaluated as a sequence of Python statements (similarly to a module) using
@@ -1493,7 +1493,7 @@ Operators
    .. warning::
 
       The returned dictionary should not be modified:
-      the effects on the corresponding symbol table are undefined. [#]_
+      the effects on the corresponding symbol table are undefined.
 
 
 .. function:: xrange([start,] stop[, step])

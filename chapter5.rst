@@ -110,7 +110,7 @@ Python actually has two kinds of classes - 'newstyle' and old style.
 The old way of declaring classes didn't require you to type 'object' -
 you'll occassionally see the old-style class usage in some Python
 code, but it's not consider a good practice   Just subclass 'object'
-for any of your base classes and your life will be simpler[1]_.
+for any of your base classes and your life will be simpler [1]_.
 
 Lines 3 to 6 declare class attributes for the direction that any car
 can point  to.  These are *class* attributes so they can be shared

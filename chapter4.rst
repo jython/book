@@ -37,12 +37,11 @@ Function Syntax and Basics
 
 Functions are usually defined by using the *`def`* keyword, the name
 of the function, its parameters (if any), and the body of code. We
-will start by looking at this example function:
-::
-    
+will start by looking at this example function::
+
     def times2(n):
         return n * 2
-      
+
 
 In this example, the function name is *times2* and it accepts a parameter *n*.
 The body of the function is only one line, but the work being done is the multiplication
@@ -51,7 +50,7 @@ this function simply returns it to the calling code.  An example of using this f
 would be as follows.
 
 ::
-    
+
     >>> times2(8)
     16
     >>> x = times2(5)
@@ -67,7 +66,7 @@ later section.
 
 
 The `def` Keyword
-~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~
 
 Using *`def`* for *define* seems simple enough, and this keyword
 certainly can be used to declare a function just like you would in a
@@ -83,7 +82,7 @@ scopes. And you can do things like conditionally define them.
 This means it's perfectly valid to write code like the following:
 
 ::
-    
+
     if variant:
         def f():
             print "One way"
@@ -112,7 +111,7 @@ see the following (at least) in the console namespace::
 We can also just look at what is bound to that name:
 
 ::
-    
+
     >>> times2
     <function times2 at 0x1>
 
@@ -122,11 +121,11 @@ from there.)
 We can also redefine a function at any time:
 
 ::
-    
+
     >>> def f(): print "Hello, world"
-    ... 
+    ...
     >>> def f(): print "Hi, world"
-    ... 
+    ...
     >>> f()
     Hi, world
 
@@ -142,7 +141,7 @@ action by simply setting another name (equivalently, a variable) to
 ``times2``.
 
 ::
-    
+
     >>> t2 = times2
     >>> t2(5)
     10
@@ -171,11 +170,11 @@ takes. Typically you will see something like the following. The syntax
 is familar:
 
 ::
-    
+
     def tip_calc(amt, pct)
 
 
-Calling a function is symmetric. 
+Calling a function is symmetric.
 You can call a function. The parentheses are mandatory.   Calling functions is also done by with a familiar syntax. For example,
 for the function x with parameters ``a,b,c`` that would be
 x(a,b,c). Unlike some other dynamic languages like Ruby and Perl, the
@@ -206,7 +205,7 @@ entities in Python. Everything is an object in Python.
 Functions are objects too, and they can be passed as parameters:
 
 ::
-        
+
     # Define a function that takes two values and a mathematical function
     >>> def perform_calc(value1, value2, func):
     ...     return func(value1, value2)
@@ -214,17 +213,17 @@ Functions are objects too, and they can be passed as parameters:
     # Define a mathematical function to pass
     >>> def mult_values(value1, value2):
     ...     return value1 * value2
-    ... 
+    ...
     >>> perform_calc(2, 4, mult_values)
     8
-    
+
     # Define another mathematical function to pass
     >>> def add_values(value1, value2):
     ...     return value1 + value2
-    ... 
-    >>> perform_calc(2, 4, add_values) 
+    ...
+    >>> perform_calc(2, 4, add_values)
     6
-    >>> 
+    >>>
 
 
 If you have more than two or so arguments, it often makes more sense
@@ -238,7 +237,7 @@ Defaults further simplify calling a function. You use the form of
 might take our ``times2`` function and generalize it.
 
 ::
-    
+
     def times_by(n, by=2):
         return n * by
 
@@ -268,25 +267,25 @@ declaration.  Furthermore, the double ``**`` must follow the single ``*``.
 Definition of a function that takes a sequence of numbers:
 
 ::
-        
+
     def sum_args(*nums):
         return sum(nums)
 
 Calling the function using a sequence of numbers:
 
 ::
-       
+
     >>> seq = [6,5,4,3]
     >>> sum_args(*seq)
     18
 
-.. note:: 
+.. note::
 
   This is not exhaustive. You can also use tuple parameters, but in
   practice, they are not typically used, and were removed in Python
   3. We recommend you don't use them. For one thing, they cannot be
   properly introspected from Jython.
-  
+
 Recursive Function Calls
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -297,7 +296,7 @@ a given argument.  This function calls itself passing in the provided argument
 decremented by 1 until the argument reaches the value of 0 or 1.
 
 ::
-    
+
     def fact(n):
         if n in (0, 1):
             return 1
@@ -328,7 +327,7 @@ docstring, if it exists, is a string that occurs as the first value of
 the function body.
 
 ::
-    
+
     def times2(n):
         """Given n, returns n * 2"""
         return n * 2
@@ -337,15 +336,15 @@ As mentioned in chapter 1, by convention we use triple-quoted strings, even if y
 not multiline. If it is multiline, this is how we recommend you format it.
 
 ::
-    
+
     def fact(n):
         """Returns the factorial of n
-    
+
         Computes the factorial of n recursively. Does not check its
         arguments if nonnegative integer or if would stack
-        overflow. Use with care! 
+        overflow. Use with care!
         """
-    
+
         if n in (0, 1):
             return 1
         else:
@@ -361,14 +360,14 @@ or see them from various IDEs like PyDev for Eclipse and nbPython for
 NetBeans as part of the auto-complete.
 
 ::
-    
+
     >>> help(fact)
     Help on function fact in module __main__:
-    
+
     fact(n)
         Returns the factorial of n
-    
-    >>> 
+
+    >>>
 
 
 Returning Values
@@ -382,10 +381,10 @@ than one value.  In this case, the tip calculator returns the result of a tip ba
 upon two percentage values.
 
 ::
-    
+
     >>> def calc_tips(amount):
     ...     return (amount * .18), (amount * .20)
-    ... 
+    ...
     >>> calc_tips(25.25)
     (4.545, 5.050000000000001)
 
@@ -394,16 +393,16 @@ A function can return at any time, and it can also return any object as its valu
 functions that look like the following:
 
 ::
-    
-    >>> def check_pos_perform_calc(num1, num2, func):                          
-    ...     if num1 > 0 and num2 > 0:                                          
-    ...         return func(num1, num2)                                        
-    ...     else:                                                              
-    ...         return 'Only positive numbers can be used with this function!' 
-    ... 
+
+    >>> def check_pos_perform_calc(num1, num2, func):
+    ...     if num1 > 0 and num2 > 0:
+    ...         return func(num1, num2)
+    ...     else:
+    ...         return 'Only positive numbers can be used with this function!'
+    ...
     >>> def mult_values(value1, value2):
     ...     return value1 * value2
-    ... 
+    ...
     >>> check_pos_perform_calc(3, 4, mult_values)
     12
     >>> check_pos_perform_calc(3, -44, mult_values)
@@ -417,7 +416,7 @@ value when it's ``None``, so you need to explicitly print it to see
 what is returned.
 
 ::
-    
+
     >>> do_nothing()
     >>> print do_nothing()
     None
@@ -433,12 +432,12 @@ scope of the function definition itself.  If we try to use it outside
 of the function then we'll receive an error.
 
 ::
-    
+
     >>> def square_num(num):
     ...    """ Return the square of a number"""
     ...     sq = num * num
-    ...     return sq                  
-    ... 
+    ...     return sq
+    ...
     >>> square_num(35)
     1225
     >>> sq
@@ -451,33 +450,33 @@ of the function then we'll receive an error.
     global keyword - [Useful for certain circumstances, certainly not
     core/essential, much like nonlocal in Py3K, so let's not put too
     much focus on it.]
-    
+
     The `global` keyword is used to declare that a variable name is from
     the module scope (or script) containing this function. Using
     `global` is rarely necessary in practice, since it is not necessary
     if the name is called as a function or an attribute is accessed
     (through dotted notation).
-    
+
     This is a good example of where Python is providing a complex
     balancing between a complex idea - the lexical scoping of names, and
     the operations on them - and the fact that in practice it is doing
     the right thing.
-    
+
     Here is an example of using a global variable in the same *square_num()* function.
-      
+
     ::
-        
+
         >>> sq = 0
         >>> def square_num(n):
         ...     global sq
         ...     sq = n * n
         ...     return sq
-        ... 
+        ...
         >>> square_num(10)
         100
         >>> sq
         100
- 
+
 
 Other Statements
 ^^^^^^^^^^^^^^^^
@@ -523,7 +522,7 @@ the default -- we can simplify the API.  An empty function still needs something
 in its body. You can use the ``pass`` statement.
 
 ::
-    
+
     def do_nothing():
         pass # here's how to specify an empty body of code
 
@@ -531,7 +530,7 @@ Or you can just have a docstring for the function body as in the following
 example.
 
 ::
-    
+
     def empty_callback(*args, **kwargs):
         """Use this function where we need to supply a callback,
            but have nothing further to do.
@@ -556,7 +555,7 @@ PyBuiltinFunction. But don't assume that in your code, because many
 other objects support the function interface (``__call__``), and
 these potentially could be proxying, perhaps several layers deep, a
 given function. You can only assume it's a PyObject.
-  
+
 Much more information is available by going to the Jython wiki.  You can also
 send questions to the jython-dev mailing list for more specifics.
 
@@ -596,7 +595,7 @@ some alternatives:
 function. Some people like this because it requires minimal
 space, especially when used in a callback.
 
-    
+
 * Classes:
 
 In addition, we can also create objects with classes
@@ -634,7 +633,7 @@ of a lamdba function is very short in nature.  A lambda function is comprised of
 following segments:
 
 ::
-    
+
     lambda <<argument(s)>> : <<function body>>
 
 A lambda function accepts arguments just like any other function, and it uses
@@ -646,14 +645,14 @@ to get a better understanding of how they work.
 and last name*
 
 ::
-    
+
     >>> name_combo = lambda first,last: first + ' ' + last
     >>> name_combo('Jim','Baker')
     'Jim Baker'
 
 In the example above, we assigned the function to a name.  However, a lambda
 function can also be defined in-line with other code.  Oftentimes a lambda
-function is used within the context of other functions, namely built-ins.  
+function is used within the context of other functions, namely built-ins.
 
 
 Generator Functions
@@ -689,7 +688,7 @@ As mentioned previously, each time the ``yield`` statement is encountered,
 a value is returned.
 
 ::
-    
+
     def g():
         print "before yield point 1"
         # The generator will return a value once it encounters the yield statement
@@ -705,7 +704,7 @@ the next yield statement.  At that point it will return another value, the 2 in
 this case.  Let's see this generator in action.
 
 ::
-    
+
     >>> x = g()
     >>> x.next()
     before the yield point 1
@@ -728,7 +727,7 @@ upon a given factor.  The generator starts at zero and increments each time
 provided by the *stop* argument.
 
 ::
-    
+
     >>> def step_to(factor, stop):
     ...     step = factor
     ...     start = 0
@@ -738,7 +737,7 @@ provided by the *stop* argument.
     ...
     >>> for x in step_to(1, 10):
     ...     print x
-    ... 
+    ...
     0
     1
     2
@@ -752,14 +751,14 @@ provided by the *stop* argument.
     10
     >>> for x in step_to(2, 10):
     ...     print x
-    ... 
+    ...
     0
     2
     4
     6
     8
     10
-    >>> 
+    >>>
 
 
 If the ``yield`` statement is seen in the scope of a function, then that
@@ -772,19 +771,19 @@ that the factor is less than the stopping point.  We'll add a return
 statement to exit the generator if the factor is greater or equal to the stop.
 
 ::
-        
+
     >>> def step_return(factor, stop):
-    ...     step = factor             
-    ...     start = 0                 
+    ...     step = factor
+    ...     start = 0
     ...     if factor >= stop:
     ...         return
     ...     while start <= stop:
     ...         yield start
     ...         start += step
-    ... 
+    ...
     >>> for x in step_return(1,10):
     ...     print x
-    ... 
+    ...
     0
     1
     2
@@ -798,27 +797,27 @@ statement to exit the generator if the factor is greater or equal to the stop.
     10
     >>> for x in step_return(3,10):
     ...     print x
-    ... 
+    ...
     0
     3
     6
     9
     >>> for x in step_return(3,3):
     ...     print x
-    ... 
+    ...
 
 If you attempt to return an argument then a syntax error will be raised.
 
 ::
-    
+
     def g():
         yield 1
         yield 2
         return None
-    
+
     for i in g():
         print i
-    
+
     SyntaxError: 'return' with argument inside generator
 
 Many useful generators actually will have an infinite loop around
@@ -826,9 +825,8 @@ their yield expression, instead of ever exiting, explicitly or not.  The
 generator will essentially work each time *next()* is called throughout the life
 of the program.
 
-*Pseudocode for generator using infinite loop*
-::
-    
+*Pseudocode for generator using infinite loop* ::
+
     while True:
         yield stuff
 
@@ -868,7 +866,7 @@ equivalent to what a generator function yields when called.  Generator expressio
 basically create an unnamed generator.
 
 ::
-      
+
     >>> x = (2 * x for x in [1,2,3,4])
     >>> x
     <generator object at 0x1>
@@ -880,10 +878,10 @@ basically create an unnamed generator.
 Let's see this generator expression in action:
 
 ::
-        
+
     >>> for v in x:
     ...     print v
-    ... 
+    ...
     2
     4
     6
@@ -905,7 +903,7 @@ instance, in the following function definition the imports of *A* and *B* are
 only valid within the context of *f()*.
 
 ::
-    
+
     def f():
         from NS import A, B
 
@@ -924,14 +922,14 @@ function is only valid within the parent function.  Let's take a look at a simpl
 example of this before we go any further.
 
 ::
-    
+
     >>> def parent_function():
     ...     x = [0]
     ...     def child_function():
     ...         x[0] += 1
     ...         return x[0]
     ...     return child_function
-    ... 
+    ...
     >>> p()
     1
     >>> p()
@@ -944,7 +942,7 @@ example of this before we go any further.
 While this example is not extremely useful, it allows you to understand a few of
 the concepts for nesting functions.  As you can see, the *parent_function* contains
 a function named *child_function*.  The *parent_function* calls the *child_function*
-passing an argument.  What we have created in this example is a simple *Closure* 
+passing an argument.  What we have created in this example is a simple *Closure*
 function.  Each time the function is called, it executes the inner function and
 increments the variable *x* which is only available within the scope of this
 closure.
@@ -965,13 +963,12 @@ a function that has already been defined can be used to decorate another functio
 which basically allows the decorated function to be passed into the function that
 is named in the decorator.  Let's look at a simple example.
 
-*Example 4_1.py*
-::
-    
+*Example 4_1.py* ::
+
     def plus_five(func):
     x = func()
     return x + 5
-    
+
     @plus_five
     def add_nums():
         return 1 + 2
@@ -983,7 +980,7 @@ makes this technique easier to use.  The decorator above has the same functional
 as the following code.
 
 ::
-    
+
     add_nums = plus_five(add_nums)
 
 Now that we've covered the basics of function decorators it is time to take a look
@@ -997,9 +994,8 @@ then transforms the function so that it not only calculates and returns the
 sum of all amounts on the bill, but it also applies a standard sales tax
 to the bill and returns the tax amount and total amounts as well.
 
-*Example 4_2.py*
-::
-    
+*Example 4_2.py* ::
+
     def sales_tax(func):
         ''' Applies a sales tax to a given bill calculator '''
         def calc_tax(*args, **kwargs):
@@ -1009,7 +1005,7 @@ to the bill and returns the tax amount and total amounts as well.
             print "Tax Amount: $ %.2f" % (tax)
             print "Total bill: $ %.2f" % (f + tax)
         return calc_tax
-    
+
     @sales_tax
     def calc_bill(amounts):
         ''' Takes a sequence of amouunts and returns sum '''
@@ -1020,13 +1016,13 @@ a sequence of arguments and a dictionary of keyword args.  We must pass these
 arguments to our original function when calling from the decorator to ensure
 that the arguments that we passed to the original function are applied within
 the decorator function as well.  In this case, we want to pass a sequence of
-amounts to *calc_bill*, so passing the *args, and **kwargs arguments to the
+amounts to *calc_bill*, so passing the *\*args*, and *\*\*kwargs* arguments to the
 function ensures that our amounts sequnce is passed within the decorator.
 The decorator function then performs simple calculations for the tax and total
 dollar amounts and prints the results.  Let's see this in action:
 
 ::
-    
+
     >>> amounts = [12.95,14.57,9.96]
     >>> calc_bill(amounts)
     Total before tax: $ 37.48
@@ -1042,7 +1038,7 @@ example and create a decorator that will apply the tip calculation to the
 *calc_bill* function.
 
 ::
-    
+
     def tip_amount(tip_pct):
         def calc_tip_wrapper(func):
             def calc_tip_impl(*args, **kwargs):
@@ -1058,11 +1054,11 @@ a percentage amount to the decorator itself and it is applied to the decorator
 function.
 
 ::
-    
+
     >>> @tip_amount(.18)
     ... def calc_bill(amounts):
     ...     ''' Takes a sequence of amouunts and returns sum '''
-    ...     return sum(amounts)    
+    ...     return sum(amounts)
     ...
     >>> amounts = [20.95, 3.25, 10.75]
     >>> calc_bill(amounts)
@@ -1072,7 +1068,7 @@ function.
 
 As you can see, we have a similar result as was produced with the sales tax
 calculator.  All of the amounts in the sequence of amounts are summed up and
-then the tip is applied. 
+then the tip is applied.
 
 Coroutines
 ----------
@@ -1091,7 +1087,7 @@ take a look at a simple coroutine example and then break it down to study
 the functionality.
 
 ::
-    
+
     def co_example(name):
         print 'Entering coroutine %s' % (name)
         my_text = []
@@ -1108,7 +1104,7 @@ to the *txt* variable and then processing continues.  Let's take a look at how
 to actually use the coroutine.
 
 ::
-     
+
     >>> ex = co_example("example1")
     >>> ex.next()
     Entering coroutine example1
@@ -1121,7 +1117,7 @@ once to intialize the coroutine.  Once this has been done, the function is
 ready to accept values.
 
 ::
-    
+
     >>> ex.send("test1")
     ['test1']
     >>> ex.send("test2")
@@ -1137,7 +1133,7 @@ to *close()* the coroutine once it is no longer needed.  The *close()* call will
 cause the coroutine to be garbage collected.
 
 ::
-    
+
     >>> ex.close()
     >>> ex.send("test1")
     Traceback (most recent call last):
@@ -1161,7 +1157,7 @@ Let's define a decorator that we can apply to the coroutine in order to make
 the call to *next()*.
 
 ::
-    
+
     def coroutine_next(f):
         def initialize(*args,**kwargs):
             coroutine = f(*args,**kwargs)
@@ -1173,7 +1169,7 @@ Now we will apply our decorator to the coroutine function and then make use
 of it.
 
 ::
-    
+
     >>> @coroutine_next
     ... def co_example(name):
     ...     print 'Entering coroutine %s' % (name)
@@ -1182,7 +1178,7 @@ of it.
     ...         txt = (yield)
     ...         my_text.append(txt)
     ...         print my_text
-    ... 
+    ...
     >>> ex2 = co_example("example2")
     Entering coroutine example2
     >>> ex2.send("one")
@@ -1207,9 +1203,8 @@ text file that we sent to it (given that the file resides in the correct locatio
 and search for the number of matches per a given word.  The numeric result
 for the number of matches will be returned to the user.
 
-*Example-4_3.py*
-::
-    
+*Example-4_3.py* ::
+
     def search_file(filename):
         print 'Searching file %s' % (filename)
         my_file = open(filename, 'r')
@@ -1225,7 +1220,7 @@ The coroutine above opens the given file, reads it's content, and then
 searches and returns the number of matches for any given *send* call.
 
 ::
-    
+
     >>> search = search_file("example4_3.txt")
     >>> search.next()
     Searching file example4_3.txt

@@ -13,7 +13,7 @@ Writing servlets in Jython is a very productive and easy way to make use of Jyth
 Another feature offered to us by Jython servlet usage is dynamic testing.  Since Jython compiles at runtime, we can make code changes on-the-fly without recompiling and redeploying our web application.  This can make it very easy to test web applications as usually the most painful part of web application development is the wait time between deployment to the servlet container and testing.
 
 Configuring Your Web Application for Jython Servlets
----------------------------------------------------------
+----------------------------------------------------
 
 Very little needs to be done in any web application to make it compatible for use with Jython servlets.  Jython contains a built-in class named *PyServlet* that facilitates the creation of Java servlets using Jython source files.  We can make use of PyServlet quite easily in our application by adding the necessary XML configuration into the application's web.xml depscriptor such that the *PyServlet* class gets loaded at runtime and any file that contains the *.py* suffix will be passed to it.  Once this configuration has been added to a web application, and *jython.jar* has been added to the CLASSPATH then the web application is ready to use Jython servlets.
 
@@ -29,7 +29,7 @@ Very little needs to be done in any web application to make it compatible for us
         <servlet-name>PyServlet</servlet-name>
         <url-pattern>*.py</url-pattern>
     </servlet-mapping>
-    
+
 Any servlet that is going to be used by a Java servlet container also needs to be added to the *web.xml* file as well, this allows for the correct mapping of the servlet via the URL.  For the purposes of this book, we will code a servlet named *NewJythonServlet* in the next section, so the following XML configuration will need to be added to the web.xml file. ::
 
     <servlet>
@@ -40,7 +40,7 @@ Any servlet that is going to be used by a Java servlet container also needs to b
         <servlet-name>NewJythonServlet</servlet-name>
         <url-pattern>/NewJythonServlet</url-pattern>
     </servlet-mapping>
-    
+
 
 Writing a Simple Servlet
 ------------------------
@@ -61,13 +61,13 @@ NewJavaServlet.java ::
     import javax.servlet.http.HttpServletResponse;
 
     public class NewJavaServlet extends HttpServlet {
-       
+
         protected void processRequest(HttpServletRequest request, HttpServletResponse response)
         throws ServletException, IOException {
             response.setContentType("text/html;charset=UTF-8");
             PrintWriter out = response.getWriter();
             try {
-                
+
                 out.println("<html>");
                 out.println("<head>");
                 out.println("<title>Servlet NewJavaServlet Test</title>");
@@ -76,55 +76,55 @@ NewJavaServlet.java ::
                 out.println("<h1>Servlet NewJavaServlet at " + request.getContextPath () + "</h1>");
                 out.println("</body>");
                 out.println("</html>");
-               
-            } finally { 
+
+            } finally {
                 out.close();
             }
-        } 
-    
+        }
+
         @Override
         protected void doGet(HttpServletRequest request, HttpServletResponse response)
         throws ServletException, IOException {
             processRequest(request, response);
-        } 
-    
+        }
+
         @Override
          protected void doPost(HttpServletRequest request, HttpServletResponse response)
         throws ServletException, IOException {
             processRequest(request, response);
         }
-    
+
         @Override
         public String getServletInfo() {
             return "Short description";
         }
-    
+
     }
 
 
 All commenting has been removed from the code in an attempt to make the code a bit shorter.  Now, the equivalent servlet code written in Jython. ::
 
-    from javax.servlet.http import HttpServlet
+   from javax.servlet.http import HttpServlet
 
-    class NewJythonServlet (HttpServlet):
-	def doGet(self,request,response):
-		self.doPost (request,response)
+   class NewJythonServlet (HttpServlet):
 
-	def doPost(self,request,response):
-		toClient = response.getWriter()
-		response.setContentType ("text/html")
-		toClient.println ("<html><head><title>Jython Servlet Test</title>" +
-						  "<body><h1>Servlet Jython Servlet at" +
-                                                  request.getContextPath() + "</h1></body></html>")
+      def doGet(self,request,response):
+          self.doPost (request,response)
 
-        def getServletInfo(self):
-            return "Short Description"
-    
+      def doPost(self,request,response):
+          toClient = response.getWriter()
+          response.setContentType ("text/html")
+          toClient.println ("<html><head><title>Jython Servlet Test</title>" +
+                            "<body><h1>Servlet Jython Servlet at" +
+                            request.getContextPath() + "</h1></body></html>")
+
+      def getServletInfo(self):
+          return "Short Description"
 
 
 Not only is the concise code an attractive feature, but also the easy development lifecycle for working with dynamic servlets.  As stated previously, there is no need to redeploy each time you make a change because of the compile at runtime that Jython offers.  Simply change the Jython servlet, save, and reload the webpage to see the update.  If you begin to think about the possibilities you'll realize that the code above is just a basic example, you can do anything in a Jython servlet that you can with Java and even most of what can be done using the Python language as well.
 
-To summarize the use of Jython servlets, you simply include *jython.jar* and *servlet-api.jar* in your CLASSPATH.  Add necessary XML to the web.xml, and then finally code the servlet by extending the javax.servlet.http.HttpServlet abstract class. 
+To summarize the use of Jython servlets, you simply include *jython.jar* and *servlet-api.jar* in your CLASSPATH.  Add necessary XML to the web.xml, and then finally code the servlet by extending the javax.servlet.http.HttpServlet abstract class.
 
 
 Using JSP with Jython
@@ -146,16 +146,16 @@ Coding the Controller/View
 
 The controller and the view portion of the application will be coded using markup and javascript code.  Obviously this technique utilizes JSP to contain the markup, and the javascript can either be embedded directly into the JSP or reside in separate *.js* files as needed.  The latter is the preferred method in order to make things clean, but some web appplications embed small amounts of Javascript within the pages themselves.
 
-The JSP in this example is rather simple, there is no Javascript in the example and it only contains a couple of input text areas.  This JSP will include two forms because we will have two separate submit buttons on the page.  Each of these forms will redirect to a different Jython servlet, which will do something with the data that has been supplied within the input text.  In our example, the first form contains a small textbox in which the user can type any text that will be re-displayed on the page once the corresponding sumbit button has ben pressed.  Very cool, eh?  Not really, but it is of good value for learning the correlation between JSP and the servlet implementation.  The second form contains two text boxes in which the user will place numbers, hitting the submit button in this form will cause the numbers to be passed to another servlet that will calculate and return the sum of the two numbers.  Below is the code for this simple JSP. ::
+The JSP in this example is rather simple, there is no Javascript in the example and it only contains a couple of input text areas.  This JSP will include two forms because we will have two separate submit buttons on the page.  Each of these forms will redirect to a different Jython servlet, which will do something with the data that has been supplied within the input text.  In our example, the first form contains a small textbox in which the user can type any text that will be re-displayed on the page once the corresponding sumbit button has ben pressed.  Very cool, eh?  Not really, but it is of good value for learning the correlation between JSP and the servlet implementation.  The second form contains two text boxes in which the user will place numbers, hitting the submit button in this form will cause the numbers to be passed to another servlet that will calculate and return the sum of the two numbers.  Below is the code for this simple JSP.
 
-    *testJSP.jsp*
-    
+*testJSP.jsp* ::
+
 
     <%@page contentType="text/html" pageEncoding="UTF-8"%>
     <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
         "http://www.w3.org/TR/html4/loose.dtd">
     <%@ taglib prefix="c" uri="http://java.sun.com/jstl/core" %>
-    
+
     <html>
         <head>
             <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
@@ -167,11 +167,11 @@ The JSP in this example is rather simple, there is no Javascript in the example 
                 <input type="submit">
             </form>
             <br/>
-            
+
                 <p>${page_text}</p>
-                
+
             <br/>
-            
+
             <form method="GET" action="add_numbers.py">
                 <input type="text" name="x">
                 +
@@ -180,9 +180,9 @@ The JSP in this example is rather simple, there is no Javascript in the example 
                 ${sum}
                 <br/>
                 <input type="submit" title="Add Numbers">
-                
+
             </form>
-            
+
         </body>
     </html>
 
@@ -195,21 +195,21 @@ In the JSP above, you can see that the first form redirects to a Jython servlet 
     #  Simple servlet that takes some text from a web page and redisplays
     #  it.
     #######################################################################
-    
+
     import java, javax, sys
-    
+
     class add_to_page(javax.servlet.http.HttpServlet):
-    
+
         def doGet(self, request, response):
             self.doPost(request, response)
-            
+
         def doPost(self, request, response):
             addtext = request.getParameter("p")
             if not addtext:
                 addtext = ""
-                
+
             request.setAttribute("page_text", addtext)
-            
+
             dispatcher = request.getRequestDispatcher("testJython.jsp")
             dispatcher.forward(request, response)
 
@@ -222,18 +222,18 @@ The second form in our JSP takes two values and returns the resulting sum to the
     #
     #  Calculates the sum for two numbers and returns it.
     #######################################################################
-    
+
     import javax
-    
+
     class add_numbers(javax.servlet.http.HttpServlet):
-    
+
         def doGet(self, request, response):
             self.doPost(request, response)
-            
+
         def doPost(self, request, response):
             x = request.getParameter("x")
             y = request.getParameter("y")
-            
+
             if not x or not y:
                 sum = "<font color='red'>You must place numbers in each value box</font>"
             else:
@@ -241,9 +241,9 @@ The second form in our JSP takes two values and returns the resulting sum to the
                     sum = int(x) + int(y)
                 except ValueError, e:
                     sum = "<font color='red'>You must place numbers only in each value box</font>"
-                    
+
             request.setAttribute("sum", sum)
-            
+
             dispatcher = request.getRequestDispatcher("testJython.jsp")
             dispatcher.forward(request, response)
 
@@ -281,34 +281,34 @@ JythonSwingApp
             MainOF.java
         jythonswingapp.interfaces
             JySwingType.java
-            
+
 
 ::
 
     *MainOF.java*
-    
+
 
     package jythonswingapp;
-    
+
     import jythonswingapp.interfaces.JySwingType;
     import org.plyjy.factory.JythonObjectFactory;
-    
-    
+
+
     public class Main {
-    
+
         JythonObjectFactory factory;
-        
+
         public static void invokeJython(){
-        
+
             JySwingType jySwing = (JySwingType) JythonObjectFactory
                     .createObject(JySwingType.class, "JythonSimpleSwing");
             jySwing.start();
         }
-        
+
         public static void main(String[] args) {
             invokeJython();
         }
-    
+
     }
 
 
@@ -322,15 +322,15 @@ As you can see, *MainOF.java* doesn't do much other than coercing the Jython mod
     public interface JySwingType {
         public void start();
     }
-    
-    
+
+
     *JythonSimpleSwing.py*
     import javax.swing as swing
     import java.awt as awt
     from jythonswingapp.interfaces import JySwingType
     import add_player as add_player
     import Player as Player
-    
+
     class JythonSimpleSwing(JySwingType, object):
         def __init__(self):
             self.frame=swing.JFrame(title="My Frame", size=(300,300))
@@ -340,32 +340,32 @@ As you can see, *MainOF.java* doesn't do much other than coercing the Jython mod
             self.panel2=swing.JPanel(awt.GridLayout(4,1))
             self.panel2.preferredSize = awt.Dimension(10,100)
             self.panel3=swing.JPanel(awt.BorderLayout())
-    
+
             self.title=swing.JLabel("Text Rendering")
             self.button1=swing.JButton("Print Text", actionPerformed=self.printMessage)
             self.button2=swing.JButton("Clear Text", actionPerformed=self.clearMessage)
             self.textField=swing.JTextField(30)
             self.outputText=swing.JTextArea(4,15)
-            
-    
+
+
             self.panel1.add(self.title)
             self.panel2.add(self.textField)
             self.panel2.add(self.button1)
             self.panel2.add(self.button2)
             self.panel3.add(self.outputText)
-    
+
             self.frame.contentPane.add(self.panel1, awt.BorderLayout.PAGE_START)
             self.frame.contentPane.add(self.panel2, awt.BorderLayout.CENTER)
             self.frame.contentPane.add(self.panel3, awt.BorderLayout.PAGE_END)
-    
+
         def start(self):
             self.frame.visible=1
-    
+
         def printMessage(self,event):
             print "Print Text!"
             self.text = self.textField.getText()
             self.outputText.append(self.text)
-    
+
         def clearMessage(self, event):
             self.outputText.text = ""
 
@@ -374,8 +374,8 @@ If you are using Netbeans then when you clean and build your project a JAR files
 To manually create the necessary files for a web start application, you'll need to generate two additional files that will be placed outside of the application JAR.  Create the JAR for your project as you would normally do, and then create a corresponding JNLP file which is used to launch the application, and an HTML page that will reference the JNLP.  The HTML page obviously is where you'd open the application if running it from the web.  Below is some example code for generating a JNLP as well as embedding in HTML.
 
 
-    *launch.jnlp* ::
-    
+*launch.jnlp* ::
+
     <?xml version="1.0" encoding="UTF-8" standalone="no"?>
     <jnlp codebase="file:/path-to-jar/" href="launch.jnlp" spec="1.0+">
         <information>
@@ -397,10 +397,10 @@ To manually create the necessary files for a web start application, you'll need 
         <application-desc main-class="jythonswingapp.Main">
         </application-desc>
     </jnlp>
-    
-    
-    *launch.html* ::
-    
+
+
+*launch.html* ::
+
     <html>
         <head>
             <title>Test page for launching the application via JNLP</title>
@@ -435,7 +435,7 @@ Let's take a look at the example from above, this time using PythonInterpreter a
 
     import org.python.core.PyException;
     import org.python.util.PythonInterpreter;
-    
+
     public class Main {
         public static void main(String[] args) throws PyException{
             PythonInterpreter intrp = new PythonInterpreter();
@@ -444,7 +444,7 @@ Let's take a look at the example from above, this time using PythonInterpreter a
         }
     }
 
-The advantage of using this technique is that we can do away with the object factory design.  However, the disadvantages are that embedding script within Java code is not the most clean technique.  This leads to code that is difficult to maintain and troubleshoot if issues are found.  The other disadvantage is that this technique forces the Java developer to know how to instantiate the Jython module and use it in any way.  The object factory design helps to enforce absraction and simplification as the Java developer only needs to be aware of those methods defined within the Java interface.  In most scenarios however, there is only one developer for the application so this such nuances to not matter. 
+The advantage of using this technique is that we can do away with the object factory design.  However, the disadvantages are that embedding script within Java code is not the most clean technique.  This leads to code that is difficult to maintain and troubleshoot if issues are found.  The other disadvantage is that this technique forces the Java developer to know how to instantiate the Jython module and use it in any way.  The object factory design helps to enforce absraction and simplification as the Java developer only needs to be aware of those methods defined within the Java interface.  In most scenarios however, there is only one developer for the application so this such nuances to not matter.
 
 Distributing via Standalone JAR
 -------------------------------
@@ -454,8 +454,8 @@ It is possible to distribute a web start application using the Jython standalone
 In order to distribute your Jython applications via a JAR, first download the Jython standalone distribution.  Once you have this, you can extract the files from the *jython.jar* using a tool to expand the JAR such as "Stuffit" or "7zip".  Once the JAR has been exploded, you will need to add any of your *.py* scripts into the *Lib* directory, and any Java classes into the root.  For instance, if you have a Java class named *org.jythonbook.Book*, you would place it into the appropriate directory according to the package structure.  If you have any additional JAR files to include with your application then you will need to make sure that they are in your classpath.  Once you've completed this setup, JAR your manipulated standalone Jython JAR back up into a ZIP format using a tool such as those noted before.  You can then rename the ZIP to a JAR.  The application can now be run using the java "-jar" option from the command line using an optional external *.py* file to invoke your application. ::
 
     java -jar newStandaloneJar.jar {optional .py file}
-    
-This is only one such technique used to make a JAR file for containing your applications.  There are other ways to perform such techniques, but this seems to be the most straight forward and easiest to do. 
+
+This is only one such technique used to make a JAR file for containing your applications.  There are other ways to perform such techniques, but this seems to be the most straight forward and easiest to do.
 
 WSGI and modjy
 ==============
@@ -472,8 +472,7 @@ Running a modjy Application in Glassfish
 
 To run a modjy application in any Java servlet container, the first step is to create a Java web application that will be packaged up as a WAR file.  You can create an application from scratch or use an IDE such as Netbeans 6.7 to assist.  Once you've created your web application, ensure that *jython.jar* resides in the CLASSPATH as modjy is now part of Jython as of 2.5.0.  Lastly, you will need to configure the modjy servlet within the application deployment descriptor (web.xml).  In this example, I took the modjy sample application for Google App Engine and deployed it in my local Glassfish environment.
 
-To configure the application deployment descriptor with modjy, we simply configure the modjy servlet, provide the necessary parameters, and then provide a servlet mapping.  In the configuration file shown below, note that the modjy servlet class is *com.xhaus.modjy.ModjyServlet*.  The first parameter you will need to use with the servlet is named *python.home*.  Set the value of this parameter equal to your jython home.  Next, set the parameter *python.cachedir.skip* equal to true.  The *app_filename* parameter provides the name of the applicaiton callable.  Other parameters will be set up the same for each modjy application you configure.  The last piece of the web.xml that needs to be set up is the servlet mapping.  In the example, we set up all URLs to map to the modjy servlet.
-::
+To configure the application deployment descriptor with modjy, we simply configure the modjy servlet, provide the necessary parameters, and then provide a servlet mapping.  In the configuration file shown below, note that the modjy servlet class is *com.xhaus.modjy.ModjyServlet*.  The first parameter you will need to use with the servlet is named *python.home*.  Set the value of this parameter equal to your jython home.  Next, set the parameter *python.cachedir.skip* equal to true.  The *app_filename* parameter provides the name of the applicaiton callable.  Other parameters will be set up the same for each modjy application you configure.  The last piece of the web.xml that needs to be set up is the servlet mapping.  In the example, we set up all URLs to map to the modjy servlet. ::
 
     *web.xml*
     <?xml version="1.0" encoding="ISO-8859-1"?>
@@ -481,12 +480,12 @@ To configure the application deployment descriptor with modjy, we simply configu
          PUBLIC "-//Sun Microsystems, Inc.//DTD Web Application 2.3//EN"
         "http://java.sun.com/dtd/web-app_2_3.dtd">
     <web-app>
-    
+
       <display-name>modjy demo application</display-name>
       <description>
          modjy WSGI demo application
       </description>
-    
+
       <servlet>
         <servlet-name>modjy</servlet-name>
         <servlet-class>com.xhaus.modjy.ModjyJServlet</servlet-class>
@@ -558,25 +557,25 @@ To configure the application deployment descriptor with modjy, we simply configu
         </init-param>
         <load-on-startup>1</load-on-startup>
       </servlet>
-    
+
       <servlet-mapping>
         <servlet-name>modjy</servlet-name>
         <url-pattern>/*</url-pattern>
       </servlet-mapping>
-    
+
     </web-app>
 
 The demo_app should be coded as follows.  As part of the WSGI standard, the application provides a function that the server calls for each request.  In this case, that function is named *handler*.  The function must take two parameters, the first being a dictionary of CGI-defined environment variables.  The second is a callback that returns the HTTP headers.  The callback function should also be coded as follows *start_response(status, response_headers, exx_info=None)*, where status is an HTTP status, response_headers is a list of HTTP headers, and exc_info is for exception handling.  Let's take a look at the *demo_app.py* application and identify the features we've just discussed. ::
 
 
     import sys
-        
+
     def escape_html(s): return s.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
-        
+
     def cutoff(s, n=100):
         if len(s) > n: return s[:n]+ '.. cut ..'
         return s
-        
+
     def handler(environ, start_response):
         writer = start_response("200 OK", [ ('content-type', 'text/html') ])
         response_parts = []

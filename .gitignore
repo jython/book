@@ -1,6 +1,17 @@
+# Droppings of various tools, not for the record
 *.class
 *.war
+*.log
 *.pyc
+*.pyd
+*.pyo
+*.orig
+*.rej
+*.swp
+*.tmp
+\#*
+*~
+
 *.lock
 *.cache
 *.egg-info/
@@ -8,6 +19,5 @@ data/templates/
 /.#
 
 # sphinx-related patterns:
-source/
 build/
 Makefile

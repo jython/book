@@ -197,16 +197,16 @@ model where threads are partitioning the work. But then you are
 binding the given piece of work to a thread. This makes using a thread
 pool problematic, because you have to clean up after the thread.
 
- .. sidebar:: Jython's ``ThreadState`` Problem
+.. sidebar:: Jython's ``ThreadState`` Problem
 
-  In fact, we see this very problem in the Jython runtime. A certain
-  amount of context needs to be made available to execute Python
-  code. In the past, we would look this ``ThreadState`` up from the
-  thread. Historically, this may have been in fact faster in the past,
-  but it now slows things down, and unnecessarily limits what a given
-  thread can do.  A future refactoring of Jython will likely remove
-  the use of ``ThreadState`` completely, simultaneously speeding and
-  cleaning things up.
+   In fact, we see this very problem in the Jython runtime. A certain
+   amount of context needs to be made available to execute Python
+   code. In the past, we would look this ``ThreadState`` up from the
+   thread. Historically, this may have been in fact faster in the past,
+   but it now slows things down, and unnecessarily limits what a given
+   thread can do.  A future refactoring of Jython will likely remove
+   the use of ``ThreadState`` completely, simultaneously speeding and
+   cleaning things up.
 
 Having said they, thread locals might be useful in certain cases. One
 common scenario is one where your code is being called by a component

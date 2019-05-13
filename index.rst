@@ -112,6 +112,7 @@ Part V:  Appendicies and Attribution
    
    appendixA.rst
    appendixB.rst
+   appendixC.rst
    attribution.rst
    
 
