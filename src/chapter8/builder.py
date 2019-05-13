@@ -1,3 +1,4 @@
+from __future__ import print_function
 import os
 import sys
 import glob
@@ -26,7 +27,7 @@ def compile():
 
 def _log(message):
     if options.verbose:
-        print message
+        print(message)
 
 def _compile(names):
     compiler = ToolProvider.getSystemJavaCompiler()
@@ -51,16 +52,16 @@ if __name__ == '__main__':
     
     if options.projecthelp:
         for task in tasks:
-            print task
+            print(task)
         sys.exit(0)
 
     if len(args) < 1:
-        print "Usage: jython builder.py [options] task"
+        print("Usage: jython builder.py [options] task")
         sys.exit(1)
     try:
         current = tasks[args[0]]
     except KeyError:
-        print "Task %s not defined." % args[0]
+        print("Task %s not defined." % args[0])
         sys.exit(1)
     current()
 
