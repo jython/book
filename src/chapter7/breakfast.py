@@ -1,10 +1,11 @@
+from __future__ import print_function
 class Spam(object):
 
     def order(self, number):
-        print "spam " * number
+        print("spam " * number)
 
 def order_eggs():
-    print " and eggs!"
+    print(" and eggs!")
 
 s = Spam()
 s.order(3)
