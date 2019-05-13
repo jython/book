@@ -1,6 +1,7 @@
 """
 This is a standalone client that listens messages from JMS 
 """
+from __future__ import print_function
 from java.io import BufferedReader, InputStreamReader
 from java.lang import System
 from java.util import Properties
@@ -34,6 +35,6 @@ class TopicListener(MessageListener):
         # tconnection.close()
 
     def onMessage(self, message):
-        print message.getText()
+        print(message.getText())
 
 TopicListener().go()

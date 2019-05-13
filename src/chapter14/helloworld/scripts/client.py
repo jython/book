@@ -8,6 +8,7 @@ supports durable message subscribers. Obtain a copy from here :
 
     http://bitbucket.org/crankycoder/python-stomp/overview/
 """
+from __future__ import print_function
 import sys
 import stomp
 import socket
@@ -101,5 +102,5 @@ if __name__ == '__main__':
     else:
         msg_iter = stomper.recv()
         while True:
-            print "Received: ", msg_iter.next()
+            print("Received: ", msg_iter.next())
 
