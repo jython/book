@@ -1,3 +1,4 @@
+from __future__ import print_function
 import javax.swing as swing
 import java.awt as awt
 from jythonswingapp.interfaces import JySwingType
@@ -33,7 +34,7 @@ class JythonSimpleSwing(JySwingType, object):
         self.frame.visible=1
 
     def printMessage(self,event):
-        print "Print Text!"
+        print("Print Text!")
         self.text = self.textField.getText()
         self.outputText.append(self.text)
 
