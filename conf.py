@@ -11,6 +11,11 @@ copyright = u'2010, 2019'
 version = 'latest'
 release = 'latest'
 
+# Add any Sphinx extension module names here, as strings.
+extensions = [
+    'sphinx.ext.intersphinx',
+]
+
 exclude_patterns = ['_build','sandbox']
 
 pygments_style = 'sphinx'
@@ -39,3 +44,8 @@ latex_documents = [
         False),
 ]
 
+# -- Options for intersphinx extension ---------------------------------------
+
+intersphinx_mapping = {
+    'python' : ('https://docs.python.org/2', None),
+}
