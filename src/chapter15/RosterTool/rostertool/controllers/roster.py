@@ -73,7 +73,7 @@ class RosterController(BaseController):
                 first=first,
                 last=last,
                 position=position).all()
-        if len(players) <> 1:
+        if len(players) != 1:
             h.flash("The player was modified by someone else while you were staring at the screen!")
         else:
             player = players[0]

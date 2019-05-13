@@ -28,7 +28,7 @@ class ApiController(BaseController):
         schema = PlayerForm()
         try:
             form_result = schema.to_python(obj)
-        except formencode.Invalid, error:
+        except formencode.Invalid as error:
             response.content_type = 'text/plain'
             return 'Invalid: '+unicode(error)
         else:

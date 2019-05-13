@@ -14,21 +14,21 @@ class TestApiController(TestController):
         session.commit()
 
     def test_add_player(self):
-        data = json.dumps({'first': 'Victor', 
+        data = json.dumps({'first': 'Victor',
             'last': 'Ng',
             'position': 'Goalie'})
         # Note that the content-type is set in the headers to make
         # sure that paste.test doesn't URL encode our data
-        response = self.app.post(url(controller='api', action='add_player'), 
-            params=data, 
+        response = self.app.post(url(controller='api', action='add_player'),
+            params=data,
             headers={'content-type': 'application/x-json'})
         obj = json.loads(response.body)
         assert obj['result'] == 'OK'
 
         # Do it again and fail
-        response = self.app.post(url(controller='api', action='add_player'), 
-            params=data, 
+        response = self.app.post(url(controller='api', action='add_player'),
+            params=data,
             headers={'content-type': 'application/x-json'})
         obj = json.loads(response.body)
-        assert obj['result'] <> 'OK'
+        assert obj['result'] != 'OK'
 
