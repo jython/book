@@ -1,11 +1,11 @@
 # how to use zxoracle w/o having to move it to sqlalchemy/lib/databases:
-# 
+#
 # import zxoracle
 # from sqlalchemy.engine.url import URL
 # def get_dialect(self):
 #     return zxoracle.dialect
 # URL.get_dialect = get_dialect
-# 
+#
 # (make the obvious changes if you actually need to use other dialects at the same time)
 
 
@@ -18,30 +18,36 @@ from sqlalchemy import types as sqltypes
 
 from java.sql import Types as jdbctypes
 
+try:
+    xrange         # Python 2
+except NameError:  # Python 3
+    xrange = range
+
+
 # todo normalize/denormalize from oracle.py
 
 sa_types = {
     jdbctypes.ARRAY : None, # todo
     jdbctypes.BIGINT: sqltypes.Integer,
     jdbctypes.BINARY: sqltypes.Binary,
-    # jdbctypes.BIT : 
+    # jdbctypes.BIT :
     jdbctypes.BLOB : sqltypes.Binary,
     jdbctypes.BOOLEAN : sqltypes.Boolean,
     jdbctypes.CHAR : sqltypes.CHAR,
     jdbctypes.CLOB : sqltypes.Text,
-    # jdbctypes.DATALINK : 
+    # jdbctypes.DATALINK :
     jdbctypes.DATE : sqltypes.Date,
     jdbctypes.DECIMAL : sqltypes.Numeric,
-    # jdbctypes.DISTINCT : 
+    # jdbctypes.DISTINCT :
     jdbctypes.DOUBLE : sqltypes.Float,
     jdbctypes.FLOAT : sqltypes.Float,
     jdbctypes.INTEGER : sqltypes.Integer,
     jdbctypes.LONGVARBINARY : sqltypes.Binary,
     jdbctypes.LONGVARCHAR : sqltypes.Text,
-    # jdbctypes.NULL : 
+    # jdbctypes.NULL :
     jdbctypes.NUMERIC : sqltypes.Numeric,
     jdbctypes.REAL : sqltypes.Float,
-    # jdbctypes.REF : 
+    # jdbctypes.REF :
     jdbctypes.SMALLINT : sqltypes.Smallinteger,
     jdbctypes.TIME : sqltypes.Time,
     jdbctypes.TIMESTAMP : sqltypes.DateTime,
@@ -147,7 +153,7 @@ class JDBCDialect(object):
         for catalog, _, _, raw_colname, key_seq, pk_name in rows:
              colname = self._normalize_name(raw_colname)
              table.primary_key.add(table.c[colname])
-        
+
         # load FKs
         fks = {}
         rs = meta.getImportedKeys(None, ora_schema, ora_tablename)
