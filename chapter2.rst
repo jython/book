@@ -852,8 +852,10 @@ As arrays in Java always have an associated class, this also allows working with
 
 	>>> from java.lang import Class
 	>>> intArrayClass = Class.forName('[I') # Name of an array of Java int
-        >>> array([[1],[2]],intArrayClass)
-	array([I, [array('i', [1]), array('i', [2])])
+        >>> a = array([[1,2,3],[6,7,8,9]],intArrayClass)
+        >>> a[1][3]
+        9
+	
 
 The names for primitive arrays can be found in the Java documentation for the *Class.getName()* method.
 
