@@ -851,9 +851,11 @@ Java arrays can be constructed of arbitrary Java classes using jarray, if needed
 As arrays in Java always have an associated class, this also allows working with two-dimensional or higher-dimensional arrays. 
 
 	>>> from java.lang import Class
-	>>> ci = Class.forName('[I') # Name of an array of Java int
-        >>> array([[1],[2]],ci)
+	>>> intArrayClass = Class.forName('[I') # Name of an array of Java int
+        >>> array([[1],[2]],intArrayClass)
 	array([I, [array('i', [1]), array('i', [2])])
+
+The names for primitive arrays can be found in the Java documentation for the *Class.getName()* method.
 
 
 
