@@ -842,6 +842,25 @@ Table 2-8. Character Typecodes for use with Jarray ::
 	>>> array(myStr,'c')
 	array('c', 'Hello Jython')
 
+Java arrays can be constructed of arbitrary Java classes using jarray, if needed.
+
+	>>> from java.lang import StackTraceElement
+	>>> array([],StackTraceElement)
+	array(java.lang.StackTraceElement)
+
+As arrays in Java always have an associated class, this also allows working with two-dimensional or higher-dimensional arrays. 
+
+	>>> from java.lang import Class
+	>>> intArrayClass = Class.forName('[I') # Name of an array of Java int
+        >>> a = array([[1,2,3],[6,7,8,9]],intArrayClass)
+        >>> a[1][3]
+        9
+	
+
+The names for primitive arrays can be found in the Java documentation for the *Class.getName()* method.
+
+
+
 Files
 -----
 
