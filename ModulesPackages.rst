@@ -1,4 +1,4 @@
-Chapter 7: Modules and Packages
+Chapter 8: Modules and Packages
 +++++++++++++++++++++++++++++++
 
 Up until this chapter we have been looking at code at the level of the

@@ -1,4 +1,4 @@
-Chapter 8:  Scripting With Jython
+Chapter 9:  Scripting With Jython
 +++++++++++++++++++++++++++++++++
 
 In this chapter we will look at scripting with jython.  For our purposes, I

@@ -1,4 +1,4 @@
-Chapter 9: Input and Output
+Chapter 5: Input and Output
 +++++++++++++++++++++++++++
 
 A program means very little if it does not take input of some kind from the program user.  Likewise, if there is no form of output from a program then one may ask whey we have a program at all.  Input and output operations can define the user experience and usability of any program.  This chapter is all about how to put information or data into a program, and then how to display it or save it to a file.  This chapter does not discuss working with databases, but rather, working at a more rudimentary level with files.  Throughout this chapter you will learn such techniques as how to input data for a program via a terminal or command line, likewise, you will learn now to read input from a file and write to a file.  After reading this chapter, you should know how to persist Python objects to disk using the *pickle* module and also how to retrieve objects from disk and use them.  There will be a broad variety of topics discussed in this chapter, all of them relating to input and output.
