@@ -21,17 +21,19 @@ This book is licensed under CC-BY-SA http://creativecommons.org/licenses/by-sa/3
 
 ## How to Create the Jython Book from Source
 
-Create a working directory, say `dg-jython` and `cd` into it. There, clone this repo (Windows Posh):
+Create a working directory, say `dg-jython` and `cd` into it. There, clone this repo (here using Windows Posh):
 ```
 PS dg-jython> git clone https://github.com/jython/book.git
 
 ```
-This creates a sub-directory `book`. The book builds using Sphinx and Python in a virtual environbment. All you need to begin with is Python.
-If you do not have virtualenv, install it:
+This creates a sub-directory `book`.
+The book builds using Sphinx and Python 3 in a virtual environment. All you need to begin with is Python.
+If you do not have `virtualenv`, install it:
 ```
 PS dg-jython> python3 -m pip install virtualenv
 ```
-(You may need to specify ``python3`` explicitly as shown, or `py -3`, or it may just be `python` depending on your set-up.) Now create a virtual environment, activate it and install the tools.
+(You may need to specify ``python3`` explicitly as shown, or `py -3`, or it may just be `python` depending on your set-up.)
+Now create a virtual environment, activate it and install the tools.
 ```
 PS dg-jython> python3 -m virtualenv venv
 ...
