@@ -1,4 +1,4 @@
-Chapter 6: Exception Handling and Debugging
+Chapter 7: Exception Handling and Debugging
 +++++++++++++++++++++++++++++++++++++++++++
 
 Any good program makes use of a language’s exception handling mechanisms.  There is no better way to frustrate an end-user then by having them run into an issue with your software and displaying a big ugly error message on the screen, followed by a program crash.  Exception handling is all about ensuring that when your program encounters an issue, it will continue to run and provide informative feedback to the end-user or program administrator.  Any Java programmer becomes familiar with exception handling on day one, as some Java code won’t even compile unless there is some form of exception handling put into place via the try-catch-finally syntax.  Python has similar constructs to that of Java, and we’ll discuss them in this chapter.

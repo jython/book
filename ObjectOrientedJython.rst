@@ -1,4 +1,4 @@
-Chapter 5:  Object Oriented Jython
+Chapter 6:  Object Oriented Jython
 ==================================
 
 This chapter is going to cover the basics of object oriented
