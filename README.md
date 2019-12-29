@@ -24,46 +24,44 @@ This book is licensed under CC-BY-SA http://creativecommons.org/licenses/by-sa/3
 ## Install and Build
 
 Building locally requires Python 3.5 or above.
-Use of a virtual environment is recommended in order to to isolate this project’s dependencies (the tools).
+Use of a virtual environment is recommended in order to isolate this project’s dependencies (the tools).
 All you need to begin with is an installed Python.
 
 ### Instructions for Windows Powershell.
 
-1. Create a working directory, say `dg-jython`, and `cd` into it.
-There, clone this repository:
-```
-PS dg-jython> git clone https://github.com/jython/book.git
-```
+1.  Create a working directory, say `dg-jython`, and `cd` into it.
+    There, clone this repository:
 
-These instructions assume you cloned into the directory `book`, a sub-directory of your working directory.
-Do *not* `cd` into `book`: the build runs from the current directory: it will create a sub-directory `build` to hold the generated files.
+        PS dg-jython> git clone https://github.com/jython/book.git
 
-2. If you do not have `virtualenv`, install it:
-```
-PS dg-jython> python3 -m pip install virtualenv
-```
-(You may need to specify ``python3`` explicitly as shown, or `py -3`, or it may just be `python` depending on your set-up.)
+    These instructions assume you cloned into the directory `book`, a sub-directory of your working directory.
+    Do *not* `cd` into `book`: the build runs from the current directory: it will create a sub-directory `build` to hold the generated files.
 
-3. Now create a virtual environment, activate it and install the tools.
-```
-PS dg-jython> python3 -m virtualenv venv
-...
-PS dg-jython> .\venv\Scripts\activate
-(venv) PS dg-jython> pip install -r .\book\requirements.txt
-...
-```
+2.  If you do not have `virtualenv`, install it:
 
-4. You can now build the book as HTML in `./build` with the command:
-```
-(venv) PS dg-jython> sphinx-build -N -b html book build\html
-```
-(The option `-N` suppresses output formatting that impedes reading on a PoSH console.) 
+        PS dg-jython> python3 -m pip install virtualenv
 
+    (You may need to specify ``python3`` explicitly as shown, or `py -3`, or it may just be `python` depending on your set-up.)
+
+3.  Now create a virtual environment, activate it and install the tools.
+
+        PS dg-jython> python3 -m virtualenv venv
+        ...
+        PS dg-jython> .\venv\Scripts\activate
+        (venv) PS dg-jython> pip install -r .\book\requirements.txt
+        ...
+
+4.  You can now build the book as HTML in `./build` with the command:
+
+        (venv) PS dg-jython> sphinx-build -N -b html book build\html
+
+    (The option `-N` suppresses output formatting that impedes reading on a PoSH console.) 
+    
 Open `build\html\index.html` with your browser to view the generated documentation.
 
 ### Instructions for Linux.
 
-On Linux, it looks like this:
+On Linux, the same process looks like this:
 ```
 $ python3 -m pip install virtualenv
 ...
