@@ -111,7 +111,7 @@ Working with Threads
 --------------------
 
 Creating threads is easy, perhaps too easy. This example downloads a
-web page concurrently::
+web page concurrently:
 
   .. literalinclude:: src/chapter19/test_thread_creation.py
 
@@ -277,7 +277,7 @@ It may still make sense to defer your imports. Such deferral can
 decrease the start time of your app. Just keep in mind that thread(s)
 performing such imports will be forced to run single threaded because
 of this lock. So it might make sense for your code to perform deferred
-imports in a background thread::
+imports in a background thread:
 
   .. literalinclude:: src/chapter19/background_import.py
 
@@ -327,7 +327,7 @@ that task. If it's not ready, a wait-on dependency is introduced.
 We are going to look at how we can use this functionality by using the
 example of downloading web pages. We will wrap this up so it's easy to
 work with, tracking the state of the download, as well as any timing
-information::
+information:
 
   .. literalinclude:: src/chapter19/downloader.py
 
@@ -348,7 +348,7 @@ caller. This exception will be one of:
 similar to how a coroutine works when ``send`` is called on it.)
 
 Now we have what we need to multiplex the downloads of several web
-pages over a thread pool::
+pages over a thread pool:
 
  .. literalinclude:: src/chapter19/test_futures.py
 
@@ -362,7 +362,7 @@ Shutting down a thread pool should be as simple as calling the
 account this shutdown can happen during extraordinary times in your
 code. Here's the Jython version of a robust shutdown function,
 ``shutdown_and_await_termination``, as provided in the standard Java
-docs::
+docs:
 
   .. literalinclude:: src/chapter19/shutdown.py
 
@@ -371,7 +371,7 @@ working with futures. The scenario is that instead of waiting for all the
 futures to complete, as our code did with ``invokeAll``, or otherwise
 polling them, the completion service will push futures as they are
 completed onto a synchronized queue. This queue can then be consumed,
-by consumers running in one or more threads::
+by consumers running in one or more threads:
 
   .. literalinclude:: src/chapter19/test_completion.py
  
@@ -427,7 +427,7 @@ need to consider thread safety if it will be both shared and mutated.
 
 Here's a simple test harness we will use in our
 examples. ``ThreadSafetyTestCase`` subclasses ``unittest.TestCase``,
-adding a new method ``assertContended``::
+adding a new method ``assertContended``:
 
   .. literalinclude:: src/chapter19/threadsafety.py
 
@@ -439,7 +439,7 @@ For example, we use this idea in Jython to test that certain
 operations on the ``list`` type are atomic. The idea is to to apply a
 sequence of operations that perform an operation, then reverse it. One
 step forward, one step back. The net result should be right where you
-started, an empty list, which is what the test code asserts::
+started, an empty list, which is what the test code asserts:
 
   .. literalinclude:: src/chapter19/test_list.py
 
@@ -480,12 +480,12 @@ with-statement; failing that, you must use a try-finally to ensure
 that the lock is always released when exiting a block of code.
 
 Here's some example code using the with-statement. The code allocates
-a lock, then shares it amongst some tasks::
+a lock, then shares it amongst some tasks:
 
   .. literalinclude:: src/chapter19/test_lock.py
      :pyobject: LockTestCase.test_with_lock
     
-Alternatively, you can do this with try-finally::
+Alternatively, you can do this with try-finally:
 
   .. literalinclude:: src/chapter19/test_lock.py
      :pyobject: LockTestCase.test_try_finally_lock
@@ -497,7 +497,7 @@ code.
 Another possibility is to use the ``synchronize`` module, which is
 specific to Jython. This module provides a``make_synchronized``
 decorator function, which wraps any callable in Jython in a
-``synchronized`` block::
+``synchronized`` block:
 
   .. literalinclude:: src/chapter19/test_synchronized.py
 
@@ -536,7 +536,7 @@ Deadlocks
 ~~~~~~~~~
 
 But use synchronizaton carefully. This code will always eventually
-deadlock::
+deadlock:
 
   .. literalinclude:: src/chapter19/deadlock.py
 
@@ -587,7 +587,7 @@ For example, here's how we actually implement a ``Queue`` in the
 standard library of Jython (just modified here to use the
 with-statement). We can't use a standard Java blocking queue, because
 the requirement of being able to join on the queue when there's no
-more work to be performed requires a third condition variable::
+more work to be performed requires a third condition variable:
 
   .. literalinclude:: src/chapter19/Queue.py
 
@@ -827,7 +827,7 @@ before we even consider changing its implementation and removing
 ``_thread``.
 
 So here's how we can monkey patch, following a recipe of
-Guido van Rossum::
+Guido van Rossum:
 
   .. literalinclude:: src/chapter19/monkeypatch.py
 
@@ -839,7 +839,7 @@ essentially a bug fix like this one. In our case, we will use a
 variant, the ``monkeypatch_method_if_not_set`` decorator, to ensure we
 only patch if it has not been fixed by a later version.
 
-Putting it all together, we have this code::
+Putting it all together, we have this code:
 
   .. literalinclude:: src/chapter19/interrupt.py
 
