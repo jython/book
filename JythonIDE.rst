@@ -30,7 +30,7 @@ http://pydev.sourceforge.net/ but you won't need to manually download and
 install it.
 
 To install the plugin, start Eclipse and go to the menu :menuselection:`Help -->
-Install new Software...`, type http://www.pydev.org/update_sites/9.3.0/ into the
+Install new Software...`, type https://www.pydev.org/update_sites/9.3.0/ into the
 "Work with" input box and press enter. (The latest version of PyDev requires Python 3, 
 version 9.3.0 is the last version that supports Python 2.7.) After a short moment you 
 will see an entry for PyDev in the bigger box below. Just select it, clicking on the
